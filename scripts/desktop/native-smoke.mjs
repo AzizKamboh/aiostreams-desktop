@@ -168,6 +168,8 @@ try {
   const audio = tracks.find(track => track.type === 'audio');
   const subtitle = tracks.find(track => track.type === 'subtitle');
   assert.ok(audio && subtitle, 'Expected decoded audio and subtitle tracks');
+  await connection.evaluate("window.__nativeEvents=[]; window.aiostreamsApp.send({type:'player-set',audio:null,subtitle:null}); true");
+  await until(() => connection.evaluate("window.__nativeEvents.some(m=>m.type==='player-state' && m.audio===null) && window.__nativeEvents.some(m=>m.type==='player-state' && m.subtitle===null)"), 'disable audio/subtitle tracks');
   await connection.evaluate(`window.__nativeEvents=[]; window.aiostreamsApp.send({type:'player-set',audio:${JSON.stringify(audio.id)},subtitle:${JSON.stringify(subtitle.id)}}); true`);
   await until(() => connection.evaluate(`window.__nativeEvents.some(m=>m.type==='player-state' && m.audio===${JSON.stringify(audio.id)}) && window.__nativeEvents.some(m=>m.type==='player-state' && m.subtitle===${JSON.stringify(subtitle.id)})`), 'audio/subtitle selection');
   pass('native pause, seek, audio selection and subtitle controls');
