@@ -6083,3 +6083,63 @@ msgstr ""
 #: src/components/shell/embedded-accounts.tsx
 msgid "No account yet. Built-in Usenet streaming needs one."
 msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "To connect to another server, choose Remote server in Settings, Local server."
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Paused while the server dashboard was open"
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Server dashboard"
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "The server dashboard did not load."
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Back to library"
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "The first start can take a few minutes while the server downloads its data. Later starts are faster."
+msgstr ""
+
+#: src/components/shell/embedded-nav.tsx
+msgid "Use the server on this computer"
+msgstr ""
+
+#: src/components/shell/embedded-nav.tsx
+msgid "Create or edit a configuration"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Connection"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Restarting the backend stops what is playing."
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Switching servers stops what is playing."
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Back to the library"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Usenet providers"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Escape, or Library in the dashboard sidebar"
+msgstr ""
+
+#: src/app/settings/page.tsx
+msgid "Status, accounts, server dashboard and logs"
+msgstr ""

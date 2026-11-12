@@ -6084,3 +6084,63 @@ msgstr "Ready to browse"
 #: src/components/shell/embedded-accounts.tsx
 msgid "No account yet. Built-in Usenet streaming needs one."
 msgstr "No account yet. Built-in Usenet streaming needs one."
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "To connect to another server, choose Remote server in Settings, Local server."
+msgstr "To connect to another server, choose Remote server in Settings, Local server."
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Paused while the server dashboard was open"
+msgstr "Paused while the server dashboard was open"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Server dashboard"
+msgstr "Server dashboard"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "The server dashboard did not load."
+msgstr "The server dashboard did not load."
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Back to library"
+msgstr "Back to library"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "The first start can take a few minutes while the server downloads its data. Later starts are faster."
+msgstr "The first start can take a few minutes while the server downloads its data. Later starts are faster."
+
+#: src/components/shell/embedded-nav.tsx
+msgid "Use the server on this computer"
+msgstr "Use the server on this computer"
+
+#: src/components/shell/embedded-nav.tsx
+msgid "Create or edit a configuration"
+msgstr "Create or edit a configuration"
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Connection"
+msgstr "Connection"
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Restarting the backend stops what is playing."
+msgstr "Restarting the backend stops what is playing."
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Switching servers stops what is playing."
+msgstr "Switching servers stops what is playing."
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Back to the library"
+msgstr "Back to the library"
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Usenet providers"
+msgstr "Usenet providers"
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Escape, or Library in the dashboard sidebar"
+msgstr "Escape, or Library in the dashboard sidebar"
+
+#: src/app/settings/page.tsx
+msgid "Status, accounts, server dashboard and logs"
+msgstr "Status, accounts, server dashboard and logs"

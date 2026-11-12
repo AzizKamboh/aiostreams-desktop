@@ -26,13 +26,24 @@ archive is an alternative; both variants keep data in your Windows profile.
 The complete package bundles Node, WebView2, mpv and ffprobe. You do not need to
 install Docker, Node.js, Python, or a compiler to use that package.
 
-On first launch the app starts the local server and displays the upstream setup
-interface. Use **Server settings** to configure addons, debrid/Usenet services,
-filters and profiles, or the upstream import/existing-configuration mechanisms.
-Use **Browse** to sign into your configuration and use the existing browsing and
-player features. **Diagnostics** provides backend status, restart, logs and a
-source-code download. The existing player retains subtitles, audio tracks and
-playback controls; external services still need your accounts and configuration.
+On first launch the app starts the local server, asks you to create an
+AIOStreams account (below), then shows the library. Everything else is in the
+upstream interfaces, with native entries added where they belong:
+
+| Where | Entry |
+| --- | --- |
+| Library sidebar / menu (next to Settings) | **Server dashboard** |
+| Sign-in screens | **Create or edit a configuration**, **Server dashboard** |
+| Player controls (hide with the controls) | **Server dashboard** button |
+| Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, source download, local/remote switch |
+| Dashboard and configuration sidebars | **Library** returns to the app |
+
+The dashboard opens over the library, so a playing title keeps its player:
+playback pauses, and closing the dashboard offers **Resume**. Keyboard:
+**Ctrl+,** opens the server dashboard, **Ctrl+Shift+,** the configuration, and
+**Escape** returns to the library. Shortcuts never fire while you type in a
+field. Restarting the backend or switching servers asks first while something
+plays.
 
 ### AIOStreams account and built-in Usenet
 
@@ -52,13 +63,13 @@ To stream from your Usenet providers:
    paste your `username:password` as its AIOStreams auth token.
 
 The AIOStreams account is not your Usenet provider login, and it is separate
-from a configuration's password. Change accounts later in **Diagnostics →
-AIOStreams accounts**. Changing a password or removing an account stops
+from a configuration's password. Change accounts later in **Settings → Local
+server → AIOStreams accounts**. Changing a password or removing an account stops
 configurations that use the old `username:password` until you paste the new
 one; unchanged accounts keep working. You can skip the setup; Debrid and
 WebDAV-based services do not need it, and remote-server users are never asked.
 
-Choose **Remote AIOStreams or Jellyfin server** in Diagnostics to use upstream's
+Choose **Remote AIOStreams or Jellyfin server** in Settings → Local server to use upstream's
 remote-server picker. That UI is served from the bundled client so a local backend
 failure does not interrupt its native-player bridge. The local backend remains
 owned in the background until app exit. Return to the embedded option to use the

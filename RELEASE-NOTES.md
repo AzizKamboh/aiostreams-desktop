@@ -8,6 +8,15 @@
   `.env`. The account is stored with DPAPI, applied at every server start,
   checked against the built-in Usenet service, and manageable later in
   Diagnostics. Existing installs keep all data and are offered the setup once.
+- **Native navigation replaces the floating Browse / Server settings /
+  Diagnostics bar**, which covered the video. "Server dashboard" sits next to
+  Settings in the library, on sign-in screens and in the player controls;
+  the dashboard and configuration sidebars get "Library" to return. The
+  dashboard opens over the library, pausing playback and offering Resume, so
+  the player, position, fullscreen and tracks are kept. Settings → Local server
+  replaces Diagnostics. Shortcuts: Ctrl+, / Ctrl+Shift+, / Escape.
+- Clearer startup screen with elapsed time, a note on slow first starts, and
+  restart/logs/remote options after a failure.
 - Smaller changes to upstream files: integration code moved into dedicated
   files, upstream SIGTERM/SIGINT handling restored, and stray formatting and
   byte-order-mark changes reverted. See

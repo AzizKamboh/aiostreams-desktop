@@ -208,8 +208,44 @@ async function closeApp(base) {
 try {
   if (installer) { await install(installer); pass('per-user installer runs successfully into a spaced Unicode path'); }
   let base = await launch();
-  await until(() => connection.evaluate('document.querySelector("iframe")?.contentDocument?.body?.innerText.includes("AIOStreams")'), 'real configuration dashboard');
-  pass('native Windows app, bundled WebView2, private backend and configuration dashboard');
+  // First run: the AIOStreams account setup (AIOSTREAMS_AUTH) appears first.
+  await until(() => connection.evaluate('!!document.getElementById("account-setup-title")'), 'first-run account setup screen');
+  const fill = (selector, value) => connection.evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, ${JSON.stringify(value)}); el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
+  await fill('input[autocomplete="username"]', 'native user');
+  await fill('#account-password-0', 'native-pass-1');
+  await fill('#account-confirm-0', 'different-pass');
+  await connection.evaluate('document.querySelector("form button[type=submit]").click(), true');
+  await until(() => connection.evaluate('!!document.querySelector("[role=alert]")?.innerText.includes("do not match")'), 'password mismatch is refused');
+  await fill('#account-confirm-0', 'native-pass-1');
+  await connection.evaluate('document.querySelector("form button[type=submit]").click(), true');
+  pass('native WebView2 client shows first-run account setup and refuses mismatched passwords');
+  // Saving restarts the backend with AIOSTREAMS_AUTH, which reloads the page.
+  await until(() => connection.evaluate('document.body.innerText.includes("Your account is ready")'), 'account accepted by the built-in Usenet check', 240000);
+  base = await connection.evaluate('location.origin');
+  await connection.evaluate('window.__nativeEvents=[]; window.aiostreamsApp.subscribe(message=>window.__nativeEvents.push(message)); true');
+  const created = await connection.evaluate("fetch('/__desktop/accounts').then(r=>r.json())");
+  assert.deepEqual(created.accounts.map((a) => a.username), ['native user']);
+  const accepted = await connection.evaluate(`fetch('/__desktop/account-check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential:'native user:native-pass-1'})}).then(r=>r.json())`);
+  assert.equal(accepted.success, true);
+  pass('account saved with DPAPI, applied as AIOSTREAMS_AUTH after restart and accepted by the Usenet service check');
+  // "Open Usenet providers" opens upstream's dashboard over the library.
+  await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Open Usenet providers")).click(), true');
+  const libraryEntry = 'document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelector("[data-vertical-menu-item-button=Library]")';
+  await until(() => connection.evaluate(`!!${libraryEntry}`), 'dashboard panel with Library entry', 60000);
+  pass('real dashboard opens in the panel with its Library sidebar entry');
+  await connection.evaluate(`${libraryEntry}.click(), true`);
+  await until(() => connection.evaluate('!document.querySelector("[role=dialog] iframe")'), 'Library closes the panel');
+  // Ctrl+, opens it; typing in a field never does; Escape closes it.
+  await connection.evaluate("(() => { const input = document.createElement('input'); document.body.append(input); input.focus(); input.dispatchEvent(new KeyboardEvent('keydown', { key: ',', code: 'Comma', ctrlKey: true, bubbles: true })); input.remove(); return true; })()");
+  await delay(500);
+  assert.equal(await connection.evaluate('!!document.querySelector("[role=dialog] iframe")'), false, 'Shortcut fired while typing');
+  await connection.evaluate("window.dispatchEvent(new KeyboardEvent('keydown', { key: ',', code: 'Comma', ctrlKey: true, bubbles: true })), true");
+  await until(() => connection.evaluate('!!document.querySelector("[role=dialog] iframe")'), 'Ctrl+, opens the dashboard');
+  await connection.evaluate("window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })), true");
+  await until(() => connection.evaluate('!document.querySelector("[role=dialog] iframe")'), 'Escape returns to the library');
+  assert.equal(await connection.evaluate('!!document.querySelector("nav[aria-label=\\"Desktop navigation\\"]")'), false, 'Old floating navigation is still present');
+  pass('Library, Ctrl+, and Escape navigation; no shortcut while typing; no floating navigation bar');
+  await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Ready to browse"))?.click(), true');
   const duplicate = spawn(path.join(stage, 'aiostreams-desktop.exe'), [], { cwd: stage, stdio: 'ignore', env: { ...process.env, AIOSTREAMS_DESKTOP_DATA_DIR: data } });
   const duplicateCode = await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => { duplicate.kill(); reject(new Error('Second app instance did not exit')); }, 15000);
@@ -254,6 +290,10 @@ try {
   const saved = await connection.evaluate("fetch('/api/v1/dashboard/settings/export').then(r=>r.json())");
   assert.equal(saved.data.settings['branding.addonName'], 'Native smoke 空間');
   pass('second native launch decrypts saved DPAPI key and retains server configuration');
+  const kept = await connection.evaluate("fetch('/__desktop/accounts').then(r=>r.json())");
+  assert.deepEqual(kept.accounts.map((a) => a.username), ['native user']);
+  assert.equal(await connection.evaluate('!!document.getElementById("account-setup-title")'), false, 'Account setup shown again for an existing account');
+  pass('AIOStreams account survives restart and upgrade; setup is not shown again');
   await closeApp(base);
   await writeFile(path.join(evidence, 'native-results.json'), JSON.stringify({ platform: process.platform, results, realNativeBridge: true, audioOutput: 'null (CI has no physical speaker)', installationTested: !!installer, upgradeTested: !!upgrade, developerToolsInChildPath: false }, null, 2));
 } catch (error) {

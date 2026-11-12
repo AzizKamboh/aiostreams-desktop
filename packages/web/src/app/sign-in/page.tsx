@@ -19,6 +19,7 @@ import {
 import { useAction } from '@/lib/input';
 import { configureUrl } from '@/lib/paths';
 import { useServerInfo } from '@/lib/jellyfin/server-info';
+import { useDesktopSignInLinks } from '@/components/shell/embedded-nav';
 import type {
   PickableUser,
   QuickConnectResult,
@@ -128,7 +129,9 @@ export type SignInLink = { label: string; onClick: () => void };
 
 /** The ways off a sign-in screen. */
 export function LinkRow({ links }: { links: (SignInLink | false | null)[] }) {
-  const shown = links.filter((l): l is SignInLink => !!l);
+  // AIOStreams Integrated: local configuration links; empty outside the desktop app.
+  const desktop = useDesktopSignInLinks();
+  const shown = [...links, ...desktop].filter((l): l is SignInLink => !!l);
   if (!shown.length) return null;
   return (
     <div

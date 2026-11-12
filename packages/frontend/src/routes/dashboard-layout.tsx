@@ -13,6 +13,8 @@ import {
 } from '@aiostreams/ui/shared/confirmation-dialog';
 import { useSession } from '@/context/session';
 import { BiLogOutCircle, BiSliderAlt } from 'react-icons/bi';
+// AIOStreams Integrated: a "Library" entry inside the desktop app only.
+import { desktopFooterItems } from '@/lib/desktop-embed';
 import { LayoutHeaderBackground } from '@/components/layout-header-background';
 import { NAV, SECTIONED } from '@/app/dashboard/nav';
 import {
@@ -89,6 +91,7 @@ export function DashboardLayout() {
   });
 
   const footerItems: SidebarItem[] = [
+    ...desktopFooterItems(),
     {
       name: 'Configure',
       iconType: BiSliderAlt,

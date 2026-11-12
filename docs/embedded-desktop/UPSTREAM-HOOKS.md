@@ -22,6 +22,10 @@ git diff --stat 76a5d6da HEAD -- packages
 | `packages/server/src/desktop-routes.ts` | `/__desktop/*` routes: session bootstrap, client files, source download, account list and Usenet account check |
 | `packages/web/src/components/shell/embedded-desktop.tsx` | Embedded shell UI: status, Server settings, Diagnostics, local/remote switch |
 | `packages/web/src/components/shell/embedded-accounts.tsx` | Account setup, "account ready" step, account management |
+| `packages/web/src/components/shell/embedded-nav.tsx` | "Server dashboard" sidebar/menu item, player button, sign-in links |
+| `packages/web/src/components/shell/embedded-local-server.tsx` | Settings → Local server |
+| `packages/web/src/lib/embedded-shell.ts` | Shell state shared with those hooks; active player registry; shortcuts |
+| `packages/frontend/src/lib/desktop-embed.ts` | "Library" entry in the dashboard/configuration sidebars, only inside the app |
 | `packages/web/src/lib/embedded-*.ts` | Local origin handling, settings persistence across ports, account rules |
 | `packages/desktop/app/src/backend.rs`, `backend/*.rs`, `embedded.rs` | Node supervisor, DPAPI storage, accounts, Job Object |
 | `scripts/desktop/*`, `.github/workflows/embedded-desktop.yml` | Build, packaging, tests |
@@ -39,6 +43,12 @@ git diff --stat 76a5d6da HEAD -- packages
 | `server/src/routes/stremio/configure.ts` | 1 option | `dotfiles: 'allow'` for install paths |
 | `web/src/app.tsx` | ~15 lines | Mount the embedded shell in the desktop build |
 | `web/src/lib/hosts/shell/bridge.ts` | types only | Backend-state and account messages |
+| `web/src/components/shell/layout.tsx` | 1 hook, footer lists | "Server dashboard" next to Settings in every navigation layout |
+| `web/src/app/settings/page.tsx` | 1 section entry | Settings → Local server |
+| `web/src/app/sign-in/page.tsx` | 1 hook in `LinkRow` | Configuration/dashboard links (or "use this computer's server") on sign-in screens |
+| `web/src/features/player/options.tsx` | 1 element | Server dashboard button in the player controls |
+| `web/src/features/remote/remote-target.tsx` | 1 hook | Registers the active player so the panel can pause and resume it |
+| `frontend/src/routes/dashboard-layout.tsx`, `frontend/src/app/configure/main-sidebar.tsx` | 1 import, 1 spread each | "Library" footer entry inside the desktop app |
 | `web/src/lib/jellyfin/session.tsx`, `settings/index.ts`, `storage.ts`, `app/settings/account.tsx`, `components/media/no-catalogs.tsx` | 1–9 lines each | Local sign-in, Discord presence default off, storage change event, open configuration in-app |
 | `web/rsbuild.config.ts`, `web/src/env.d.ts` | 1 constant | Server version shown in Diagnostics |
 | `web/src/locales/en-GB.po`, `messages.pot` | appended entries | Source text for new UI strings |
@@ -57,7 +67,12 @@ Check these when merging a new upstream release:
   in `web/src/lib/embedded-accounts.ts` and `desktop/app/src/backend/accounts.rs`.
 - `checkAuthToken(credential, Permission.Service)` as the built-in Usenet
   service's authorisation (`core/src/debrid/aiostreams.ts`).
-- Dashboard route `/dashboard/usenet/providers` (`frontend/src/router.tsx`),
-  linked from the setup screen.
+- Dashboard routes `/dashboard`, `/dashboard/usenet/providers` and
+  `/stremio/configure` (`frontend/src/router.tsx`), opened in the panel.
+- `footerItems` in the two frontend sidebars, `footerItems`/`menuItems` in
+  `web/src/components/shell/layout.tsx`, `LinkRow` on sign-in screens,
+  `OptionButtons` in the player and `useRemotePlayer` receiving the controller.
+- Player key bindings (`web/src/lib/input/actions.ts`): the integration's
+  Ctrl+, shortcuts must not collide with new upstream ones.
 - `setSessionCookie` and the `/api/v1/health` endpoint.
 - The desktop bridge protocol between `desktop/app` and `web/src/lib/hosts/shell`.
