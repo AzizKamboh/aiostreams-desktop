@@ -102,7 +102,7 @@ try {
 
   $tools = Join-Path $work 'tools'
   if (-not (Test-Path "$tools/bin/cargo-about.exe")) {
-    Checked { cargo install cargo-about --version $pins.cargoAbout --locked --root $tools }
+    Checked { cargo install cargo-about --version $pins.cargoAbout --features cli --locked --root $tools }
   }
   Push-Location packages/desktop
   try {
