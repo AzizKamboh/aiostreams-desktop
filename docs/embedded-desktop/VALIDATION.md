@@ -28,8 +28,8 @@ remaining acceptance limits.
   Linux uses its test storage implementation; these tests do not execute DPAPI.
 - Windows x64 target: cross-compiled/type-checked tests and successfully linked
   the release desktop executable using Rust 1.99.1, cargo-xwin and the Windows
-  SDK/CRT. PE inspection confirms an x86-64 Windows GUI executable. It was not run
-  on Windows, and an executable alone is not the complete installable payload.
+  SDK/CRT. PE inspection confirms an x86-64 Windows GUI executable. That cross-built executable was not executed; the native Windows build
+  and complete installable payload were tested separately as described below.
 - Chromium/Playwright: actual embedded configuration dashboard and built browsing
   interface rendered; navigation, remote-mode selection, failure presentation and
   native restart/open-logs command dispatch passed. The native bridge was
@@ -44,12 +44,14 @@ remaining acceptance limits.
 
 ## Executed on native Windows CI
 
-[Windows run 43256456257](https://github.com/AzizKamboh/aiostreams-desktop/actions/runs/43256456257)
+[Windows run 43262406460](https://github.com/AzizKamboh/aiostreams-desktop/actions/runs/43262406460)
 built the native Windows x64 application, production Node dependencies, ffprobe,
-fixed WebView2 payload, per-user Setup.exe and portable ZIP. All functional test
-steps passed. That run failed only when uploading files from a hidden output
-folder; the workflow now explicitly includes its named artifact folders. Use the
-latest successful workflow run for downloadable packages and evidence.
+fixed WebView2 payload, per-user Setup.exe and portable ZIP from source commit
+`11e90b905e5e330232abaef7f42959c12c20858b`. All build, functional test and artifact
+upload steps passed.
+
+- [Installer, portable build, source and checksums](https://github.com/AzizKamboh/aiostreams-desktop/actions/runs/43262406460/artifacts/13966812042)
+- [Native test results and screenshot](https://github.com/AzizKamboh/aiostreams-desktop/actions/runs/43262406460/artifacts/13966353469)
 
 - Six native Rust tests passed, including DPAPI round-trip/replacement and
   non-English paths. The separately invoked process-manager lifecycle fixture

@@ -9,9 +9,15 @@ The desktop owns a private Node server process; Docker is not used.
 and native Windows installation, WebView2/mpv playback controls, backend restart,
 shutdown and upgrade/data retention passed CI. See
 [the validation report](docs/embedded-desktop/VALIDATION.md) for the exact scope
-and remaining limits. Download the installer, portable archive and source from
-the latest successful [Integrated Windows desktop workflow](https://github.com/AzizKamboh/aiostreams-desktop/actions/workflows/embedded-desktop.yml)
-under **Artifacts**. Packages are unsigned.
+and remaining limits.
+
+[Download the Windows bundle](https://github.com/AzizKamboh/aiostreams-desktop/actions/runs/43262406460/artifacts/13966812042)
+(installer, portable ZIP, complete source archive and checksums; about 1.28 GiB).
+Extract the bundle and run `aiostreams-integrated-win-x64-Setup.exe`.
+Packages are unsigned. GitHub requires sign-in for artifact downloads and retains
+this bundle until 2026-11-26. The
+[Integrated Windows desktop workflow](https://github.com/AzizKamboh/aiostreams-desktop/actions/workflows/embedded-desktop.yml)
+can regenerate it from source.
 
 ## Using a Windows package
 
