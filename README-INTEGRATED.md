@@ -36,7 +36,7 @@ upstream interfaces, with native entries added where they belong:
 | Sign-in screens | **Create or edit a configuration**, **Server dashboard** |
 | Player controls (hide with the controls) | **Server dashboard** button |
 | Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, source download, local/remote switch |
-| Dashboard and configuration sidebars | **Library** returns to the app |
+| Dashboard and configuration sidebars | **Browse** returns to the app |
 
 The dashboard opens over the library, so a playing title keeps its player:
 playback pauses, and closing the dashboard offers **Resume**. Keyboard:

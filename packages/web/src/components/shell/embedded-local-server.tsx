@@ -179,7 +179,7 @@ export function LocalServerSection() {
         </SettingsRow>
         <SettingsRow label={t`Back to the library`}>
           <span className="text-sm text-[--muted]">
-            <Trans>Escape, or Library in the dashboard sidebar</Trans>
+            <Trans>Escape, or Browse in the dashboard sidebar</Trans>
           </span>
         </SettingsRow>
       </SettingsCard>

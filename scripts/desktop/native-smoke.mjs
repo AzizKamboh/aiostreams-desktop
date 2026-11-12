@@ -230,15 +230,15 @@ try {
   pass('account saved with DPAPI, applied as AIOSTREAMS_AUTH after restart and accepted by the Usenet service check');
   // "Open Usenet providers" opens upstream's dashboard over the library.
   await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Open Usenet providers")).click(), true');
-  const libraryEntry = 'document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelector("[data-vertical-menu-item-button=Library]")';
-  await until(() => connection.evaluate(`!!${libraryEntry}`), 'dashboard panel with Library entry', 60000);
-  pass('real dashboard opens in the panel with its Library sidebar entry');
+  const browseEntry = 'document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelector("[data-vertical-menu-item-button=Browse]")';
+  await until(() => connection.evaluate(`!!${browseEntry}`), 'dashboard panel with Browse entry', 60000);
+  pass('real dashboard opens in the panel with its Browse sidebar entry');
   await connection.evaluate("window.__panelMessages=[]; window.addEventListener('message', e => window.__panelMessages.push({ origin: e.origin, data: e.data })); true");
-  await connection.evaluate(`${libraryEntry}.click(), true`);
+  await connection.evaluate(`${browseEntry}.click(), true`);
   try {
-    await until(() => connection.evaluate('!document.querySelector("[role=dialog] iframe")'), 'Library closes the panel', 15000);
+    await until(() => connection.evaluate('!document.querySelector("[role=dialog] iframe")'), 'Browse closes the panel', 15000);
   } catch (error) {
-    const detail = await connection.evaluate(`JSON.stringify({ messages: window.__panelMessages, entries: document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelectorAll("[data-vertical-menu-item-button=Library]").length, path: document.querySelector("[role=dialog] iframe")?.contentWindow?.location.pathname, inPanel: document.querySelector("[role=dialog] iframe")?.contentWindow?.parent === window })`).catch(() => 'unavailable');
+    const detail = await connection.evaluate(`JSON.stringify({ messages: window.__panelMessages, entries: document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelectorAll("[data-vertical-menu-item-button=Browse]").length, path: document.querySelector("[role=dialog] iframe")?.contentWindow?.location.pathname, inPanel: document.querySelector("[role=dialog] iframe")?.contentWindow?.parent === window })`).catch(() => 'unavailable');
     throw new Error(`${error.message}; panel state ${detail}`);
   }
   // Ctrl+, opens it; typing in a field never does; Escape closes it.
@@ -250,7 +250,7 @@ try {
   await connection.evaluate("window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })), true");
   await until(() => connection.evaluate('!document.querySelector("[role=dialog] iframe")'), 'Escape returns to the library');
   assert.equal(await connection.evaluate('!!document.querySelector("nav[aria-label=\\"Desktop navigation\\"]")'), false, 'Old floating navigation is still present');
-  pass('Library, Ctrl+, and Escape navigation; no shortcut while typing; no floating navigation bar');
+  pass('Browse, Ctrl+, and Escape navigation; no shortcut while typing; no floating navigation bar');
   await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Ready to browse"))?.click(), true');
   const duplicate = spawn(path.join(stage, 'aiostreams-desktop.exe'), [], { cwd: stage, stdio: 'ignore', env: { ...process.env, AIOSTREAMS_DESKTOP_DATA_DIR: data } });
   const duplicateCode = await new Promise((resolve, reject) => {

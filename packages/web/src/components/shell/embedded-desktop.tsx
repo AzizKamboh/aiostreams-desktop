@@ -283,7 +283,7 @@ function EmbeddedContent({
     [openServer]
   );
 
-  // "Library" in the dashboard and configuration sidebars closes the panel.
+  // "Browse" in the dashboard and configuration sidebars closes the panel.
   React.useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       // Only the local dashboard frame, never another site or frame origin.
@@ -450,7 +450,7 @@ function EmbeddedContent({
 
 /**
  * Upstream's own dashboard and configuration, over the client so a playing
- * title keeps its player. Their sidebars' "Library" entry closes it.
+ * title keeps its player. Their sidebars' "Browse" entry closes it.
  */
 function ServerPanel({
   src,
@@ -498,7 +498,7 @@ function ServerPanel({
             intent="gray-outline"
             onClick={() => window.dispatchEvent(new CustomEvent(CLOSE_PANEL_EVENT))}
           >
-            <Trans>Back to library</Trans>
+            <Trans>Back to browsing</Trans>
           </Button>
         </div>
       )}

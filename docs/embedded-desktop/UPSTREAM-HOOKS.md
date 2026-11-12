@@ -25,7 +25,7 @@ git diff --stat 76a5d6da HEAD -- packages
 | `packages/web/src/components/shell/embedded-nav.tsx` | "Server dashboard" sidebar/menu item, player button, sign-in links |
 | `packages/web/src/components/shell/embedded-local-server.tsx` | Settings → Local server |
 | `packages/web/src/lib/embedded-shell.ts` | Shell state shared with those hooks; active player registry; shortcuts |
-| `packages/frontend/src/lib/desktop-embed.ts` | "Library" entry in the dashboard/configuration sidebars, only inside the app |
+| `packages/frontend/src/lib/desktop-embed.ts` | "Browse" entry in the dashboard/configuration sidebars, only inside the app |
 | `packages/web/src/lib/embedded-*.ts` | Local origin handling, settings persistence across ports, account rules |
 | `packages/desktop/app/src/backend.rs`, `backend/*.rs`, `embedded.rs` | Node supervisor, DPAPI storage, accounts, Job Object |
 | `scripts/desktop/*`, `.github/workflows/embedded-desktop.yml` | Build, packaging, tests |
@@ -48,7 +48,7 @@ git diff --stat 76a5d6da HEAD -- packages
 | `web/src/app/sign-in/page.tsx` | 1 hook in `LinkRow` | Configuration/dashboard links (or "use this computer's server") on sign-in screens |
 | `web/src/features/player/options.tsx` | 1 element | Server dashboard button in the player controls |
 | `web/src/features/remote/remote-target.tsx` | 1 hook | Registers the active player so the panel can pause and resume it |
-| `frontend/src/routes/dashboard-layout.tsx`, `frontend/src/app/configure/main-sidebar.tsx` | 1 import, 1 spread each | "Library" footer entry inside the desktop app |
+| `frontend/src/routes/dashboard-layout.tsx`, `frontend/src/app/configure/main-sidebar.tsx` | 1 import, 1 spread each | "Browse" footer entry inside the desktop app |
 | `web/src/lib/jellyfin/session.tsx`, `settings/index.ts`, `storage.ts`, `app/settings/account.tsx`, `components/media/no-catalogs.tsx` | 1–9 lines each | Local sign-in, Discord presence default off, storage change event, open configuration in-app |
 | `web/rsbuild.config.ts`, `web/src/env.d.ts` | 1 constant | Server version shown in Diagnostics |
 | `web/src/locales/en-GB.po`, `messages.pot` | appended entries | Source text for new UI strings |

@@ -6144,3 +6144,11 @@ msgstr "Escape, or Library in the dashboard sidebar"
 #: src/app/settings/page.tsx
 msgid "Status, accounts, server dashboard and logs"
 msgstr "Status, accounts, server dashboard and logs"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Back to browsing"
+msgstr "Back to browsing"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Escape, or Browse in the dashboard sidebar"
+msgstr "Escape, or Browse in the dashboard sidebar"

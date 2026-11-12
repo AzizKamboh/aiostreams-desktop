@@ -14,7 +14,7 @@ Adds built-in Usenet streaming support and native navigation. Upgrades
 - **Native navigation replaces the floating Browse / Server settings /
   Diagnostics bar**, which covered the video. "Server dashboard" sits next to
   Settings in the library, on sign-in screens and in the player controls;
-  the dashboard and configuration sidebars get "Library" to return. The
+  the dashboard and configuration sidebars get "Browse" to return. The
   dashboard opens over the library, pausing playback and offering Resume, so
   the player, position, fullscreen and tracks are kept. Settings → Local server
   replaces Diagnostics. Shortcuts: Ctrl+, / Ctrl+Shift+, / Escape.
