@@ -1,6 +1,9 @@
 # AIOStreams Integrated release notes
 
-## Unreleased
+## 0.1.1
+
+Adds built-in Usenet streaming support and native navigation. Upgrades
+0.1.0 test builds in place; all data, keys and settings are kept.
 
 - **Built-in AIOStreams Usenet streaming now works.** A first-run screen creates
   your AIOStreams account (username, password, permissions), or accepts
