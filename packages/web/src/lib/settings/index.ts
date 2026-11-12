@@ -328,7 +328,7 @@ const passthroughFormat = record(PASSTHROUGH_FORMATS, (format) =>
 const discord = record(DISCORD_EVENTS, (event) =>
   device<boolean>(
     `aiostreams-web-app-discord-${event}`,
-    event === 'playing',
+    event === 'playing' && !appBridge()?.backend,
     undefined,
     [
       event === 'playing'
