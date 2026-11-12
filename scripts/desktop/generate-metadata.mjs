@@ -9,8 +9,8 @@ const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const pkg = JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8'));
 const manifest = path.join(repo, 'SOURCE-MANIFEST.json');
 const source = fs.existsSync(manifest) ? JSON.parse(fs.readFileSync(manifest, 'utf8')) : {};
-let commit = source.upstreamCommit ?? 'unknown';
-let commitTime = source.upstreamCommitTime ?? null;
+let commit = source.sourceCommit ?? source.upstreamCommit ?? 'unknown';
+let commitTime = source.sourceCommitTime ?? source.upstreamCommitTime ?? null;
 try {
   const top = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: repo, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
   if (fs.realpathSync(top) !== fs.realpathSync(repo)) throw new Error('Extracted source archive');

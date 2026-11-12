@@ -10,8 +10,8 @@ fs.mkdirSync(path.dirname(destination), { recursive: true });
 const manifestPath = path.join(repo, 'SOURCE-MANIFEST.json');
 const previous = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : {};
 let names;
-let commit = previous.upstreamCommit ?? 'unknown';
-let commitTime = previous.upstreamCommitTime ?? null;
+let commit = previous.sourceCommit ?? previous.upstreamCommit ?? 'unknown';
+let commitTime = previous.sourceCommitTime ?? previous.upstreamCommitTime ?? null;
 try {
   const top = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: repo, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
   if (fs.realpathSync(top) !== fs.realpathSync(repo)) throw new Error('This is an extracted source archive');
@@ -37,8 +37,8 @@ try {
   }
   visit(repo);
 }
-const files = [...new Set([...names, 'SOURCE-MANIFEST.json'])].filter((name) => name === 'SOURCE-MANIFEST.json' || fs.existsSync(path.join(repo, name))).sort();
-fs.writeFileSync(manifestPath, JSON.stringify({ upstreamCommit: commit, upstreamCommitTime: commitTime, files }, null, 2) + '\n');
+const files = [...new Set([...names, 'SOURCE-MANIFEST.json'])].filter((name) => path.resolve(repo, name) !== destination && (name === 'SOURCE-MANIFEST.json' || fs.existsSync(path.join(repo, name)))).sort();
+fs.writeFileSync(manifestPath, JSON.stringify({ upstreamCommit: previous.upstreamCommit ?? '76a5d6da6d1babf885c7f65a2e19bbd55401a26d', upstreamCommitTime: previous.upstreamCommitTime ?? null, sourceCommit: commit, sourceCommitTime: commitTime, files }, null, 2) + '\n');
 if (files.some((name) => name.includes('\n') || name.startsWith('-'))) throw new Error('Unsupported source filename');
 const list = path.join(repo, '.embedded-build/source-files.txt');
 fs.mkdirSync(path.dirname(list), { recursive: true });

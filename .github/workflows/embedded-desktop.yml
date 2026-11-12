@@ -79,6 +79,18 @@ jobs:
           $env:PATH = "$env:SystemRoot/system32;$env:SystemRoot"
           & $node scripts/desktop/smoke.mjs --app-root $runtime --node $node --ffprobe $probe
           if ($LASTEXITCODE -ne 0) { throw 'Packaged runtime smoke test failed.' }
+      - name: Native WebView2 and mpv playback
+        run: |
+          $node = Join-Path $PWD '.embedded-build/stage/backend/node.exe'
+          & $node scripts/desktop/native-smoke.mjs .embedded-build/stage
+          if ($LASTEXITCODE -ne 0) { throw 'Native desktop playback smoke test failed.' }
+      - name: Upload native test evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: aiostreams-native-evidence
+          path: .embedded-build/native-evidence
+          if-no-files-found: ignore
       - name: Upload installer, portable build, source, and hashes
         uses: actions/upload-artifact@v7
         with:

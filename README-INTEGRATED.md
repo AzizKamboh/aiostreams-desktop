@@ -61,6 +61,11 @@ entry point and standalone interface. Production resolves these from the package
 The desktop framework and player build instructions remain in
 `packages/desktop/README.md`.
 
+`AIOSTREAMS_DESKTOP_DATA_DIR` can select an absolute, isolated test profile;
+normal launches use Windows application-data directories. The native Windows
+test (`node scripts/desktop/native-smoke.mjs <staged-payload>`) uses this to
+exercise real WebView2/mpv playback without touching an existing user's settings.
+
 Run the backend integration suite after building:
 
 ```sh

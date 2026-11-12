@@ -292,7 +292,16 @@ fn main() {
     platform::claim_app_id();
     let portable = portable_root();
     // Settings stay outside replaceable installed/portable application files.
-    let (config_dir, data_dir) = (app_dir(dirs::config_dir()), app_dir(dirs::data_local_dir()));
+    let (config_dir, data_dir) = match std::env::var_os("AIOSTREAMS_DESKTOP_DATA_DIR") {
+        Some(path) => {
+            let path = PathBuf::from(path);
+            if !path.is_absolute() {
+                platform::fatal("AIOSTREAMS_DESKTOP_DATA_DIR must be an absolute path");
+            }
+            (path.join("config"), path.join("data"))
+        }
+        None => (app_dir(dirs::config_dir()), app_dir(dirs::data_local_dir())),
+    };
     let download_folder = match (&portable, dirs::video_dir()) {
         (None, Some(videos)) => videos.join("AIOStreams"),
         _ => data_dir.join("downloads"),
