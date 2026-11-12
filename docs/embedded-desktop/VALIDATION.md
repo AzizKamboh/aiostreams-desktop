@@ -2,7 +2,7 @@
 
 Implementation based on upstream `76a5d6da6d1babf885c7f65a2e19bbd55401a26d`.
 Validation date: 2026-11-12. This report distinguishes executed checks from
-planned native Windows acceptance.
+remaining acceptance limits.
 
 ## Executed in Linux
 
@@ -42,18 +42,45 @@ planned native Windows acceptance.
 - `cargo test -p aiostreams-desktop-core` compiled successfully but discovered
   zero tests; it is not counted as behavioral coverage. `git diff --check` passed.
 
-## Windows acceptance still required
+## Executed on native Windows CI
 
-The prepared workflow builds Windows x64 native dependencies, ffprobe, Rust app,
-fixed WebView2 and the Velopack installer/portable archive. It runs server smoke
-with bundled Node, a Windows process-manager fixture (including descendant
-cleanup), and a second smoke with developer runtime paths removed.
+[Windows run 43256456257](https://github.com/AzizKamboh/aiostreams-desktop/actions/runs/43256456257)
+built the native Windows x64 application, production Node dependencies, ffprobe,
+fixed WebView2 payload, per-user Setup.exe and portable ZIP. All functional test
+steps passed. That run failed only when uploading files from a hidden output
+folder; the workflow now explicitly includes its named artifact folders. Use the
+latest successful workflow run for downloadable packages and evidence.
 
-At this report revision that workflow has not yet completed. No Windows installer
-or portable artifact is claimed. Actual fresh installation, upgrade/data retention,
-DPAPI execution, Job Object behavior, WebView2 rendering, mpv video/audio output,
-subtitles/audio tracks and a machine without developer runtimes require native
-execution. Removing PATH entries on a CI machine is not a clean-machine test.
+- Six native Rust tests passed, including DPAPI round-trip/replacement and
+  non-English paths. The separately invoked process-manager lifecycle fixture
+  passed: occupied ports, crash/restart, persistent protected storage, and
+  Job Object descendant cleanup.
+- The bundled production backend passed all 10 smoke checks on Windows, then
+  passed them again with developer runtime-discovery paths removed from PATH.
+  These exercise configuration, aggregation, proxy/range transfer, ffprobe,
+  persistence, port ownership, shutdown and credential boundaries.
+- The actual per-user installer ran into a fresh directory with spaces and
+  Japanese characters. The installed native app opened its bundled WebView2,
+  started its private backend and displayed the real configuration dashboard.
+  A second app launch exited through the single-instance guard.
+- A generated CC0 audio/video fixture played through an authenticated embedded
+  server proxy in native mpv. Playback time advanced; pause, seek, audio-track
+  off/on selection and external subtitle off/on selection passed through the
+  real native IPC bridge. CDP drove the installed WebView2; no native bridge,
+  player or backend was mocked. This test does not automate choosing a title
+  from an account-backed catalog.
+- The native restart action reconnected the client; application exit released
+  the backend listener. A test-only newer installer upgraded the same install,
+  and a second launch decrypted the saved key and retained server settings.
+  The test-only version is excluded from downloadable release artifacts.
+
+CI uses Windows Server 2025, software D3D11 rendering and a null audio output
+because the runner has no physical speaker. The test checks real native playback
+and track controls, but does not verify audible output, a physical GPU/HDR,
+Windows 10/11-specific behavior, or every hardware codec. PATH removal is not a
+clean-machine test: the hosted runner has development tools installed and runs
+under its configured runner account. A standard-user clean-PC acceptance pass
+remains advisable. Installer signing is not configured.
 
 ## Remaining functional boundaries
 

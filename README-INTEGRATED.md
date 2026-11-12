@@ -5,10 +5,13 @@ from the same upstream monorepo. It keeps the Rust/WebView2 shell, mpv player,
 browsing interface, server configuration dashboard, and existing provider logic.
 The desktop owns a private Node server process; Docker is not used.
 
-**Release status:** implementation and Linux validation are available. See
-`docs/embedded-desktop/VALIDATION.md` for the exact results. A Windows-target
-executable was cross-built; that is not an installed or Windows-playback-tested
-release. The Windows installer/portable workflow still needs to run on Windows.
+**Release status:** the Windows x64 installer and portable archive were built,
+and native Windows installation, WebView2/mpv playback controls, backend restart,
+shutdown and upgrade/data retention passed CI. See
+[the validation report](docs/embedded-desktop/VALIDATION.md) for the exact scope
+and remaining limits. Download the installer, portable archive and source from
+the latest successful [Integrated Windows desktop workflow](https://github.com/AzizKamboh/aiostreams-desktop/actions/workflows/embedded-desktop.yml)
+under **Artifacts**. Packages are unsigned.
 
 ## Using a Windows package
 
@@ -54,7 +57,7 @@ to upstream or another release feed. Installers are unsigned by default.
 
 For server development use upstream's Node 24/pnpm instructions. After installing
 dependencies, `pnpm run build` builds the real server and both interfaces;
-`pnpm -F web build:standalone` builds the desktop browsing interface. The native
+`pnpm -F @aiostreams/web build:standalone` builds the desktop browsing interface. The native
 development overrides `AIOSTREAMS_DESKTOP_NODE`, `AIOSTREAMS_DESKTOP_SERVER`, and
 `AIOSTREAMS_DESKTOP_WEB_DIR` accept absolute paths to a runtime, compiled server
 entry point and standalone interface. Production resolves these from the package.
