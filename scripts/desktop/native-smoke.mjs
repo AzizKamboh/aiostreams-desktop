@@ -13,9 +13,13 @@ import { setTimeout as delay } from 'node:timers/promises';
 
 assert.equal(process.platform, 'win32', 'Run this test on native Windows');
 const here = path.dirname(fileURLToPath(import.meta.url));
-const stage = path.resolve(process.argv[2] ?? '.embedded-build/stage');
+let stage = path.resolve(process.argv[2] ?? '.embedded-build/stage');
 const evidence = path.resolve(process.argv[3] ?? '.embedded-build/native-evidence');
 const data = await mkdtemp(path.join(tmpdir(), 'AIOStreams native 空間 '));
+const option = name => { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; };
+const installer = option('--installer');
+const upgrade = option('--upgrade');
+const installRoot = installer ? path.join(await mkdtemp(path.join(tmpdir(), 'AIOStreams install 空間 ')), 'application') : null;
 await mkdir(evidence, { recursive: true });
 await mkdir(path.join(data, 'config/mpv'), { recursive: true });
 // Hosted CI has no physical speaker. Audio still decodes; output goes to null.
@@ -52,6 +56,16 @@ let child;
 let connection;
 const results = [];
 function pass(message) { results.push(message); console.log(`PASS ${message}`); }
+async function install(executable) {
+  const setup = spawn(path.resolve(executable), ['--silent', '--installto', installRoot], { stdio: 'ignore' });
+  const code = await new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => { setup.kill(); reject(new Error('Installer timed out')); }, 180000);
+    setup.once('error', error => { clearTimeout(timeout); reject(error); });
+    setup.once('exit', code => { clearTimeout(timeout); resolve(code); });
+  });
+  assert.equal(code, 0, 'Installer exited unsuccessfully');
+  stage = path.join(installRoot, 'current');
+}
 async function until(check, label, milliseconds = 30000) {
   const deadline = Date.now() + milliseconds;
   let last;
@@ -93,8 +107,10 @@ class CDP {
   }
 }
 async function launch() {
+  const inherited = Object.fromEntries(Object.entries(process.env).filter(([key]) => key.toLowerCase() !== 'path'));
   child = spawn(path.join(stage, 'aiostreams-desktop.exe'), ['--remote-debugging-port', String(debugPort)], {
-    cwd: stage, stdio: 'ignore', env: { ...process.env,
+    cwd: stage, stdio: 'ignore', env: { ...inherited,
+      Path: `${process.env.SystemRoot}/system32;${process.env.SystemRoot}`,
       AIOSTREAMS_DESKTOP_DATA_DIR: data, ALLOW_PRIVATE_URLS: 'true',
       ANIME_DB_LEVEL_OF_DETAIL: 'none', ID_MAPPINGS_ENABLED: 'false',
       SCENE_MAPPINGS_ENABLED: 'false', TITLE_CONFLICTS_ENABLED: 'false',
@@ -122,6 +138,7 @@ async function closeApp(base) {
   await assert.rejects(fetch(`${base}/api/v1/health`, { signal: AbortSignal.timeout(1500) }));
 }
 try {
+  if (installer) { await install(installer); pass('per-user installer runs successfully into a spaced Unicode path'); }
   let base = await launch();
   await until(() => connection.evaluate('document.querySelector("iframe")?.contentDocument?.body?.innerText.includes("AIOStreams")'), 'real configuration dashboard');
   pass('native Windows app, bundled WebView2, private backend and configuration dashboard');
@@ -144,12 +161,13 @@ try {
   await writeFile(path.join(evidence, 'native-webview.png'), Buffer.from(screenshot.data, 'base64'));
   await closeApp(base);
   pass('native app exit releases the backend socket');
+  if (upgrade) { await install(upgrade); pass('newer integrated installer upgrades the same installation'); }
   base = await launch();
   const saved = await connection.evaluate("fetch('/api/v1/dashboard/settings/export').then(r=>r.json())");
   assert.equal(saved.data.settings['branding.addonName'], 'Native smoke 空間');
   pass('second native launch decrypts saved DPAPI key and retains server configuration');
   await closeApp(base);
-  await writeFile(path.join(evidence, 'native-results.json'), JSON.stringify({ platform: process.platform, results, realNativeBridge: true, audioOutput: 'null (CI has no physical speaker)', installationTested: false }, null, 2));
+  await writeFile(path.join(evidence, 'native-results.json'), JSON.stringify({ platform: process.platform, results, realNativeBridge: true, audioOutput: 'null (CI has no physical speaker)', installationTested: !!installer, upgradeTested: !!upgrade, developerToolsInChildPath: false }, null, 2));
 } catch (error) {
   await writeFile(path.join(evidence, 'native-failure.json'), JSON.stringify({ results, error: error.message }, null, 2));
   throw error;

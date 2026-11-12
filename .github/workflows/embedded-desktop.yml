@@ -27,7 +27,8 @@ permissions:
 
 concurrency:
   group: embedded-desktop-${{ github.ref }}
-  cancel-in-progress: true
+  # Finish expensive native builds; GitHub keeps only the newest pending run.
+  cancel-in-progress: false
 
 jobs:
   windows-x64:
@@ -79,11 +80,8 @@ jobs:
           $env:PATH = "$env:SystemRoot/system32;$env:SystemRoot"
           & $node scripts/desktop/smoke.mjs --app-root $runtime --node $node --ffprobe $probe
           if ($LASTEXITCODE -ne 0) { throw 'Packaged runtime smoke test failed.' }
-      - name: Native WebView2 and mpv playback
-        run: |
-          $node = Join-Path $PWD '.embedded-build/stage/backend/node.exe'
-          & $node scripts/desktop/native-smoke.mjs .embedded-build/stage
-          if ($LASTEXITCODE -ne 0) { throw 'Native desktop playback smoke test failed.' }
+      - name: Install, play through native WebView2 and mpv, and upgrade
+        run: ./scripts/desktop/test-windows.ps1
       - name: Upload native test evidence
         if: always()
         uses: actions/upload-artifact@v7

@@ -42,6 +42,9 @@ if (process.env.AIOSTREAMS_DESKTOP_TOKEN) {
     .filter(Boolean)
     .join(',');
   process.env.ANALYTICS_ENABLED ??= 'false';
+  // Tracker addons may advertise watch_state without the user opting into
+  // scrobbling. Embedded installs keep viewing events local until enabled.
+  process.env.WATCH_STATE_REPORT_ENABLED ??= 'false';
   process.env.APP_REPORTS_FORWARD_TO ??= '';
   process.env.COMMUNITY_REMOTE_SOURCES ??= '[]';
   process.env.LOG_SENSITIVE_INFO = 'false';

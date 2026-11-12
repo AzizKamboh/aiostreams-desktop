@@ -105,7 +105,8 @@ WebView profile. This is not complete protection against malicious software
 running as the same Windows user. Native backend logs keep classified diagnostics
 instead of raw potentially sensitive output; upstream log redaction is also
 enforced in embedded mode. No new telemetry or credential/viewing-data upload is
-added. Providers, configured remote servers, and upstream metadata/catalog sources
+added. Playback-event reporting to tracker addons defaults off; it can be enabled
+in the upstream server settings. Providers, configured remote servers, and upstream metadata/catalog sources
 make the network requests required by their existing functions.
 
 The upstream updater is disabled because its client-only release would remove
