@@ -1,0 +1,92 @@
+---
+title: Introduction
+description: What AIOStreams is, the ideas behind it, and how to get started.
+---
+
+AIOStreams brings your Stremio addons, debrid services and Usenet together into one list, filtered, sorted and formatted your way, and plays it in Stremio or in its own apps for every screen.
+
+You configure it once. When you open a title, it asks every source you've added, removes the duplicates, filters and sorts what comes back by your rules, and names each result with your format. Stremio gets that list through the addon; the AIOStreams app and Jellyfin apps get the same list as versions of the title.
+
+## How would you like to get started?
+
+<Cards>
+  <Card
+    title="Use a public instance"
+    href="/configuration/setup"
+    description="The quickest way in. Nothing to host: pick a community-run instance and import a ready-made template."
+  />
+  <Card
+    title="Host your own"
+    href="/getting-started/deployment"
+    description="Run AIOStreams on your own server, NAS or VPS, with the Usenet engine and the dashboard."
+  />
+</Cards>
+
+## The ideas behind it
+
+| Idea | What it means |
+| --- | --- |
+| **Instance** | An AIOStreams server: a [public one](/getting-started/public-instances), [your own](/getting-started/deployment), or ElfHosted. |
+| **Configuration** | Your setup on an instance, saved with a password. You open it with its UUID and password, or from a [profile](/guides/config-profiles) when you sign in. |
+| **Sources** | Where results come from: Stremio addons from the marketplace or by URL, AIOStreams' built-in addons, and your debrid and Usenet services, which you enter once for every addon. |
+| **Rules** | What every result goes through: deduplication, [filters](/configuration/options), sorting (including [scored sorting](/guides/scored-sorting)), and the [formatter](/reference/custom-formatter). [Groups](/guides/groups) and [variants](/reference/config-expressions) decide which sources are asked and how. |
+| **Where you watch** | Stremio, through the addon; the [AIOStreams app](/apps) and [Jellyfin apps](/apps/jellyfin), through your configuration's [media server](/apps/media-server); and Seanime, Chillio or Aniyomi. |
+
+## Where to watch
+
+<Cards>
+  <Card
+    title="Stremio"
+    href="/configuration/setup"
+    description="Install AIOStreams as an addon in Stremio, or in any app that supports Stremio addons."
+  />
+  <Card
+    title="AIOStreams app"
+    href="/apps"
+    description="Your catalogs, streams and Live TV channels as a streaming app, in a browser or the apps for Windows, Mac, Linux, Android, Fire TV and smart TVs."
+  />
+  <Card
+    title="Jellyfin apps"
+    href="/apps/jellyfin"
+    description="Sign in from Infuse, Swiftfin, Findroid, Kodi or Android TV. No Jellyfin install needed."
+  />
+  <Card
+    title="Seanime"
+    href="/guides/seanime"
+    description="A plugin, a torrent provider and a custom source for Seanime."
+  />
+</Cards>
+
+## On your own instance
+
+Everything above works on a public instance. Hosting AIOStreams yourself adds:
+
+- the [built-in Usenet engine](/guides/usenet#the-built-in-engine-aiostreams), which streams straight from your NNTP provider, archives included;
+- [Sonarr and Radarr](/guides/sonarr-radarr) support, with the engine as their download client and AIOStreams as their indexer;
+- the [release blocklist](/guides/release-blocklist), shared between instances if you like;
+- the dashboard, with live streams, analytics, logs, users and every runtime setting, and [SSO](/guides/sso) for signing in to it.
+
+## Other resources
+
+<Cards>
+  <Card
+    title="Public instances"
+    href="/getting-started/public-instances"
+    description="Compare community-run instances and find one that suits you."
+  />
+  <Card
+    title="Configure options"
+    href="/configuration/options"
+    description="Every option on the configure page."
+  />
+  <Card
+    title="FAQ"
+    href="/faq"
+    description="Answers to the most common questions."
+  />
+  <Card
+    title="Troubleshooting"
+    href="/troubleshooting"
+    description="Fixes for common errors and issues."
+  />
+</Cards>

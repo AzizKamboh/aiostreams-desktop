@@ -1,0 +1,255 @@
+import React from 'react';
+import { toast } from 'sonner';
+import { BiCopy, BiHide, BiShow } from 'react-icons/bi';
+import { Modal } from '@aiostreams/ui/modal';
+import { IconButton } from '@aiostreams/ui/button';
+import { Tooltip } from '@aiostreams/ui/tooltip';
+import { cn } from '@aiostreams/ui/core/styling';
+import { copyToClipboard } from '@aiostreams/ui/utils/clipboard';
+import { releaseBlocklistKeys, type LibraryEntry } from '../queries';
+import {
+  formatBytes,
+  formatDateTime,
+  formatLatency,
+} from '@aiostreams/ui/core/format';
+
+function copy(text: string, label: string) {
+  void copyToClipboard(text, {
+    onSuccess: () => toast.success(`${label} copied`),
+    onError: () => toast.error('Copy failed'),
+  });
+}
+
+/** One label/value row; optionally copyable. */
+function Row({
+  label,
+  value,
+  onCopy,
+  children,
+}: {
+  label: string;
+  value?: React.ReactNode;
+  onCopy?: () => void;
+  children?: React.ReactNode;
+}) {
+  if (value == null && !children) return null;
+  return (
+    <div className="flex items-start gap-3 py-1.5 border-b border-[--border]/40 last:border-0">
+      <span className="w-28 shrink-0 text-xs font-medium text-[--muted] pt-0.5">
+        {label}
+      </span>
+      <div className="min-w-0 flex-1 text-sm flex items-center gap-2">
+        {children ?? <span className="break-all">{value}</span>}
+        {onCopy && (
+          <IconButton
+            size="xs"
+            intent="gray-subtle"
+            icon={<BiCopy />}
+            aria-label={`Copy ${label}`}
+            className="shrink-0 ml-auto"
+            onClick={onCopy}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Masked, reveal-able, copyable secret row (password, NZB URL, etc). */
+function SecretRow({ label, secret }: { label: string; secret: string }) {
+  const [shown, setShown] = React.useState(false);
+  return (
+    <Row label={label}>
+      <span className="font-mono break-all">
+        {shown ? secret : '•'.repeat(Math.min(secret.length, 12))}
+      </span>
+      <IconButton
+        size="xs"
+        intent="gray-subtle"
+        icon={shown ? <BiHide /> : <BiShow />}
+        aria-label={shown ? `Hide ${label}` : `Show ${label}`}
+        className="shrink-0 ml-auto"
+        onClick={() => setShown((s) => !s)}
+      />
+      <IconButton
+        size="xs"
+        intent="gray-subtle"
+        icon={<BiCopy />}
+        aria-label={`Copy ${label}`}
+        className="shrink-0"
+        onClick={() => copy(secret, label)}
+      />
+    </Row>
+  );
+}
+
+/** NZB URL row: shows the host only; hover reveals the full URL, copy grabs it whole. */
+function NzbUrlRow({ url }: { url: string }) {
+  if (url.startsWith('local-nzb://')) return null;
+  let host = url;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    // fall back to showing the raw value.
+  }
+  return (
+    <Row label="NZB URL">
+      <Tooltip
+        trigger={
+          <span className="font-mono break-all cursor-default">{host}</span>
+        }
+        className="max-w-md break-all"
+      >
+        {url}
+      </Tooltip>
+      <IconButton
+        size="xs"
+        intent="gray-subtle"
+        icon={<BiCopy />}
+        aria-label="Copy NZB URL"
+        className="shrink-0 ml-auto"
+        onClick={() => copy(url, 'NZB URL')}
+      />
+    </Row>
+  );
+}
+
+const KEY_HINT: Record<string, string> = {
+  wd1: 'Portable release fingerprint based on indexer metadata (size, poster, date)',
+  nh1: 'Exact NZB content hash',
+};
+
+function ReleaseKeysRow({ entry }: { entry: LibraryEntry }) {
+  const keys = releaseBlocklistKeys(entry);
+  if (keys.length === 0) return null;
+  return (
+    <Row label={keys.length === 1 ? 'Release key' : 'Release keys'}>
+      <div className="min-w-0 flex-1 flex flex-col gap-1">
+        {keys.map((key) => (
+          <div key={key} className="flex items-center gap-2">
+            <Tooltip
+              side="left"
+              trigger={
+                <span className="font-mono text-xs break-all cursor-default">
+                  {key}
+                </span>
+              }
+            >
+              {KEY_HINT[key.split(':')[0]] ?? 'Blocklist key'}
+            </Tooltip>
+            <IconButton
+              size="xs"
+              intent="gray-subtle"
+              icon={<BiCopy />}
+              aria-label="Copy release key"
+              className="shrink-0 ml-auto"
+              onClick={() => copy(key, 'Release key')}
+            />
+          </div>
+        ))}
+      </div>
+    </Row>
+  );
+}
+
+/** A cleanly-laid-out details panel for a library entry (replaces card clutter). */
+/**
+ * What replacing this release through the arr has done so far. Only shown for
+ * rows an arr grabbed; `lastError` is the reason a repair stopped, which is
+ * otherwise invisible from the dashboard.
+ */
+function ArrRepairRow({ entry }: { entry: LibraryEntry }) {
+  const link = entry.arrLink;
+  if (!link) return null;
+  const repair = link.repair;
+  const label: Record<string, string> = {
+    pending: 'Queued',
+    blocklisted: 'Marked failed in the arr',
+    searched: 'Marked failed, replacement searched',
+    done: 'Done',
+    failed: 'Gave up',
+  };
+  return (
+    <Row
+      label="Arr repair"
+      value={
+        <div className="min-w-0">
+          <span>{repair ? label[repair.state] : 'Not needed'}</span>
+          {repair?.attempts ? (
+            <span className="text-[--muted]">
+              {' '}
+              · {repair.attempts} attempt{repair.attempts === 1 ? '' : 's'}
+            </span>
+          ) : null}
+          {repair?.lastError && (
+            <p className="text-xs text-red-400 break-words">
+              {repair.lastError}
+            </p>
+          )}
+        </div>
+      }
+    />
+  );
+}
+
+export function EntryInfoModal({
+  entry,
+  open,
+  onOpenChange,
+}: {
+  entry: LibraryEntry | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  if (!entry) return null;
+  const e = entry;
+  return (
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="NZB details"
+      contentClass="max-w-lg"
+    >
+      <div className={cn('mt-1')}>
+        <Row
+          label="Name"
+          value={e.name || e.nzbHash}
+          onCopy={() => copy(e.name || e.nzbHash, 'Name')}
+        />
+        <Row label="Status" value={e.status} />
+        {e.status === 'failed' && e.failReason && (
+          <Row label="Error" value={e.failReason} />
+        )}
+        <Row label="Size" value={formatBytes(e.size)} />
+        <Row
+          label="Files"
+          value={`${e.files.length} file${e.files.length === 1 ? '' : 's'}`}
+        />
+        <Row label="Source" value={e.source} />
+        {e.owner && <Row label="Added by" value={e.owner} />}
+        {e.postedAt && (
+          <Row
+            label="Posted"
+            value={formatDateTime(new Date(e.postedAt * 1000).toISOString())}
+          />
+        )}
+        <Row label="Added" value={formatDateTime(e.addedAt)} />
+        <Row label="Last used" value={formatDateTime(e.lastUsedAt)} />
+        {e.importMs != null && (
+          <Row label="Import time" value={formatLatency(e.importMs)} />
+        )}
+        {e.password && <SecretRow label="Password" secret={e.password} />}
+        {e.nzbUrl && <NzbUrlRow url={e.nzbUrl} />}
+        <Row
+          label="Hash"
+          value={
+            <span className="font-mono text-xs break-all">{e.nzbHash}</span>
+          }
+          onCopy={() => copy(e.nzbHash, 'Hash')}
+        />
+        <ArrRepairRow entry={e} />
+        <ReleaseKeysRow entry={e} />
+      </div>
+    </Modal>
+  );
+}

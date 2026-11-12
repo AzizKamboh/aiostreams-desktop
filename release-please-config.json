@@ -1,0 +1,58 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/refs/heads/main/schemas/config.json",
+  "release-type": "simple",
+  "bump-minor-pre-major": true,
+  "include-v-in-tag": true,
+  "separate-pull-requests": true,
+  "always-update": true,
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "include-component-in-tag": false,
+      "exclude-paths": [
+        ".env.sample",
+        ".gitignore",
+        ".release-please-manifest.json",
+        "compose.yaml",
+        "release-please-config.json",
+        "packages/desktop",
+        "packages/smart-tv",
+        "packages/android"
+      ],
+      "pull-request-title-pattern": "chore: release ${version}"
+    },
+    "packages/desktop": {
+      "release-type": "simple",
+      "component": "desktop",
+      "include-component-in-tag": true,
+      "include-v-in-tag": true,
+      "pull-request-title-pattern": "chore(desktop): release ${version}",
+      "extra-files": [
+        {
+          "type": "toml",
+          "path": "Cargo.toml",
+          "jsonpath": "$.workspace.package.version"
+        },
+        {
+          "type": "toml",
+          "path": "Cargo.lock",
+          "jsonpath": "$.package[?(@.name.value == 'aiostreams-desktop' || @.name.value == 'aiostreams-desktop-core')].version"
+        }
+      ]
+    },
+    "packages/smart-tv": {
+      "release-type": "node",
+      "component": "smart-tv",
+      "include-component-in-tag": true,
+      "include-v-in-tag": true,
+      "pull-request-title-pattern": "chore(smart-tv): release ${version}"
+    },
+    "packages/android": {
+      "release-type": "simple",
+      "component": "android",
+      "include-component-in-tag": true,
+      "include-v-in-tag": true,
+      "pull-request-title-pattern": "chore(android): release ${version}"
+    }
+  }
+}

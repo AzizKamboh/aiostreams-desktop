@@ -1,0 +1,18 @@
+[package]
+name = "aiostreams-desktop-core"
+description = "The OS-independent part of the desktop shell: libmpv, the page bridge, settings"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+aiostreams-container = { git = "https://github.com/AIOStreams/media", rev = "bf653d98b829417f3e62163b3a8fca10eeb623ce" }
+aiostreams-thumbs = { git = "https://github.com/AIOStreams/media", rev = "bf653d98b829417f3e62163b3a8fca10eeb623ce" }
+aiostreams-upscale = { git = "https://github.com/AIOStreams/media", rev = "bf653d98b829417f3e62163b3a8fca10eeb623ce" }
+libloading.workspace = true
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+url = "2"
+ureq = "3.4"

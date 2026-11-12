@@ -1,0 +1,146 @@
+FROM node:24.18.1-slim AS base
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+FROM base AS builder
+
+WORKDIR /build
+
+# Build toolchain for native addons that lack prebuilt binaries on this platform
+# (e.g. yencode, used by the native usenet engine, has no linux/arm64 prebuild and
+# must be compiled with node-gyp → needs Python + a C/C++ toolchain). These tools
+# live only in the builder/runtime stages; the final distroless image just copies
+# the already-compiled .node binaries, so it stays clean.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copy LICENSE file.
+COPY LICENSE ./
+
+# Copy the relevant package.json and package-lock.json files.
+COPY package*.json ./
+COPY packages/server/package*.json ./packages/server/
+COPY packages/core/package*.json ./packages/core/
+COPY packages/frontend/package*.json ./packages/frontend/
+COPY packages/ui/package*.json ./packages/ui/
+COPY packages/web/package*.json ./packages/web/
+COPY packages/crypto/package*.json ./packages/crypto/
+COPY pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY pnpm-lock.yaml ./pnpm-lock.yaml
+COPY patches ./patches
+
+# Install dependencies.
+RUN pnpm install --frozen-lockfile
+
+# Copy source files.
+COPY tsconfig.*json ./
+
+COPY packages/server ./packages/server
+COPY packages/core ./packages/core
+COPY packages/frontend ./packages/frontend
+COPY packages/ui ./packages/ui
+COPY packages/web ./packages/web
+COPY packages/crypto ./packages/crypto
+COPY scripts ./scripts
+COPY resources ./resources
+
+
+# Build the project.
+RUN pnpm run build
+
+# Remove development dependencies.
+RUN rm -rf node_modules
+RUN rm -rf packages/core/node_modules
+RUN rm -rf packages/server/node_modules
+RUN rm -rf packages/frontend/node_modules
+RUN rm -rf packages/ui/node_modules
+RUN rm -rf packages/web/node_modules
+
+RUN pnpm install --prod --frozen-lockfile
+
+
+FROM builder AS runtime
+WORKDIR /runtime
+
+# Copy the built files from the builder.
+# The package.json files must be copied as well for NPM workspace symlinks between local packages to work.
+COPY --from=builder /build/package*.json /build/LICENSE ./
+COPY --from=builder /build/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /build/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /build/patches ./patches
+
+COPY --from=builder /build/packages/core/package.*json ./packages/core/
+COPY --from=builder /build/packages/server/package.*json ./packages/server/
+
+# Loader + built binary; core's node_modules symlink into packages/ resolves it.
+COPY --from=builder /build/packages/crypto ./packages/crypto
+
+COPY --from=builder /build/packages/core/dist ./packages/core/dist
+COPY --from=builder /build/packages/frontend/dist ./packages/frontend/dist
+COPY --from=builder /build/packages/web/dist ./packages/web/dist
+COPY --from=builder /build/packages/server/dist ./packages/server/dist
+COPY --from=builder /build/packages/server/src/static ./packages/server/dist/static
+
+COPY --from=builder /build/resources ./resources
+COPY --from=builder /build/scripts ./scripts
+
+COPY --from=builder /build/node_modules ./node_modules
+COPY --from=builder /build/packages/core/node_modules ./packages/core/node_modules
+COPY --from=builder /build/packages/server/node_modules ./packages/server/node_modules
+
+
+FROM debian:12-slim AS mimalloc
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends libmimalloc2.0 \
+  && rm -rf /var/lib/apt/lists/* \
+  && cp /usr/lib/*/libmimalloc.so.2 /usr/local/lib/libmimalloc.so.2
+
+# zlib is linked statically: the runtime image has no libz.
+FROM debian:12-slim AS ffprobe
+ARG FFMPEG_VERSION=8.1.3
+ARG FFMPEG_SHA256=7138d28c96d9d3e3af4ee3d8cad72741f8ffb40da90c1112235dea3ecd3178a3
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates curl xz-utils gcc libc6-dev make zlib1g-dev \
+  && rm -rf /var/lib/apt/lists/* \
+  && rm /usr/lib/*/libz.so
+WORKDIR /src
+RUN curl -fsSL -o ffmpeg.tar.xz "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz" \
+  && echo "${FFMPEG_SHA256}  ffmpeg.tar.xz" | sha256sum -c - \
+  && tar -xJf ffmpeg.tar.xz --strip-components=1 \
+  && ./configure \
+    --disable-everything --disable-autodetect --disable-doc --disable-debug \
+    --disable-programs --enable-ffprobe \
+    --disable-avdevice --disable-avfilter --disable-swscale --disable-swresample \
+    --disable-x86asm --enable-zlib \
+    --enable-protocol=file,http,tcp \
+    --enable-demuxer=asf,avi,flv,matroska,mov,mpegps,mpegts,ogg \
+    --enable-parser=aac,aac_latm,ac3,av1,dca,dvbsub,dvdsub,flac,h264,hevc,mlp,mpeg4video,mpegaudio,mpegvideo,opus,vc1,vorbis,vp8,vp9 \
+    --enable-decoder=aac,aac_latm,ac3,alac,dca,eac3,flac,mlp,mp2,mp3,opus,truehd,vorbis,pcm_bluray,pcm_dvd,pcm_s16le,pcm_s24le,h264,hevc,mpeg2video,mpeg4,vc1,vp8,vp9,ass,ssa,subrip,srt,webvtt,movtext,pgssub,dvdsub,dvbsub \
+  && make -j"$(nproc)" ffprobe \
+  && strip ffprobe
+
+FROM gcr.io/distroless/nodejs24-debian13 AS production
+
+LABEL org.opencontainers.image.title="AIOStreams"
+LABEL org.opencontainers.image.source="https://github.com/Viren070/AIOStreams"
+LABEL org.opencontainers.image.description="AIOStreams consolidates multiple Stremio addons and debrid services - including its own suite of built-in addons - into a single, highly customisable super-addon."
+LABEL org.opencontainers.image.licenses="AGPL-3.0-only"
+
+WORKDIR /app
+
+COPY --from=busybox:1.36.0-uclibc /bin/wget /bin/wget
+COPY --from=busybox:1.36.0-uclibc /bin/sh /bin/sh
+COPY --from=mimalloc /usr/local/lib/libmimalloc.so.2 /usr/local/lib/libmimalloc.so.2
+ENV LD_PRELOAD=/usr/local/lib/libmimalloc.so.2
+COPY --from=ffprobe /src/ffprobe /usr/local/bin/ffprobe
+ENV NODE_OPTIONS="--max-semi-space-size=8 --expose-gc"
+COPY --from=runtime /runtime /app
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD ["/nodejs/bin/node", "/app/scripts/healthcheck.js"]
+EXPOSE ${PORT:-3000}
+
+CMD ["/app/packages/server/dist/server.js"]

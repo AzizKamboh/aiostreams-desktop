@@ -1,0 +1,98 @@
+import { Extras, ExtrasSchema, type Manifest } from '../db/schemas.js';
+
+type CatalogExtra = NonNullable<Manifest['catalogs'][number]['extra']>[number];
+
+/** Only a genre is required, and it offers one to fall back on. */
+export function requiresOnlyGenre(extra: CatalogExtra[] | undefined): boolean {
+  const required = (extra ?? []).filter((e) => e.isRequired);
+  return (
+    required.length === 1 &&
+    required[0].name === 'genre' &&
+    !!firstGenre(required[0])
+  );
+}
+
+export function firstGenre(
+  extra: CatalogExtra | undefined
+): string | undefined {
+  return extra?.options?.find(
+    (o): o is string => typeof o === 'string' && o.length > 0
+  );
+}
+
+/** Values are percent-encoded, so a `&` inside one survives the split; a bare `%` stays literal. */
+function decodeValue(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+export class ExtrasParser {
+  private extras: Partial<Extras>;
+
+  constructor(extras?: string) {
+    this.extras = this.parseExtras(extras);
+  }
+
+  private parseExtras(extras?: string): Partial<Extras> {
+    if (!extras) {
+      return {};
+    }
+    const extrasObject = Object.fromEntries(
+      extras.split('&').map((e) => {
+        const [key, ...value] = e.split('=');
+        return [key, encodeURIComponent(decodeValue(value.join('=')))];
+      })
+    );
+
+    const parsedExtras = ExtrasSchema.safeParse(extrasObject);
+    if (!parsedExtras.success) {
+      return {};
+    }
+
+    return parsedExtras.data;
+  }
+
+  get genre(): string | undefined {
+    return 'genre' in this.extras ? this.extras.genre : undefined;
+  }
+
+  set genre(value: string | undefined) {
+    this.extras = { ...this.extras, genre: value };
+  }
+
+  get search(): string | undefined {
+    return 'search' in this.extras ? this.extras.search : undefined;
+  }
+
+  set search(value: string | undefined) {
+    this.extras = { ...this.extras, search: value };
+  }
+
+  get skip(): number | undefined {
+    return 'skip' in this.extras ? this.extras.skip : undefined;
+  }
+
+  set skip(value: number | undefined) {
+    this.extras = { ...this.extras, skip: value };
+  }
+
+  public has(key: keyof Extras): boolean {
+    return key in this.extras && this.extras[key] !== undefined;
+  }
+
+  public names(): string[] {
+    return Object.entries(this.extras)
+      .filter(([_, value]) => value !== undefined)
+      .map(([key]) => key);
+  }
+
+  public toString(): string {
+    return Object.entries(this.extras)
+      .filter(([_, value]) => value !== undefined)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&');
+  }
+}

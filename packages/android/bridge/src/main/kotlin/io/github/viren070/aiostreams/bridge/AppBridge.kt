@@ -1,0 +1,154 @@
+package io.github.viren070.aiostreams.bridge
+
+import android.webkit.WebView
+import androidx.webkit.JavaScriptReplyProxy
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+
+/** Whatever the page reads from `window.aiostreamsApp` as it starts. */
+data class AppIdentity(
+    val version: String,
+    val device: String,
+    val deviceId: String,
+    val tv: Boolean,
+    /** A speech recogniser the page can ask for. */
+    val voice: Boolean,
+    /** Picture-in-picture, which many TVs leave out. */
+    val pip: Boolean,
+    /** The video drawn small where the page leaves room, for its mini player and previews. */
+    val miniPlayer: Boolean,
+    /** A controller's buttons sent as `gamepad` messages, so the page leaves the gamepad API alone. */
+    val gamepadButtons: Boolean,
+    /** The system's 24-hour clock setting, which the web view's time formats ignore. */
+    val hours24: Boolean,
+)
+
+/**
+ * The page's `window.aiostreamsApp`, the desktop app's protocol carried by a
+ * web message listener. Only pages from [origins] get it.
+ */
+class AppBridge(
+    webView: WebView,
+    origins: Set<String>,
+    identity: AppIdentity,
+    private val onMessage: (type: String, message: JsonObject) -> Unit,
+) {
+    private var reply: JavaScriptReplyProxy? = null
+
+    init {
+        check(supported()) { "This WebView is too old to host the app" }
+        WebViewCompat.addWebMessageListener(webView, PORT, origins) { _, message, _, isMainFrame, replyProxy ->
+            if (!isMainFrame) return@addWebMessageListener
+            // A page that loads again brings a new proxy, announced by its first message.
+            reply = replyProxy
+            val json = message.data
+                ?.let { runCatching { Json.parseToJsonElement(it).jsonObject }.getOrNull() }
+                ?: return@addWebMessageListener
+            val type = json["type"]?.jsonPrimitive?.content ?: return@addWebMessageListener
+            if (type != HELLO) onMessage(type, json)
+        }
+        WebViewCompat.addDocumentStartJavaScript(webView, script(identity), origins)
+    }
+
+    /** On the main thread only. */
+    /** Whether a page is listening. */
+    val connected: Boolean
+        get() = reply != null
+
+    fun send(message: JsonObject) {
+        reply?.postMessage(message.toString())
+    }
+
+    /** Stops sending to a page whose renderer is gone. */
+    fun close() {
+        reply = null
+    }
+
+    private fun script(identity: AppIdentity): String = """
+        (() => {
+          if (window.top !== window || window.aiostreamsApp) return;
+          const port = window.$PORT;
+          if (!port) return;
+          const listeners = new Set();
+          port.onmessage = (event) => {
+            let message;
+            try {
+              message = JSON.parse(event.data);
+            } catch {
+              return;
+            }
+            for (const listener of listeners) {
+              try {
+                listener(message);
+              } catch (error) {
+                console.error(error);
+              }
+            }
+          };
+          const send = (message) => port.postMessage(JSON.stringify(message));
+          window.aiostreamsApp = Object.freeze({
+            protocol: 2,
+            version: ${JsonPrimitive(identity.version)},
+            platform: 'android',
+            tv: ${identity.tv},
+            voice: ${identity.voice},
+            pip: ${identity.pip},
+            miniPlayer: ${identity.miniPlayer},
+            gamepadButtons: ${identity.gamepadButtons},
+            hours24: ${identity.hours24},
+            device: ${JsonPrimitive(identity.device)},
+            deviceId: ${JsonPrimitive(identity.deviceId)},
+            send,
+            subscribe(listener) {
+              listeners.add(listener);
+              return () => listeners.delete(listener);
+            },
+          });
+          // Errors go to the app's log, which problem reports read.
+          const MAX_REPORTS = 100;
+          let reports = 0;
+          let lastReport = '';
+          const describe = (value) => {
+            if (value instanceof Error) return value.stack || value.name + ': ' + value.message;
+            if (typeof value === 'string') return value;
+            try {
+              return JSON.stringify(value);
+            } catch {
+              return String(value);
+            }
+          };
+          const report = (message) => {
+            if (!message || message === lastReport || reports >= MAX_REPORTS) return;
+            lastReport = message;
+            reports++;
+            send({ type: 'web-error', message });
+            if (reports === MAX_REPORTS)
+              send({ type: 'web-error', message: 'further errors from this page are not logged' });
+          };
+          window.addEventListener('error', (e) =>
+            report(e.error ? describe(e.error) : e.message + ' (' + e.filename + ':' + e.lineno + ')')
+          );
+          window.addEventListener('unhandledrejection', (e) => report('unhandled rejection: ' + describe(e.reason)));
+          const consoleError = console.error;
+          console.error = (...args) => {
+            report(args.map(describe).join(' '));
+            consoleError.apply(console, args);
+          };
+          send({ type: '$HELLO' });
+        })();
+    """.trimIndent()
+
+    companion object {
+        private const val PORT = "aiostreamsNative"
+        private const val HELLO = "hello"
+
+        fun supported() =
+            WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER) &&
+                WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)
+    }
+}

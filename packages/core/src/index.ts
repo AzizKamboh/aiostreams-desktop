@@ -1,0 +1,107 @@
+export * from './utils/index.js';
+export * from './variants/index.js';
+export * from './logging/ring-buffer.js';
+export * from './config/index.js';
+export * from './db/index.js';
+export * from './analytics/index.js';
+export * from './analytics/repository.js';
+export * from './tasks/index.js';
+export * from './main/types.js';
+export * from './main/index.js';
+export * from './parser/index.js';
+export * from './formatters/index.js';
+export * from './transformers/index.js';
+export * from './debrid/index.js';
+export * from './usenet/integration/index.js';
+export * from './release-blocklist/index.js';
+export * from './stream-sessions/index.js';
+export * from './shares/index.js';
+export * from './arr/index.js';
+export * from './proxy/index.js';
+export * from './linked-accounts/index.js';
+export * from './community/index.js';
+export * from './app-reports/index.js';
+export * from './watch-state/index.js';
+export * from './jellyfin/index.js';
+export * from './sync/index.js';
+export { requestTitleMetadata } from './media-info/lookup.js';
+export {
+  onPlay,
+  onProxiedPlay,
+  probesOn,
+  idsFromVideoId,
+  type PlaybackPlay,
+} from './media-info/play.js';
+export {
+  mediaInfoProber,
+  type ProbeFinished,
+  type ProbeJob,
+  type ProberSnapshot,
+} from './media-info/probe.js';
+export {
+  mediaInfoFiles,
+  mediaInfoSummary,
+  pruneMediaInfoProbes,
+  type MediaInfoFile,
+  type MediaInfoSummary,
+} from './media-info/summary.js';
+export type { MediaInfoRecord } from './media-info/record.js';
+export { MEDIA_INFO_PROBE_PATHS } from './config/schema/media-info.js';
+export { sharedRows, type SharedRow } from './media-info/remote.js';
+export { SceneMappingDataset } from './metadata/scene-mappings.js';
+export { IdMappingDataset } from './metadata/id-mappings.js';
+export {
+  TorBoxSearchAddon,
+  GDriveAddon,
+  GoogleOAuth,
+  GDriveAPI,
+  TorznabAddon,
+  NewznabAddon,
+  ProwlarrAddon,
+  KnabenAddon,
+  EztvAddon,
+  TheRARBGAddon,
+  ThePirateBayAddon,
+  TsukihimeAddon,
+  TorrentGalaxyAddon,
+  SeaDexAddon,
+  EasynewsSearchAddon,
+  EasynewsAuthSchema,
+  EasynewsNzbParamsSchema,
+  EasynewsApi,
+  type EasynewsNzbParams,
+  SeaDexDataset,
+  LibraryAddon,
+  XtreamAddon,
+  preWarmLibraryCaches,
+  refreshLibraryCacheForService,
+  testNabEndpoint,
+  type NabNamespaceId,
+} from './builtins/index.js';
+export { PresetManager } from './presets/index.js';
+export {
+  buildPlayChain,
+  getPlayChain,
+  describeChainItem,
+  isFailoverRetryableError,
+} from './main/play-chain.js';
+export type {
+  PlayChainItem,
+  PlayChainRecord,
+  ResolvedPlayChain,
+  FailoverContentType,
+  BuildPlayChainOptions,
+} from './main/play-chain.js';
+export {
+  runPlayChain,
+  resolvePlaybackTarget,
+  resolveExternalTarget,
+  parsePlaybackUrl,
+  decodeFileInfo,
+} from './main/failover.js';
+export type {
+  PlaybackTarget,
+  FailoverAttempt,
+  RunPlayChainConfig,
+  RunPlayChainResult,
+} from './main/failover.js';

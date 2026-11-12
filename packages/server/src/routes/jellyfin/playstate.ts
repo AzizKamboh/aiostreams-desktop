@@ -1,0 +1,844 @@
+import { Router, type Request } from 'express';
+import {
+  channelOf,
+  checkInWatchSession,
+  closeWatchSession,
+  encodeItemId,
+  getWatchStateProvider,
+  watchIdentityFor,
+  openWatchSession,
+  playedThrough,
+  resolveByItem,
+  descriptorOf,
+  sessionKeyFor,
+  TICKS_PER_MS,
+  type ContentDescriptor,
+  type ContentRef,
+  type JellyfinItem,
+  type PlayingTracks,
+  type SessionContext,
+  type WatchEvent,
+  type WatchProgressEvent,
+  type WatchSnapshot,
+} from '@aiostreams/core';
+import {
+  bodyField,
+  bodyOf,
+  jf,
+  param,
+  qb,
+  qs,
+  type JellyfinRequestContext,
+} from './context.js';
+import {
+  boxSetChildren,
+  contentRefOf,
+  decodeItemForRequest,
+  episodesForSeries,
+  itemFromDescriptor,
+} from './items.js';
+import {
+  reportBulkMark,
+  reportListChange,
+  reportPlayback,
+  reportRating,
+} from './handoff.js';
+import { pickSource } from './playback.js';
+
+const router: Router = Router({ mergeParams: true });
+
+function ticksToMs(v: unknown): number | undefined {
+  if (v == null || v === '') return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.round(n / TICKS_PER_MS) : undefined;
+}
+
+function measuredRuntimeOf(req: Request): number | undefined {
+  const ms = ticksToMs(bodyField(req, 'RunTimeTicks'));
+  return ms && ms > 0 ? ms : undefined;
+}
+
+function idFrom(req: Request): string | undefined {
+  const body = bodyOf(req);
+  const v =
+    body.ItemId ?? body.itemId ?? qs(req, 'ItemId') ?? param(req, 'itemId');
+  return typeof v === 'string' && v
+    ? v.replace(/-/g, '').toLowerCase()
+    : undefined;
+}
+
+/** Content descriptor for an item id or a media source id reported as an item. */
+async function descriptorFor(
+  ctx: JellyfinRequestContext,
+  id: string,
+  opts: { season?: boolean } = {}
+): Promise<ContentDescriptor | null> {
+  const d = await decodeItemForRequest(ctx, id);
+  if (!d) return null;
+  return d.k === 'movie' ||
+    d.k === 'episode' ||
+    d.k === 'series' ||
+    d.k === 'boxset' ||
+    (opts.season && d.k === 'season')
+    ? d
+    : null;
+}
+
+function snapshotOf(item: JellyfinItem | null): WatchSnapshot | undefined {
+  if (!item) return undefined;
+  const tags = (item.ImageTags ?? {}) as Record<string, string>;
+  const aio = (item as { _aio?: { images?: Record<string, string> } })._aio;
+  return {
+    name: item.Name,
+    seriesName:
+      typeof item.SeriesName === 'string' ? item.SeriesName : undefined,
+    poster: aio?.images?.Primary,
+    indexNumber:
+      typeof item.IndexNumber === 'number' ? item.IndexNumber : undefined,
+    parentIndexNumber:
+      typeof item.ParentIndexNumber === 'number'
+        ? item.ParentIndexNumber
+        : undefined,
+    runtimeMs:
+      typeof item.RunTimeTicks === 'number'
+        ? item.RunTimeTicks / TICKS_PER_MS
+        : undefined,
+    ...(tags.Primary ? {} : {}),
+  };
+}
+
+/** A channel has no position worth keeping, so live playback writes no history. */
+async function playingLive(
+  ctx: JellyfinRequestContext,
+  d: ContentDescriptor,
+  itemId: string,
+  mediaSourceId: string | undefined
+): Promise<boolean> {
+  const memo = await resolveByItem(ctx.uuid, ctx.scope(), itemId).catch(
+    () => null
+  );
+  const source =
+    memo &&
+    pickSource(memo, mediaSourceId === itemId ? undefined : mediaSourceId);
+  if (source) return !!source.live;
+  // The memo expires under a channel left on, and misses versions from a newer list.
+  return (
+    d.t === 'tv' ||
+    d.t === 'channel' ||
+    (!!memo?.sources.length && memo.sources.every((s) => s.live))
+  );
+}
+
+/** Jellyfin takes the runtime from the source being played, then the item. */
+async function durationFor(
+  ctx: JellyfinRequestContext,
+  d: ContentDescriptor,
+  itemId: string,
+  item: JellyfinItem | null,
+  mediaSourceId: string | undefined
+) {
+  const memo = await resolveByItem(ctx.uuid, ctx.scope(), itemId);
+  if (memo) {
+    // The first source carries the item's id rather than its own.
+    const source = pickSource(
+      memo,
+      mediaSourceId === itemId ? undefined : mediaSourceId
+    );
+    if (source?.durationMs && !source.live) return source.durationMs;
+    if (memo.runtimeMs) return memo.runtimeMs;
+  }
+  return typeof item?.RunTimeTicks === 'number'
+    ? item.RunTimeTicks / TICKS_PER_MS
+    : undefined;
+}
+
+function sessionOf(
+  ctx: JellyfinRequestContext,
+  playSessionId?: string
+): SessionContext {
+  return {
+    scope: ctx.watch,
+    sessionKey: sessionKeyFor(ctx.client),
+    user: ctx.persona?.id ?? '',
+    client: ctx.client,
+    playSessionId,
+  };
+}
+
+function playSessionIdOf(req: Request): string | undefined {
+  const v = bodyOf(req).PlaySessionId ?? qs(req, 'PlaySessionId');
+  return typeof v === 'string' && v ? v : undefined;
+}
+
+function mediaSourceIdOf(req: Request): string | undefined {
+  const v = bodyOf(req).MediaSourceId ?? qs(req, 'MediaSourceId');
+  return typeof v === 'string' && v
+    ? v.replace(/-/g, '').toLowerCase()
+    : undefined;
+}
+
+function streamIndexOf(req: Request, name: string): number | undefined {
+  const v = bodyField(req, name) ?? qs(req, name);
+  const n = typeof v === 'string' && v ? Number(v) : v;
+  return Number.isInteger(n) ? (n as number) : undefined;
+}
+
+function tracksOf(req: Request): PlayingTracks {
+  return {
+    mediaSourceId: mediaSourceIdOf(req),
+    audioStreamIndex: streamIndexOf(req, 'AudioStreamIndex'),
+    subtitleStreamIndex: streamIndexOf(req, 'SubtitleStreamIndex'),
+  };
+}
+
+const LATE_TICK_MS = 30_000;
+
+async function record(
+  ctx: JellyfinRequestContext,
+  rawId: string,
+  type: 'start' | 'progress' | 'stop',
+  positionMs: number | undefined,
+  opts: {
+    paused?: boolean;
+    playSessionId?: string;
+    mediaSourceId?: string;
+    tracks?: PlayingTracks;
+    durationMs?: number;
+  } = {}
+): Promise<void> {
+  // Before any await, so a tick still in flight when a stop is written is older.
+  const at = Date.now();
+  const found = await decodeItemForRequest(ctx, rawId);
+  // A programme, live or from its start, reports as its channel and keeps no history.
+  const programme = found?.k === 'program';
+  const d = programme ? channelOf(found) : found;
+  if (!d || (d.k !== 'movie' && d.k !== 'episode')) return;
+  const itemId = programme ? encodeItemId(d) : rawId;
+  const { tracks } = opts;
+  if (programme || (await playingLive(ctx, d, itemId, opts.mediaSourceId))) {
+    // The session still tracks what is on; only the history is skipped.
+    const session = sessionOf(ctx, opts.playSessionId);
+    if (type === 'start')
+      await openWatchSession(session, contentRefOf(d), {
+        positionMs,
+        live: true,
+        ...tracks,
+      });
+    else if (type === 'stop') await closeWatchSession(session);
+    else
+      await checkInWatchSession(session, {
+        positionMs,
+        paused: opts.paused,
+        ...tracks,
+      });
+    return;
+  }
+  const ref = contentRefOf(d);
+  const identity = await watchIdentityFor(ref);
+  const session = sessionOf(ctx, opts.playSessionId);
+  if (type === 'progress') {
+    await progressed(
+      ctx,
+      session,
+      ref,
+      { type, identity, positionMs, at },
+      opts.paused,
+      tracks,
+      opts.durationMs
+    );
+    return;
+  }
+  const provider = getWatchStateProvider();
+  if (type === 'stop' && positionMs == null)
+    positionMs =
+      (await provider.getMany(ctx.watch, [identity.itemKey])).get(
+        identity.itemKey
+      )?.positionMs ?? 0;
+
+  // one meta call on start and stop, none on the 5-10 s progress ticks
+  const item = await itemFromDescriptor(ctx, d).catch(() => null);
+  const durationMs =
+    opts.durationMs ??
+    (await durationFor(ctx, d, itemId, item, opts.mediaSourceId));
+  const event: WatchEvent = {
+    type,
+    identity,
+    positionMs,
+    durationMs,
+    snapshot: snapshotOf(item),
+  };
+  // Read before the start clears it, so addons that only keep lists hear the undrop.
+  const seriesKey = type === 'start' ? identity.seriesKey : null;
+  const undrops =
+    !!seriesKey &&
+    !!(await provider.getMany(ctx.watch, [seriesKey])).get(seriesKey)?.dropped;
+  const row = await provider.record(ctx.watch, event);
+
+  if (type === 'start') {
+    const opened = await openWatchSession(session, ref, {
+      positionMs,
+      durationMs,
+      paused: false,
+      ...tracks,
+    });
+    await reportPlayback(ctx, 'start', ref, {
+      row,
+      item,
+      positionMs,
+      durationMs,
+      sessionStartedAt: opened?.startedAt,
+    });
+    if (undrops)
+      await reportListChange(ctx, 'undropped', {
+        kind: 'series',
+        type: ref.type,
+        baseId: ref.baseId,
+      });
+    return;
+  }
+
+  const closed = await closeWatchSession(session);
+  await reportPlayback(ctx, 'stop', ref, {
+    row,
+    item,
+    positionMs,
+    durationMs,
+    played: playedThrough(positionMs ?? 0, durationMs || row?.durationMs),
+    sessionStartedAt:
+      closed?.itemKey === identity.itemKey ? closed.startedAt : undefined,
+  });
+}
+
+/** A tick keeps the session alive; only the pause edge is worth reporting. */
+async function progressed(
+  ctx: JellyfinRequestContext,
+  session: SessionContext,
+  ref: ContentRef,
+  event: WatchProgressEvent,
+  paused: boolean | undefined,
+  tracks: PlayingTracks | undefined,
+  durationMs: number | undefined
+): Promise<void> {
+  const { positionMs } = event;
+  // Only the session takes the runtime: on the tick it would mark the item played mid-play.
+  const { transition, row: existing } = await checkInWatchSession(session, {
+    positionMs,
+    durationMs,
+    paused,
+    ...tracks,
+  });
+  // Sent before the stop that closed this playback, and handled after it.
+  if (
+    existing?.endedAt != null &&
+    existing.itemKey === event.identity.itemKey &&
+    Date.now() - existing.endedAt < LATE_TICK_MS
+  )
+    return;
+  await getWatchStateProvider().record(ctx.watch, event);
+
+  // No row means no sweep could ever close it.
+  if (!existing) {
+    await openWatchSession(session, ref, {
+      positionMs,
+      durationMs,
+      paused,
+      ...tracks,
+    });
+    return;
+  }
+
+  // Other clients' ticks carry no runtime, and an event without one has the
+  // receiver store the position as zero.
+  if (transition)
+    await reportPlayback(ctx, transition, ref, {
+      positionMs,
+      durationMs: durationMs || existing.durationMs || undefined,
+      sessionStartedAt: existing.startedAt,
+    });
+}
+
+router.post(
+  [
+    '/Sessions/Playing',
+    '/PlayingItems/:itemId',
+    '/Users/:userId/PlayingItems/:itemId',
+  ],
+  jf(async (req, res, ctx) => {
+    const id = idFrom(req);
+    if (id)
+      await record(
+        ctx,
+        id,
+        'start',
+        ticksToMs(bodyOf(req).PositionTicks ?? qs(req, 'PositionTicks')),
+        {
+          playSessionId: playSessionIdOf(req),
+          mediaSourceId: mediaSourceIdOf(req),
+          tracks: tracksOf(req),
+          durationMs: measuredRuntimeOf(req),
+        }
+      );
+    res.status(204).end();
+  })
+);
+router.post(
+  [
+    '/Sessions/Playing/Progress',
+    '/PlayingItems/:itemId/Progress',
+    '/Users/:userId/PlayingItems/:itemId/Progress',
+  ],
+  jf(async (req, res, ctx) => {
+    const id = idFrom(req);
+    if (id) {
+      const body = bodyOf(req);
+      await record(
+        ctx,
+        id,
+        'progress',
+        ticksToMs(body.PositionTicks ?? qs(req, 'PositionTicks')),
+        {
+          paused: body.IsPaused === true || qs(req, 'IsPaused') === 'true',
+          playSessionId: playSessionIdOf(req),
+          tracks: tracksOf(req),
+          durationMs: measuredRuntimeOf(req),
+        }
+      );
+    }
+    res.status(204).end();
+  })
+);
+router.post(
+  '/Sessions/Playing/Stopped',
+  jf(async (req, res, ctx) => {
+    const id = idFrom(req);
+    if (id)
+      await record(
+        ctx,
+        id,
+        'stop',
+        ticksToMs(bodyOf(req).PositionTicks ?? qs(req, 'PositionTicks')),
+        {
+          mediaSourceId: mediaSourceIdOf(req),
+          durationMs: measuredRuntimeOf(req),
+        }
+      );
+    res.status(204).end();
+  })
+);
+router.delete(
+  ['/PlayingItems/:itemId', '/Users/:userId/PlayingItems/:itemId'],
+  jf(async (req, res, ctx) => {
+    const id = idFrom(req);
+    if (id)
+      await record(ctx, id, 'stop', ticksToMs(qs(req, 'PositionTicks')), {
+        mediaSourceId: mediaSourceIdOf(req),
+      });
+    res.status(204).end();
+  })
+);
+/** Nothing depends on this: progress reports keep a session alive on their own. */
+router.post(
+  '/Sessions/Playing/Ping',
+  jf(async (req, res, ctx) => {
+    await checkInWatchSession(sessionOf(ctx, playSessionIdOf(req)), {}).catch(
+      () => undefined
+    );
+    res.status(204).end();
+  })
+);
+
+async function userDataFor(ctx: JellyfinRequestContext, d: ContentDescriptor) {
+  const item = await itemFromDescriptor(ctx, d);
+  return item?.UserData ?? null;
+}
+
+async function setPlayed(
+  ctx: JellyfinRequestContext,
+  d: ContentDescriptor,
+  played: boolean
+) {
+  const provider = getWatchStateProvider();
+  const kind = played ? 'played' : 'unplayed';
+  if (d.k === 'series' || d.k === 'season') {
+    const season = d.k === 'season' ? d.s : undefined;
+    const r = await episodesForSeries(ctx, d, season);
+    const marked: ContentRef[] = [];
+    for (const ep of r?.episodes ?? []) {
+      const epd = descriptorOf(ep);
+      if (!epd || epd.k !== 'episode') continue;
+      const epRef = contentRefOf(epd);
+      await provider.record(ctx.watch, {
+        type: kind,
+        identity: await watchIdentityFor(epRef),
+        snapshot: snapshotOf(ep),
+      });
+      marked.push(epRef);
+    }
+    await reportBulkMark(
+      ctx,
+      kind,
+      { t: d.t, i: d.i, s: season },
+      marked,
+      r?.seriesItem
+    );
+    return;
+  }
+  const item = await itemFromDescriptor(ctx, d).catch(() => null);
+  // A collection detail keeps its movie id, so the built item says what it is.
+  if (d.k === 'boxset' || item?.Type === 'BoxSet') {
+    const r = await boxSetChildren(ctx, d);
+    for (const child of r?.children ?? []) {
+      const cd = descriptorOf(child);
+      if (!cd || cd.k !== 'movie') continue;
+      const ref = contentRefOf(cd);
+      const row = await provider.record(ctx.watch, {
+        type: kind,
+        identity: await watchIdentityFor(ref),
+        snapshot: snapshotOf(child),
+      });
+      await reportPlayback(ctx, kind, ref, { row, item: child });
+    }
+    return;
+  }
+  const ref = contentRefOf(d);
+  const row = await provider.record(ctx.watch, {
+    type: kind,
+    identity: await watchIdentityFor(ref),
+    snapshot: snapshotOf(item),
+  });
+  await reportPlayback(ctx, kind, ref, { row, item });
+}
+
+/** An episode and every aired one before it, specials aside, as one bulk mark. */
+async function setPlayedUpTo(
+  ctx: JellyfinRequestContext,
+  d: Extract<ContentDescriptor, { k: 'episode' }>
+) {
+  const provider = getWatchStateProvider();
+  const r = await episodesForSeries(ctx, d);
+  const now = Date.now();
+  const marked: ContentRef[] = [];
+  for (const ep of r?.episodes ?? []) {
+    const epd = descriptorOf(ep);
+    if (!epd || epd.k !== 'episode') continue;
+    if ((ep.UserData as { Played?: boolean } | undefined)?.Played) continue;
+    const before =
+      epd.s === d.s ? epd.e <= d.e : d.s > 0 && epd.s > 0 && epd.s < d.s;
+    if (!before) continue;
+    if (Date.parse(String(ep.PremiereDate ?? '')) > now) continue;
+    const epRef = contentRefOf(epd);
+    await provider.record(ctx.watch, {
+      type: 'played',
+      identity: await watchIdentityFor(epRef),
+      snapshot: snapshotOf(ep),
+    });
+    marked.push(epRef);
+  }
+  await reportBulkMark(
+    ctx,
+    'played',
+    { t: d.t, i: d.i },
+    marked,
+    r?.seriesItem
+  );
+}
+
+router.post(
+  '/AIOStreams/PlayedUpTo/:itemId',
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'));
+    if (d?.k !== 'episode') {
+      res.status(404).json({ Message: 'Episode not found' });
+      return;
+    }
+    await setPlayedUpTo(ctx, d);
+    res.status(204).end();
+  })
+);
+
+const PLAYED_PATHS = [
+  '/UserPlayedItems/:itemId',
+  '/Users/:userId/PlayedItems/:itemId',
+];
+router.post(
+  [
+    ...PLAYED_PATHS,
+    '/UserPlayedItems/:itemId/delete',
+    '/Users/:userId/PlayedItems/:itemId/delete',
+  ],
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'), { season: true });
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    const unmark = /\/delete$/i.test(req.path);
+    await setPlayed(ctx, d, !unmark);
+    res.json((await userDataFor(ctx, d)) ?? { Played: !unmark });
+  })
+);
+router.get(
+  [
+    '/UserPlayedItems/:itemId/delete',
+    '/Users/:userId/PlayedItems/:itemId/delete',
+  ],
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'), { season: true });
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    await setPlayed(ctx, d, false);
+    res.json((await userDataFor(ctx, d)) ?? { Played: false });
+  })
+);
+router.delete(
+  PLAYED_PATHS,
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'), { season: true });
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    await setPlayed(ctx, d, false);
+    res.json((await userDataFor(ctx, d)) ?? { Played: false });
+  })
+);
+
+async function setFavorite(
+  ctx: JellyfinRequestContext,
+  d: ContentDescriptor,
+  favorite: boolean
+) {
+  const item = await itemFromDescriptor(ctx, d).catch(() => null);
+  const ref = contentRefOf(d);
+  await getWatchStateProvider().record(ctx.watch, {
+    type: favorite ? 'favorite' : 'unfavorite',
+    identity: await watchIdentityFor(ref),
+    snapshot: snapshotOf(item),
+  });
+  // Trackers keep watchlists of titles, not of episodes or collections.
+  if (item?.Type === 'Movie' || item?.Type === 'Series')
+    await reportListChange(
+      ctx,
+      favorite ? 'watchlisted' : 'unwatchlisted',
+      ref,
+      item
+    );
+}
+
+async function setDropped(
+  ctx: JellyfinRequestContext,
+  d: ContentDescriptor,
+  dropped: boolean
+) {
+  const ref = contentRefOf(d);
+  const identity = await watchIdentityFor(ref);
+  const provider = getWatchStateProvider();
+  const held = (await provider.getMany(ctx.watch, [identity.itemKey])).get(
+    identity.itemKey
+  );
+  if (!dropped && !held?.dropped) return;
+  const item = await itemFromDescriptor(ctx, d).catch(() => null);
+  await provider.record(ctx.watch, {
+    type: dropped ? 'dropped' : 'undropped',
+    identity,
+    snapshot: snapshotOf(item),
+  });
+  await reportListChange(ctx, dropped ? 'dropped' : 'undropped', ref, item);
+}
+
+/** Only a changed numeric rating is reported; likes stay here. */
+async function setRating(
+  ctx: JellyfinRequestContext,
+  d: ContentDescriptor,
+  change: { rating?: number | null; likes?: boolean | null }
+) {
+  if (d.k === 'boxset') return;
+  const ref = contentRefOf(d);
+  const identity = await watchIdentityFor(ref);
+  const provider = getWatchStateProvider();
+  const held = (await provider.getMany(ctx.watch, [identity.itemKey])).get(
+    identity.itemKey
+  );
+  const item = await itemFromDescriptor(ctx, d).catch(() => null);
+  await provider.record(ctx.watch, {
+    type: 'rating',
+    identity,
+    ...change,
+    snapshot: snapshotOf(item),
+  });
+  if (change.rating !== undefined && change.rating !== (held?.rating ?? null))
+    await reportRating(ctx, ref, change.rating, item);
+}
+
+/**
+ * A like or dislike, or clearing both with the numeric rating as Jellyfin
+ * does. On a show a dislike is the drop, and anything else undrops it.
+ */
+async function rate(
+  ctx: JellyfinRequestContext,
+  d: ContentDescriptor,
+  likes: boolean | null
+) {
+  if (d.k === 'series' && likes === false) {
+    await setRating(ctx, d, { likes: null });
+    await setDropped(ctx, d, true);
+    return;
+  }
+  await setRating(ctx, d, likes === null ? { likes, rating: null } : { likes });
+  if (d.k === 'series') await setDropped(ctx, d, false);
+}
+
+const RATING_PATHS = [
+  '/UserItems/:itemId/Rating',
+  '/Users/:userId/Items/:itemId/Rating',
+];
+router.post(
+  RATING_PATHS,
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'), {
+      season: true,
+    });
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    await rate(ctx, d, qb(req, 'Likes') ?? null);
+    res.json((await userDataFor(ctx, d)) ?? {});
+  })
+);
+router.delete(
+  RATING_PATHS,
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'), {
+      season: true,
+    });
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    await rate(ctx, d, null);
+    res.json((await userDataFor(ctx, d)) ?? {});
+  })
+);
+
+const FAVORITE_PATHS = [
+  '/UserFavoriteItems/:itemId',
+  '/Users/:userId/FavoriteItems/:itemId',
+];
+router.post(
+  [
+    ...FAVORITE_PATHS,
+    '/UserFavoriteItems/:itemId/delete',
+    '/Users/:userId/FavoriteItems/:itemId/delete',
+  ],
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'));
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    const unmark = /\/delete$/i.test(req.path);
+    await setFavorite(ctx, d, !unmark);
+    res.json((await userDataFor(ctx, d)) ?? { IsFavorite: !unmark });
+  })
+);
+router.get(
+  [
+    '/UserFavoriteItems/:itemId/delete',
+    '/Users/:userId/FavoriteItems/:itemId/delete',
+  ],
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'));
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    await setFavorite(ctx, d, false);
+    res.json((await userDataFor(ctx, d)) ?? { IsFavorite: false });
+  })
+);
+router.delete(
+  FAVORITE_PATHS,
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'));
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    await setFavorite(ctx, d, false);
+    res.json((await userDataFor(ctx, d)) ?? { IsFavorite: false });
+  })
+);
+
+const USERDATA_PATHS = [
+  '/UserItems/:itemId/UserData',
+  '/Users/:userId/Items/:itemId/UserData',
+];
+router.get(
+  USERDATA_PATHS,
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'), {
+      season: true,
+    });
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    res.json((await userDataFor(ctx, d)) ?? {});
+  })
+);
+router.post(
+  USERDATA_PATHS,
+  jf(async (req, res, ctx) => {
+    const d = await descriptorFor(ctx, param(req, 'itemId'), {
+      season: true,
+    });
+    if (!d) {
+      res.status(404).json({ Message: 'Item not found' });
+      return;
+    }
+    const body = bodyOf(req);
+    if (
+      typeof body.Rating === 'number' &&
+      !(body.Rating >= 0 && body.Rating <= 10)
+    ) {
+      res.status(400).json({ Message: 'A 0 to 10 rating is required' });
+      return;
+    }
+    if (typeof body.Played === 'boolean') await setPlayed(ctx, d, body.Played);
+    if (typeof body.Likes === 'boolean') await rate(ctx, d, body.Likes);
+    // A number replaces a like, as Jellyfin keeps the two as one value.
+    if (typeof body.Rating === 'number')
+      await setRating(ctx, d, { rating: body.Rating, likes: null });
+    if (typeof body.IsFavorite === 'boolean' && d.k !== 'season')
+      await setFavorite(ctx, d, body.IsFavorite);
+    if (
+      typeof body.PlaybackPositionTicks === 'number' &&
+      (d.k === 'movie' || d.k === 'episode')
+    ) {
+      const item = await itemFromDescriptor(ctx, d).catch(() => null);
+      const at =
+        typeof body.LastPlayedDate === 'string'
+          ? Date.parse(body.LastPlayedDate)
+          : NaN;
+      await getWatchStateProvider().record(ctx.watch, {
+        type: 'stop',
+        identity: await watchIdentityFor(contentRefOf(d)),
+        // A time ahead of now would outrank every later play.
+        at: at > 0 && at <= Date.now() ? at : undefined,
+        positionMs: ticksToMs(body.PlaybackPositionTicks),
+        durationMs:
+          measuredRuntimeOf(req) ??
+          (typeof item?.RunTimeTicks === 'number'
+            ? item.RunTimeTicks / TICKS_PER_MS
+            : undefined),
+        snapshot: snapshotOf(item),
+      });
+    }
+    res.json((await userDataFor(ctx, d)) ?? {});
+  })
+);
+
+export default router;

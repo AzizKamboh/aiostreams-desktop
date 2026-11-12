@@ -1,0 +1,611 @@
+import React from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import { z } from 'zod';
+import { useWatch, type UseFormReturn } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@aiostreams/ui/tabs';
+import { Form } from '@aiostreams/ui/form';
+import { Alert } from '@aiostreams/ui/alert';
+import { Card } from '@aiostreams/ui/card';
+import { cn } from '@aiostreams/ui/core/styling';
+import { PageWrapper } from '@/components/shared/page-wrapper';
+import { Spinner } from '@aiostreams/ui/loading-spinner';
+import { LuffyError } from '@aiostreams/ui/shared/luffy-error';
+import {
+  useSettings,
+  useSaveSettings,
+  type ManagedSettingsKey,
+  type SettingsKey,
+  type PatchResult,
+} from './queries';
+import {
+  cardPath,
+  foldRank,
+  humanise,
+  tabFor,
+  type Visibility,
+  type VisibilityRule,
+  tabIdForKey,
+  tabIdForSection,
+} from './tabs.config';
+import {
+  SettingsCard,
+  SettingsNavCard,
+  SettingsPageHeader,
+} from './_components/settings-card';
+import {
+  SettingsIsDirty,
+  SettingsSubmitButton,
+} from './_components/settings-submit-button';
+import {
+  SettingsField,
+  toName,
+  SECRET_CLEAR_SENTINEL,
+} from './_components/settings-field';
+import { SettingsActionsMenu } from './_components/settings-actions-menu';
+import {
+  editorFor,
+  editorsFor,
+  SETTINGS_FORM_WIDGETS,
+} from './_components/settings-editors';
+import {
+  SettingsPanelsProvider,
+  dirtyPanels,
+  savePanels,
+  type SettingsPanelSaver,
+} from './_components/settings-panels';
+import MarkdownLite from '@/components/shared/markdown-lite';
+import { useScrollToField } from '@/components/shared/command-palette/use-scroll-to-field';
+
+/** One slot in a tab's body: a card of fields, or a bespoke editor. */
+type CardEntry =
+  | { title: string; note?: string; when?: VisibilityRule }
+  | { editor: string; when?: VisibilityRule };
+
+interface TabModel {
+  section: string;
+  label: string;
+  group: string;
+  order: number;
+  icon: ReturnType<typeof tabFor>['icon'];
+  /** subsection path (joined by '.') → keys; '' = section root */
+  groups: Map<string, SettingsKey[]>;
+  /** Keys rendered by a bespoke editor instead of the schema renderer. */
+  editors?: string[];
+  /** Cards come from the tab manifest, so their titles are already final. */
+  curated?: boolean;
+  cards?: ReturnType<typeof tabFor>['cards'];
+  fieldVisibility?: ReturnType<typeof tabFor>['fieldVisibility'];
+  cardVisibility?: ReturnType<typeof tabFor>['cardVisibility'];
+}
+
+const toRules = (when?: VisibilityRule): Visibility[] =>
+  when ? (Array.isArray(when) ? when : [when]) : [];
+
+/**
+ * An unknown key fails open: hiding something whose gate sits on another tab
+ * would strand settings with no way to reach them.
+ */
+function passes(rules: Visibility[], valueOf: (key: string) => unknown) {
+  return rules.every((w) => {
+    const value = valueOf(w.key);
+    if (value === undefined) return true;
+    return w.not !== undefined ? value !== w.not : value === w.equals;
+  });
+}
+
+/** Watches the gating fields and returns a lookup over their current values. */
+function useGateValues(keys: string[]): (key: string) => unknown {
+  const values = useWatch({ name: keys.map(toName) }) as unknown[];
+  const byKey = new Map(keys.map((k, i) => [k, values[i]]));
+  return (key: string) => byKey.get(key);
+}
+
+/**
+ * Shows its children only while every gating condition holds. Gating lives in
+ * a component rather than in the tab render because that render is a form
+ * render-prop, and `useWatch` is a hook.
+ */
+function Gated({
+  when,
+  children,
+}: {
+  when: Visibility[];
+  children: React.ReactNode;
+}) {
+  const valueOf = useGateValues(when.map((w) => w.key));
+  return passes(when, valueOf) ? <>{children}</> : null;
+}
+
+/** Ungated content renders as-is; only gated content watches form state. */
+function Gate({
+  when,
+  children,
+}: {
+  when?: VisibilityRule;
+  children: React.ReactNode;
+}) {
+  const rules = toRules(when);
+  if (rules.length === 0) return <>{children}</>;
+  return <Gated when={rules}>{children}</Gated>;
+}
+
+function CardGated({
+  own,
+  fields,
+  children,
+}: {
+  own: Visibility[];
+  fields: Visibility[][];
+  children: React.ReactNode;
+}) {
+  const valueOf = useGateValues([
+    ...new Set([...own, ...fields.flat()].map((w) => w.key)),
+  ]);
+  const shown =
+    passes(own, valueOf) && fields.some((rules) => passes(rules, valueOf));
+  return shown ? <>{children}</> : null;
+}
+
+/**
+ * A card hides when its own gate fails, and also when every field inside it
+ * is gated away, which otherwise leaves a bare header behind. One ungated
+ * field is enough to keep the card, so only an entirely conditional card needs
+ * to watch its fields.
+ */
+function CardGate({
+  when,
+  fields,
+  children,
+}: {
+  when?: VisibilityRule;
+  fields: (VisibilityRule | undefined)[];
+  children: React.ReactNode;
+}) {
+  const own = toRules(when);
+  const each = fields.map(toRules);
+  if (own.length === 0 && each.some((rules) => rules.length === 0))
+    return <>{children}</>;
+  return (
+    <CardGated own={own} fields={each}>
+      {children}
+    </CardGated>
+  );
+}
+
+/**
+ * Cards a tab declares by hand, for a section that is a flat bag of keys the
+ * automatic subsection grouping would dump into one card. Unlisted keys fall
+ * into a trailing "Other" card so nothing new is silently dropped.
+ */
+function curatedGroups(
+  cards: NonNullable<ReturnType<typeof tabFor>['cards']>,
+  tabKeys: SettingsKey[]
+): Map<string, SettingsKey[]> {
+  const byKey = new Map(tabKeys.map((k) => [k.key, k]));
+  const used = new Set<string>();
+  const groups = new Map<string, SettingsKey[]>();
+  for (const card of cards) {
+    if ('editor' in card) continue;
+    const found = card.keys
+      .map((key) => {
+        const k = byKey.get(key);
+        if (k) used.add(key);
+        return k;
+      })
+      .filter((k): k is SettingsKey => !!k);
+    if (found.length) groups.set(card.title, found);
+  }
+  const leftover = tabKeys.filter((k) => !used.has(k.key));
+  if (leftover.length) groups.set('Other', leftover);
+  return groups;
+}
+
+function buildTabs(keys: SettingsKey[]): TabModel[] {
+  const byTab = new Map<string, SettingsKey[]>();
+  for (const k of keys) {
+    const tabId = tabIdForKey(k.key);
+    (byTab.get(tabId) ?? byTab.set(tabId, []).get(tabId)!).push(k);
+  }
+  const tabs: TabModel[] = [];
+  for (const [tabId, tabKeys] of byTab) {
+    const meta = tabFor(tabId);
+    if (meta.cards) {
+      tabs.push({
+        section: tabId,
+        ...meta,
+        groups: curatedGroups(meta.cards, tabKeys),
+        curated: true,
+      });
+      continue;
+    }
+    // Cards render in Map insertion order, i.e. schema-walk order, which says
+    // nothing about how two folded sections should sit relative to each other.
+    const ordered = meta.sections
+      ? [...tabKeys].sort(
+          (a, b) => foldRank(tabId, a.key) - foldRank(tabId, b.key)
+        )
+      : tabKeys;
+    const groups = new Map<string, SettingsKey[]>();
+    for (const k of ordered) {
+      const sub = cardPath(tabId, k.key);
+      (groups.get(sub) ?? groups.set(sub, []).get(sub)!).push(k);
+    }
+    tabs.push({ section: tabId, ...meta, groups });
+  }
+  return tabs.sort(
+    (a, b) => a.order - b.order || a.label.localeCompare(b.label)
+  );
+}
+
+function TabForm({
+  tab,
+  allKeys: allSettingsKeys,
+  managed,
+}: {
+  tab: TabModel;
+  allKeys: SettingsKey[];
+  /** Editor-owned keys, for the reset menu; they render no field of their own. */
+  managed: ManagedSettingsKey[];
+}) {
+  const { mutateAsync, isPending } = useSaveSettings();
+  // Bespoke panels on this tab (see `settings-panels`).
+  const panelsRef = React.useRef(new Map<string, SettingsPanelSaver>());
+  // Editors a card slots in itself are rendered there, not again at the end.
+  const Editors = React.useMemo(() => {
+    const placed = new Set(
+      (tab.cards ?? []).flatMap((c) => ('editor' in c ? [c.editor] : []))
+    );
+    return editorsFor((tab.editors ?? []).filter((k) => !placed.has(k)));
+  }, [tab.cards, tab.editors]);
+  // Hold the RHF methods captured from the Form's children render-prop so
+  // `onSubmit` can call `reset(values)` after a successful save — otherwise
+  // `formState.isDirty` stays true even though the persisted state matches,
+  // leaving the "unsaved changes" alert stuck until the user re-enters the
+  // tab.
+  const methodsRef = React.useRef<UseFormReturn<any> | null>(null);
+
+  const allKeys = React.useMemo(() => [...tab.groups.values()].flat(), [tab]);
+
+  const { schema, defaults, byName } = React.useMemo(() => {
+    const shape: Record<string, z.ZodTypeAny> = {};
+    const defaults: Record<string, unknown> = {};
+    const byName = new Map<string, SettingsKey>();
+    for (const k of allKeys) {
+      const n = toName(k.key);
+      shape[n] = z.any();
+      // Secrets start blank so an untouched field PATCHes nothing.
+      if (k.secret) {
+        defaults[n] = '';
+      } else if (k.value === null && k.ui.kind === 'enum') {
+        defaults[n] = '';
+      } else {
+        defaults[n] = k.value;
+      }
+      byName.set(n, k);
+    }
+    // Panel fields carry their own value into `onSubmit`; without a slot in
+    // the schema zod would strip them, and without one in `defaultValues`
+    // `reset()` could not revert them.
+    for (const key of tab.editors ?? []) {
+      const n = toName(key);
+      shape[n] = z.any();
+      defaults[n] = undefined;
+    }
+    return { schema: z.object(shape), defaults, byName };
+  }, [allKeys, tab.editors]);
+
+  return (
+    <Form
+      schema={schema}
+      defaultValues={defaults}
+      stackClass="space-y-4 relative"
+      onSubmit={async (data: Record<string, unknown>) => {
+        const patch: Record<string, unknown> = {};
+        for (const [n, val] of Object.entries(data)) {
+          const k = byName.get(n);
+          if (!k || k.source === 'environment') continue;
+          if (k.secret) {
+            if (val === SECRET_CLEAR_SENTINEL) {
+              patch[k.key] = null;
+            } else if (val !== '' && val != null) {
+              patch[k.key] = val;
+            }
+            continue;
+          }
+          const isNullable = k.value === null || k.default === null;
+          const normalised = isNullable && val === '' ? null : val;
+          if (JSON.stringify(normalised) !== JSON.stringify(k.value))
+            patch[k.key] = normalised;
+        }
+        const baseline = methodsRef.current?.formState.defaultValues;
+        const changedPanels = dirtyPanels(panelsRef.current, data, baseline);
+        if (Object.keys(patch).length === 0 && changedPanels.length === 0) {
+          toast.info('No changes to save.');
+          // Spurious dirtiness can come from env-locked / non-savable fields
+          // (e.g. an env-set duration). Clear it so the "unsaved changes"
+          // alert and pulsing Save don't get stuck with no way to dismiss.
+          methodsRef.current?.reset(data, {
+            keepValues: true,
+            keepIsValid: true,
+          });
+          return;
+        }
+        try {
+          const saved: string[] = [];
+          let res: PatchResult = { updated: [], requiresRestart: false };
+          if (Object.keys(patch).length > 0) {
+            res = await mutateAsync(patch);
+            saved.push(
+              `${res.updated.length} setting${res.updated.length === 1 ? '' : 's'}`
+            );
+          }
+          saved.push(...(await savePanels(changedPanels, data)));
+          for (const [panelName] of changedPanels) {
+            methodsRef.current?.setValue(panelName, data[panelName], {
+              shouldDirty: false,
+            });
+          }
+          toast.success(`Saved ${saved.join(' and ')}.`);
+          // Treat the just-submitted values as the new baseline so RHF
+          // immediately reports `isDirty=false` and the "unsaved changes"
+          // alert disappears. We pass `data` (current form values) rather
+          // than `defaults` because secret fields default to '' and we want
+          // them to stay clean even after the user typed a replacement.
+          methodsRef.current?.reset(data, {
+            keepValues: true,
+            keepIsValid: true,
+          });
+          if (res.requiresRestart)
+            toast.warning('Some changes require a restart to take effect.', {
+              duration: 8000,
+            });
+        } catch (e: any) {
+          const issues = e?.issues as Record<string, string> | undefined;
+          if (issues)
+            for (const [key, msg] of Object.entries(issues))
+              toast.error(`${key}: ${msg}`);
+          else toast.error(e?.message ?? 'Failed to save settings');
+        }
+      }}
+    >
+      {(methods) => {
+        // Capture RHF instance so the submit handler can `reset` after save.
+        methodsRef.current = methods;
+        const Widget = SETTINGS_FORM_WIDGETS[tab.section];
+        // Render subsections in schema (walk) order — `tab.groups` is a Map
+        // built in that order, so we only need to float the section root
+        // (`''`) to the top. This lets the core schema control card order
+        // (e.g. Proxy → Encryption first) without per-section UI config.
+        const subKeys = [...tab.groups.keys()];
+        const subs =
+          !tab.curated && subKeys.includes('')
+            ? ['', ...subKeys.filter((s) => s !== '')]
+            : subKeys;
+        // A curated tab renders in manifest order, so an editor can sit
+        // between two cards; an auto-grouped one follows the schema walk.
+        const entries: CardEntry[] = tab.cards
+          ? [
+              ...tab.cards.map(
+                (c): CardEntry =>
+                  'editor' in c
+                    ? { editor: c.editor, when: c.visibleWhen }
+                    : { title: c.title, note: c.note, when: c.visibleWhen }
+              ),
+              ...(tab.groups.has('Other') ? [{ title: 'Other' }] : []),
+            ]
+          : subs.map((sub) => ({
+              title: sub,
+              when: tab.cardVisibility?.[sub],
+            }));
+        return (
+          <SettingsPanelsProvider panelsRef={panelsRef}>
+            {/* Drives cross-field state (e.g. the usenet performance profile). */}
+            {Widget && <Widget />}
+            <div className="flex items-start justify-between gap-2">
+              <SettingsPageHeader
+                title={tab.label}
+                description={`${tab.label} configuration`}
+                icon={tab.icon}
+              />
+              <div className="pt-1">
+                <SettingsActionsMenu
+                  allKeys={allSettingsKeys}
+                  allManagedKeys={managed}
+                  sectionKeys={allKeys}
+                  sectionManagedKeys={managed.filter((m) =>
+                    tab.editors?.includes(m.key)
+                  )}
+                  sectionLabel={tab.label}
+                />
+              </div>
+            </div>
+            {entries.map((entry) => {
+              if ('editor' in entry) {
+                const Editor = editorFor(entry.editor);
+                return Editor ? (
+                  <Gate key={`editor:${entry.editor}`} when={entry.when}>
+                    <Editor />
+                  </Gate>
+                ) : null;
+              }
+              // A curated card whose every key is absent (hidden, deprecated,
+              // owned by another tab) has nothing to show.
+              const fields = tab.groups.get(entry.title);
+              if (!fields?.length) return null;
+              return (
+                <CardGate
+                  key={entry.title || '_root'}
+                  when={entry.when}
+                  fields={fields.map((k) => tab.fieldVisibility?.[k.key])}
+                >
+                  <SettingsCard
+                    title={
+                      tab.curated
+                        ? entry.title
+                        : entry.title
+                          ? entry.title.split('.').map(humanise).join(' › ')
+                          : undefined
+                    }
+                  >
+                    {tab.curated && entry.note && (
+                      <p className="text-sm text-[--muted] -mt-1">
+                        <MarkdownLite>{entry.note}</MarkdownLite>
+                      </p>
+                    )}
+                    {fields.map((k) => (
+                      <Gate key={k.key} when={tab.fieldVisibility?.[k.key]}>
+                        <div id={`setting-${k.key}`}>
+                          <SettingsField k={k} />
+                        </div>
+                      </Gate>
+                    ))}
+                  </SettingsCard>
+                </CardGate>
+              );
+            })}
+            {/* Their values are form fields, so they save with everything
+                else and share the dirty alert. */}
+            {Editors.map((Editor, i) => (
+              <Editor key={i} />
+            ))}
+            <div className="flex justify-end pt-2">
+              <SettingsSubmitButton isPending={isPending} />
+            </div>
+            <SettingsIsDirty isPending={isPending} />
+          </SettingsPanelsProvider>
+        );
+      }}
+    </Form>
+  );
+}
+
+export function SettingsPage() {
+  const { data, isLoading, error, refetch } = useSettings();
+  const tabs = React.useMemo(() => (data ? buildTabs(data.keys) : []), [data]);
+  // Only keys a tab actually surfaces an editor for: a managed key with no
+  // editor on any tab (usenet.providers, which lives on its own page) has no
+  // business in a reset dialog the user reached from here.
+  const managed = React.useMemo(() => {
+    const owned = new Set(tabs.flatMap((t) => t.editors ?? []));
+    return (data?.managed ?? []).filter((m) => owned.has(m.key));
+  }, [data, tabs]);
+  const search = useSearch({ from: '/dashboard/settings' });
+  const navigate = useNavigate({ from: '/dashboard/settings' });
+
+  const [tab, setTab] = React.useState<string>('');
+  React.useEffect(() => {
+    if (!tabs.length) return;
+    // Older links carry a config section rather than a tab id.
+    const requested = search.tab ? tabIdForSection(search.tab) : undefined;
+    if (requested && tabs.some((t) => t.section === requested))
+      setTab(requested);
+    else if (!tab) setTab(tabs[0].section);
+  }, [tabs, search.tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const clearField = React.useCallback(() => {
+    navigate({
+      to: '.',
+      search: (prev) => ({ ...prev, field: undefined }),
+      replace: true,
+      resetScroll: false,
+    });
+  }, [navigate]);
+
+  // A field only exists in the DOM once its tab is the active one.
+  useScrollToField(search.field, Boolean(tab) && tabs.length > 0, clearField);
+
+  const onTabChange = (v: string) => {
+    setTab(v);
+    navigate({
+      to: '.',
+      search: (prev) => ({ ...prev, tab: v }),
+      replace: true,
+      resetScroll: false,
+    });
+  };
+
+  if (isLoading)
+    return (
+      <PageWrapper className="p-8 flex items-center justify-center">
+        <Spinner className="w-8 h-8" />
+      </PageWrapper>
+    );
+  if (error || !data)
+    return (
+      <PageWrapper className="p-8">
+        <LuffyError title="Failed to load settings" reset={() => refetch()}>
+          <p className="text-sm text-[--muted]">{String(error)}</p>
+        </LuffyError>
+      </PageWrapper>
+    );
+
+  // group tabs by `group` for the nav rail
+  const groups = new Map<string, TabModel[]>();
+  for (const t of tabs)
+    (groups.get(t.group) ?? groups.set(t.group, []).get(t.group)!).push(t);
+
+  return (
+    <PageWrapper className="p-4 sm:p-8 space-y-4 relative">
+      <Tabs
+        value={tab}
+        onValueChange={onTabChange}
+        variant="pill"
+        className={cn(
+          'w-full grid grid-cols-1 lg:grid lg:grid-cols-[280px,1fr] gap-4'
+        )}
+        triggerClass={cn(
+          'text-base px-6 rounded-[--radius-md] w-fit lg:w-full rounded-lg border-0',
+          'data-[state=active]:bg-[--subtle] data-[state=active]:text-white',
+          'dark:hover:text-white',
+          'h-9 lg:justify-start px-3 transition-all duration-200 hover:bg-[--subtle]/50 hover:transform'
+        )}
+        listClass={cn(
+          'w-full flex flex-wrap lg:flex-nowrap h-fit',
+          'lg:block p-2 lg:p-0'
+        )}
+      >
+        <TabsList className="flex-wrap max-w-full lg:space-y-2 lg:sticky lg:top-4">
+          <SettingsNavCard>
+            <div className="overflow-x-none overflow-y-hidden rounded-[--radius-md] space-y-1 lg:space-y-3 flex justify-center flex-wrap lg:block">
+              {[...groups.entries()].map(([groupName, groupTabs]) => (
+                <Card
+                  key={groupName}
+                  className="lg:p-2 contents lg:block border-0 bg-transparent lg:border lg:bg-gray-950/5 dark:lg:bg-gray-950/40"
+                >
+                  <p className="hidden lg:block px-3 py-1 text-[10px] uppercase tracking-wider text-[--muted] font-semibold">
+                    {groupName}
+                  </p>
+                  {groupTabs.map((t) => (
+                    <TabsTrigger
+                      key={t.section}
+                      value={t.section}
+                      className="group"
+                    >
+                      <t.icon className="text-xl mr-3 transition-transform duration-200 group-hover:translate-x-0.5" />
+                      {t.label}
+                    </TabsTrigger>
+                  ))}
+                </Card>
+              ))}
+            </div>
+          </SettingsNavCard>
+        </TabsList>
+
+        <div>
+          {tabs.map((t) => (
+            <TabsContent
+              key={t.section}
+              value={t.section}
+              className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+            >
+              {tab === t.section && (
+                <TabForm tab={t} allKeys={data.keys} managed={managed} />
+              )}
+            </TabsContent>
+          ))}
+        </div>
+      </Tabs>
+    </PageWrapper>
+  );
+}

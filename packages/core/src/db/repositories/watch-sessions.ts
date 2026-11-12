@@ -1,0 +1,311 @@
+import { getDb } from '../db.js';
+import { join, sql } from '../sql.js';
+import type { WatchKind } from './watch-state.js';
+import type { WatchScope } from '../../watch-state/types.js';
+
+/** The version a client plays and its picked tracks. */
+export interface PlayingTracks {
+  mediaSourceId?: string | null;
+  audioStreamIndex?: number | null;
+  subtitleStreamIndex?: number | null;
+}
+
+/**
+ * One open playback per client. Persisted rather than held in memory: the
+ * process restarts under a running playback, and the sweep runs on one replica
+ * which may not be the one that served the progress reports.
+ */
+export interface WatchSessionRow extends Required<PlayingTracks> {
+  uuid: string;
+  persona: string;
+  /** Who was signed in; a shared-history persona shares the account's scope. */
+  userPersona: string | null;
+  sessionKey: string;
+  itemKey: string;
+  kind: WatchKind;
+  mediaType: string;
+  baseId: string;
+  season: number | null;
+  episode: number | null;
+  videoId: string | null;
+  playSessionId: string | null;
+  deviceId: string | null;
+  client: string | null;
+  deviceName: string | null;
+  appVersion: string | null;
+  positionMs: number;
+  durationMs: number;
+  paused: boolean;
+  startedAt: number;
+  lastCheckinAt: number;
+  endedAt: number | null;
+  /** A channel, which keeps no history. */
+  live: boolean;
+}
+
+export interface WatchSessionUpsert extends PlayingTracks {
+  userPersona?: string | null;
+  itemKey: string;
+  kind: WatchKind;
+  mediaType: string;
+  baseId: string;
+  season?: number | null;
+  episode?: number | null;
+  videoId?: string | null;
+  playSessionId?: string | null;
+  deviceId?: string | null;
+  client?: string | null;
+  deviceName?: string | null;
+  appVersion?: string | null;
+  positionMs?: number;
+  durationMs?: number;
+  paused?: boolean;
+  live?: boolean;
+}
+
+interface DbRow {
+  uuid: string;
+  persona: string;
+  user_persona: string | null;
+  session_key: string;
+  item_key: string;
+  kind: string;
+  media_type: string;
+  base_id: string;
+  season: number | string | null;
+  episode: number | string | null;
+  video_id: string | null;
+  play_session_id: string | null;
+  device_id: string | null;
+  client: string | null;
+  device_name: string | null;
+  app_version: string | null;
+  media_source_id: string | null;
+  audio_stream_index: number | string | null;
+  subtitle_stream_index: number | string | null;
+  position_ms: number | string;
+  duration_ms: number | string;
+  paused: number | string;
+  started_at: number | string;
+  last_checkin_at: number | string;
+  ended_at: number | string | null;
+  live: number | string;
+  [k: string]: unknown;
+}
+
+function optionalNumber(v: number | string | null): number | null {
+  return v == null ? null : Number(v);
+}
+
+function toRow(r: DbRow): WatchSessionRow {
+  return {
+    uuid: r.uuid,
+    persona: r.persona,
+    userPersona: r.user_persona ?? null,
+    sessionKey: r.session_key,
+    itemKey: r.item_key,
+    kind: r.kind as WatchKind,
+    mediaType: r.media_type,
+    baseId: r.base_id,
+    season: optionalNumber(r.season),
+    episode: optionalNumber(r.episode),
+    videoId: r.video_id,
+    playSessionId: r.play_session_id,
+    deviceId: r.device_id,
+    client: r.client,
+    deviceName: r.device_name ?? null,
+    appVersion: r.app_version ?? null,
+    mediaSourceId: r.media_source_id ?? null,
+    audioStreamIndex: optionalNumber(r.audio_stream_index ?? null),
+    subtitleStreamIndex: optionalNumber(r.subtitle_stream_index ?? null),
+    positionMs: Number(r.position_ms),
+    durationMs: Number(r.duration_ms),
+    paused: Boolean(Number(r.paused)),
+    startedAt: Number(r.started_at),
+    lastCheckinAt: Number(r.last_checkin_at),
+    endedAt: optionalNumber(r.ended_at),
+    live: Boolean(Number(r.live)),
+  };
+}
+
+export class WatchSessionRepository {
+  static async get(
+    scope: WatchScope,
+    sessionKey: string
+  ): Promise<WatchSessionRow | null> {
+    const row = await getDb().maybeOne<DbRow>(
+      sql`SELECT * FROM watch_sessions
+           WHERE uuid = ${scope.uuid} AND persona = ${scope.persona}
+             AND session_key = ${sessionKey}`
+    );
+    return row ? toRow(row) : null;
+  }
+
+  static async getMany(
+    scope: WatchScope,
+    sessionKeys: string[]
+  ): Promise<WatchSessionRow[]> {
+    if (!sessionKeys.length) return [];
+    const keys = join(sessionKeys.map((key) => sql`${key}`));
+    const rows = await getDb().query<DbRow>(
+      sql`SELECT * FROM watch_sessions
+           WHERE uuid = ${scope.uuid} AND persona = ${scope.persona}
+             AND session_key IN (${keys})`
+    );
+    return rows.map(toRow);
+  }
+
+  /** Switching item under the same key is a new playback, so timings reset. */
+  static async open(
+    scope: WatchScope,
+    sessionKey: string,
+    input: WatchSessionUpsert
+  ): Promise<WatchSessionRow | null> {
+    const now = Date.now();
+    const row = await getDb().maybeOne<DbRow>(
+      sql`INSERT INTO watch_sessions
+            (uuid, persona, session_key, user_persona, item_key, kind,
+             media_type, base_id, season, episode, video_id, play_session_id,
+             device_id, client, device_name, app_version, media_source_id,
+             audio_stream_index, subtitle_stream_index, position_ms,
+             duration_ms, paused, started_at, last_checkin_at, ended_at, live)
+          VALUES (${scope.uuid}, ${scope.persona}, ${sessionKey},
+                  ${input.userPersona ?? null},
+                  ${input.itemKey}, ${input.kind}, ${input.mediaType},
+                  ${input.baseId}, ${input.season ?? null},
+                  ${input.episode ?? null}, ${input.videoId ?? null},
+                  ${input.playSessionId ?? null}, ${input.deviceId ?? null},
+                  ${input.client ?? null}, ${input.deviceName ?? null},
+                  ${input.appVersion ?? null}, ${input.mediaSourceId ?? null},
+                  ${input.audioStreamIndex ?? null},
+                  ${input.subtitleStreamIndex ?? null},
+                  ${Math.round(input.positionMs ?? 0)},
+                  ${Math.round(input.durationMs ?? 0)}, ${input.paused ? 1 : 0},
+                  ${now}, ${now}, NULL, ${input.live ? 1 : 0})
+          ON CONFLICT(uuid, persona, session_key) DO UPDATE SET
+            user_persona = excluded.user_persona,
+            item_key = excluded.item_key,
+            kind = excluded.kind,
+            media_type = excluded.media_type,
+            base_id = excluded.base_id,
+            season = excluded.season,
+            episode = excluded.episode,
+            video_id = excluded.video_id,
+            play_session_id = COALESCE(excluded.play_session_id, watch_sessions.play_session_id),
+            device_id = COALESCE(excluded.device_id, watch_sessions.device_id),
+            client = COALESCE(excluded.client, watch_sessions.client),
+            device_name = COALESCE(excluded.device_name, watch_sessions.device_name),
+            app_version = COALESCE(excluded.app_version, watch_sessions.app_version),
+            media_source_id = excluded.media_source_id,
+            audio_stream_index = excluded.audio_stream_index,
+            subtitle_stream_index = excluded.subtitle_stream_index,
+            position_ms = excluded.position_ms,
+            duration_ms = CASE WHEN excluded.duration_ms > 0
+                               THEN excluded.duration_ms ELSE watch_sessions.duration_ms END,
+            paused = excluded.paused,
+            started_at = CASE WHEN watch_sessions.item_key = excluded.item_key
+                                   AND watch_sessions.ended_at IS NULL
+                              THEN watch_sessions.started_at ELSE excluded.started_at END,
+            last_checkin_at = excluded.last_checkin_at,
+            ended_at = NULL,
+            live = excluded.live
+          RETURNING *`
+    );
+    return row ? toRow(row) : null;
+  }
+
+  /** A closed session stays closed, so a late tick cannot reopen it. */
+  static async checkIn(
+    scope: WatchScope,
+    sessionKey: string,
+    at: number,
+    patch: {
+      positionMs?: number;
+      durationMs?: number;
+      paused?: boolean;
+    } & PlayingTracks
+  ): Promise<void> {
+    const pos = patch.positionMs == null ? null : Math.round(patch.positionMs);
+    const dur =
+      patch.durationMs && patch.durationMs > 0
+        ? Math.round(patch.durationMs)
+        : null;
+    const paused = patch.paused == null ? null : patch.paused ? 1 : 0;
+    await getDb().exec(
+      sql`UPDATE watch_sessions SET
+            last_checkin_at = ${at},
+            position_ms = COALESCE(${pos}, position_ms),
+            duration_ms = COALESCE(${dur}, duration_ms),
+            paused = COALESCE(${paused}, paused),
+            media_source_id = COALESCE(${patch.mediaSourceId ?? null}, media_source_id),
+            audio_stream_index = COALESCE(${patch.audioStreamIndex ?? null}, audio_stream_index),
+            subtitle_stream_index = COALESCE(${patch.subtitleStreamIndex ?? null}, subtitle_stream_index)
+          WHERE uuid = ${scope.uuid} AND persona = ${scope.persona}
+            AND session_key = ${sessionKey} AND ended_at IS NULL`
+    );
+  }
+
+  static async close(
+    scope: WatchScope,
+    sessionKey: string,
+    at: number
+  ): Promise<WatchSessionRow | null> {
+    const row = await getDb().maybeOne<DbRow>(
+      sql`UPDATE watch_sessions SET ended_at = ${at}, last_checkin_at = ${at}
+           WHERE uuid = ${scope.uuid} AND persona = ${scope.persona}
+             AND session_key = ${sessionKey}
+          RETURNING *`
+    );
+    return row ? toRow(row) : null;
+  }
+
+  /** One scope's sessions, open and recently closed, most recent first. */
+  static async listForScope(
+    scope: WatchScope,
+    limit: number
+  ): Promise<WatchSessionRow[]> {
+    const rows = await getDb().query<DbRow>(
+      sql`SELECT * FROM watch_sessions
+           WHERE uuid = ${scope.uuid} AND persona = ${scope.persona}
+           ORDER BY last_checkin_at DESC
+           LIMIT ${limit}`
+    );
+    return rows.map(toRow);
+  }
+
+  static async listForUuid(
+    uuid: string,
+    limit: number
+  ): Promise<WatchSessionRow[]> {
+    const rows = await getDb().query<DbRow>(
+      sql`SELECT * FROM watch_sessions
+           WHERE uuid = ${uuid}
+           ORDER BY last_checkin_at DESC
+           LIMIT ${limit}`
+    );
+    return rows.map(toRow);
+  }
+
+  /** Open sessions that have not checked in since `before`. */
+  static async listIdle(
+    before: number,
+    limit: number
+  ): Promise<WatchSessionRow[]> {
+    const rows = await getDb().query<DbRow>(
+      sql`SELECT * FROM watch_sessions
+           WHERE ended_at IS NULL AND last_checkin_at < ${before}
+           ORDER BY last_checkin_at ASC
+           LIMIT ${limit}`
+    );
+    return rows.map(toRow);
+  }
+
+  /** Closed sessions are kept only long enough to absorb a late duplicate stop. */
+  static async pruneClosed(olderThan: number): Promise<number> {
+    const res = await getDb().exec(
+      sql`DELETE FROM watch_sessions
+           WHERE ended_at IS NOT NULL AND ended_at < ${olderThan}`
+    );
+    return res.rowCount ?? 0;
+  }
+}

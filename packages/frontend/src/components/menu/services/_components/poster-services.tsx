@@ -1,0 +1,275 @@
+import { useUserData } from '@/context/userData';
+import { SettingsCard } from '../../../shared/settings-card';
+import { Select } from '@aiostreams/ui/select';
+import { PasswordInput } from '@aiostreams/ui/password-input';
+import { TextInput } from '@aiostreams/ui/text-input';
+import { Switch } from '@aiostreams/ui/switch';
+
+export function PosterServices() {
+  const { userData, setUserData } = useUserData();
+  const credentials: Record<string, string | undefined> = {
+    rpdb: userData.rpdbApiKey,
+    'top-poster': userData.topPosterApiKey,
+    aioratings: userData.aioratingsApiKey,
+    openposterdb: userData.openposterdbApiKey,
+    custom: userData.customPosterUrl,
+  };
+  const hasPosterService = !!credentials[userData.posterService || 'rpdb'];
+
+  return (
+    <SettingsCard
+      title="Poster Service"
+      description="Select a poster service to use for catalogs that support it."
+    >
+      <Select
+        label="Poster Service"
+        options={[
+          { label: 'None', value: 'none' },
+          { label: 'RPDB', value: 'rpdb' },
+          { label: 'TOP Posters', value: 'top-poster' },
+          { label: 'AIOratings', value: 'aioratings' },
+          { label: 'OpenPosterDB', value: 'openposterdb' },
+          { label: 'Custom URL', value: 'custom' },
+        ]}
+        value={userData.posterService || 'rpdb'}
+        onValueChange={(v) => {
+          setUserData((prev) => ({
+            ...prev,
+            posterService: v as
+              | 'rpdb'
+              | 'top-poster'
+              | 'aioratings'
+              | 'openposterdb'
+              | 'custom'
+              | 'none',
+          }));
+        }}
+        defaultValue="rpdb"
+      />
+
+      {(!userData.posterService || userData.posterService === 'rpdb') && (
+        <PasswordInput
+          autoComplete="new-password"
+          label="RPDB API Key"
+          help={
+            <span>
+              Get your API Key from{' '}
+              <a
+                href="https://ratingposterdb.com/api-key/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[--brand] hover:underline"
+              >
+                here
+              </a>
+            </span>
+          }
+          value={userData.rpdbApiKey}
+          onValueChange={(v) => {
+            setUserData((prev) => ({ ...prev, rpdbApiKey: v }));
+          }}
+        />
+      )}
+
+      {userData.posterService === 'top-poster' && (
+        <PasswordInput
+          autoComplete="new-password"
+          label="TOP Posters API Key"
+          help={
+            <span>
+              Get your API Key from{' '}
+              <a
+                href="https://api.top-posters.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[--brand] hover:underline"
+              >
+                TOP Posters
+              </a>
+            </span>
+          }
+          value={userData.topPosterApiKey}
+          onValueChange={(v) => {
+            setUserData((prev) => ({ ...prev, topPosterApiKey: v }));
+          }}
+        />
+      )}
+
+      {userData.posterService === 'aioratings' && (
+        <>
+          <PasswordInput
+            autoComplete="new-password"
+            label="AIOratings API Key"
+            help={
+              <span>
+                Get your API Key from{' '}
+                <a
+                  href="https://aioratings.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[--brand] hover:underline"
+                >
+                  here
+                </a>
+              </span>
+            }
+            value={userData.aioratingsApiKey}
+            onValueChange={(v) => {
+              setUserData((prev) => ({ ...prev, aioratingsApiKey: v }));
+            }}
+          />
+          <TextInput
+            label="AIOratings Profile ID"
+            help={
+              <span>
+                Custom profiles are a premium feature that lets you design your
+                own poster layout. Premium users can map their API key and
+                default posters dynamically from the{' '}
+                <a
+                  href="https://aioratings.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[--brand] hover:underline"
+                >
+                  AIOratings website
+                </a>
+                . Free users can leave this as &quot;default&quot;.
+              </span>
+            }
+            value={userData.aioratingsProfileId || 'default'}
+            placeholder="default"
+            onValueChange={(v) => {
+              setUserData((prev) => ({ ...prev, aioratingsProfileId: v }));
+            }}
+          />
+        </>
+      )}
+
+      {userData.posterService === 'openposterdb' && (
+        <>
+          <PasswordInput
+            autoComplete="new-password"
+            label="OpenPosterDB API Key"
+            help={
+              <span>
+                Get your API Key from{' '}
+                <a
+                  href="https://openposterdb.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[--brand] hover:underline"
+                >
+                  here
+                </a>
+              </span>
+            }
+            value={userData.openposterdbApiKey}
+            onValueChange={(v) => {
+              setUserData((prev) => ({ ...prev, openposterdbApiKey: v }));
+            }}
+          />
+          <TextInput
+            label="OpenPosterDB URL"
+            help={
+              <span>
+                Custom base URL for OpenPosterDB. Leave empty to use the
+                default.
+              </span>
+            }
+            value={userData.openposterdbUrl || ''}
+            placeholder="https://openposterdb.com"
+            onValueChange={(v) => {
+              setUserData((prev) => ({ ...prev, openposterdbUrl: v }));
+            }}
+          />
+          <TextInput
+            label="OpenPosterDB Custom Parameters"
+            help={
+              <span>
+                Optional query string appended to every poster to customise it
+                (e.g. ratings, badge size and position). Enter it without the
+                leading <code>?</code>, for example{' '}
+                <code>ratings_limit=2&amp;badge_size=l&amp;position=br</code>.
+                See the{' '}
+                <a
+                  href="https://github.com/PNRxA/openposterdb#readme"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[--brand] hover:underline"
+                >
+                  available parameters
+                </a>
+                .
+              </span>
+            }
+            value={userData.openposterdbParameters || ''}
+            placeholder="ratings_limit=2&badge_size=l&position=br"
+            onValueChange={(v) => {
+              setUserData((prev) => ({ ...prev, openposterdbParameters: v }));
+            }}
+          />
+        </>
+      )}
+
+      {userData.posterService === 'custom' && (
+        <TextInput
+          label="Custom Poster URL"
+          help={
+            <span>
+              Poster URL with placeholders: <code>{'{id}'}</code> (the
+              item&apos;s ID, its IMDb ID when the catalog provides one),{' '}
+              <code>{'{type}'}</code>, <code>{'{shape}'}</code>,{' '}
+              <code>{'{imdb_id}'}</code>, <code>{'{tmdb_id}'}</code>,{' '}
+              <code>{'{tvdb_id}'}</code>, <code>{'{mal_id}'}</code>,{' '}
+              <code>{'{kitsu_id}'}</code>, <code>{'{anilist_id}'}</code>,{' '}
+              <code>{'{anidb_id}'}</code>. A missing ID skips the poster;{' '}
+              <code>{'{tmdb_id?}'}</code> blanks it instead and{' '}
+              <code>{'{imdb_id|tmdb_id}'}</code> uses the first available.
+            </span>
+          }
+          value={userData.customPosterUrl || ''}
+          placeholder="https://example.com/poster?stremio_id={id}&type={type}"
+          onValueChange={(v) => {
+            setUserData((prev) => ({ ...prev, customPosterUrl: v }));
+          }}
+        />
+      )}
+
+      <Switch
+        label="Use Poster Service for Library/Continue Watching"
+        side="right"
+        value={userData.usePosterServiceForMeta || false}
+        onValueChange={(v) => {
+          setUserData((prev) => ({ ...prev, usePosterServiceForMeta: v }));
+        }}
+        disabled={!hasPosterService}
+        help={
+          <span>
+            If enabled, AIOStreams will use the selected poster service to fetch
+            posters for single meta items — which generally means items in your
+            Library and Continue Watching.
+          </span>
+        }
+      />
+
+      <Switch
+        label="Use Poster Redirect API"
+        side="right"
+        disabled={!hasPosterService}
+        help={
+          <span>
+            If enabled, poster URLs will first contact AIOStreams and then be
+            redirected to the selected poster service. This allows fallback
+            posters to be used if the selected poster service is down or does
+            not have a poster for that item. It can however cause a minimal
+            slowdown due to having to contact AIOStreams first.
+          </span>
+        }
+        value={userData.usePosterRedirectApi || false}
+        onValueChange={(v) => {
+          setUserData((prev) => ({ ...prev, usePosterRedirectApi: v }));
+        }}
+      />
+    </SettingsCard>
+  );
+}

@@ -1,0 +1,487 @@
+import yencode from 'yencode';
+
+/**
+ * Result of decoding a single yEnc article (segment).
+ */
+export interface DecodedSegment {
+  /** Decoded raw bytes of this part. */
+  body: Buffer;
+  /**
+   * Half-open byte range this part occupies within the full file: [begin, end)
+   * using 0-based offsets. Derived from the `=ypart begin/end` (1-based,
+   * inclusive) header. Undefined when the header is absent (single-part posts
+   * sometimes omit =ypart).
+   */
+  byteRange?: [number, number];
+  /** Total decoded file size from `=ybegin size=`, if present. */
+  fileSize?: number;
+  /**
+   * Number of parts the whole file was posted in, from `=ybegin total=`.
+   */
+  totalParts?: number;
+  /** Filename from `=ybegin name=`, if present. */
+  name?: string;
+  /** Decoded byte length of this part (body.length). */
+  size: number;
+}
+
+/**
+ * Raised when an article body is not decodable yEnc (missing =ybegin/=yend,
+ * malformed part headers, non-yEnc encodings like uuencode). Distinguished from
+ * transport errors so inspection can report "post uses an unsupported/broken
+ * encoding" instead of a generic open failure.
+ */
+export class YencDecodeError extends Error {
+  readonly terminal: boolean;
+  cause?: unknown;
+
+  constructor(
+    readonly code: string | undefined,
+    message: string,
+    opts: { terminal?: boolean; cause?: unknown } = {}
+  ) {
+    super(message);
+    this.name = 'YencDecodeError';
+    this.terminal = opts.terminal ?? false;
+    if (opts.cause !== undefined) this.cause = opts.cause;
+  }
+}
+
+/**
+ * Decoded bytes disagree with their own metadata (declared part range, stored
+ * cache size). Not a provider verdict: `definitiveLossKind` ignores it, so a
+ * read fails instead of being padded.
+ */
+export class SegmentIntegrityError extends Error {
+  constructor(
+    message: string,
+    readonly messageId?: string
+  ) {
+    super(message);
+    this.name = 'SegmentIntegrityError';
+  }
+}
+
+export interface DecodeArticleOptions {
+  /** Check the `=yend` pcrc32/crc32. The size checks always run. */
+  verifyCrc?: boolean;
+  expectedPart?: number;
+}
+
+const CR = 0x0d;
+const LF = 0x0a;
+const EQ = 0x3d; // '='
+const Y = 0x79; // 'y'
+const YBEGIN_CRLF = Buffer.from('\r\n=ybegin ');
+const YBEGIN_AT0 = Buffer.from('=ybegin ');
+const YEND_CRLF = Buffer.from('\r\n=yend');
+/** Cap on the `=yend` line scan; real ones are far shorter. */
+const YEND_LINE_CAP = 256;
+const YEND_SIZE_RE = /(?:^|\s)size=(\d+)/;
+const YEND_PCRC32_RE = /(?:^|\s)pcrc32=([0-9a-fA-F]{1,8})/;
+const YEND_CRC32_RE = /(?:^|\s)crc32=([0-9a-fA-F]{1,8})/;
+const YBEGIN_PART_RE = /(?:^|\s)part=(\d+)/;
+
+/**
+ * Decode a complete article body (raw, possibly dot-stuffed NNTP payload) into
+ * its yEnc-decoded bytes plus the part/file metadata we need for seeking.
+ *
+ * Parses only the `=ybegin`/`=ypart`/`=yend` lines we actually consume, then
+ * decodes the data region straight into one right-sized buffer via the native
+ * `decodeTo`, skipping the short-lived JS objects `yencode.from_post` builds
+ * per article (per-line strings, nested `props`, a `warnings` array).
+ *
+ * The `=ypart` range must always match the decoded length, since both serve
+ * paths place bytes by it. `opts.verifyCrc` also checks the trailer's pcrc32
+ * (or crc32 on a single-part post), else its `size=`. Failures throw a
+ * non-terminal {@link YencDecodeError}, so the next provider is tried.
+ *
+ * @param raw the article body bytes as received from BODY (without the
+ *   terminating `\r\n.\r\n`). Still dot-stuffed, so decoding strips dots.
+ * @param out optional decode destination, used only when it can hold the
+ *   whole decoded part (the encoded slice length is a safe upper bound);
+ *   otherwise a fresh owned buffer is allocated. When used, the returned
+ *   body is a view into it and the caller owns its lifetime.
+ */
+export function decodeArticle(
+  raw: Buffer,
+  out?: Buffer,
+  opts?: DecodeArticleOptions
+): DecodedSegment {
+  // Locate the `=ybegin ` line: usually at offset 0, otherwise after a CRLF
+  // (real posts sometimes carry junk before the header).
+  let pos: number;
+  if (
+    raw.length >= 8 &&
+    raw[0] === EQ &&
+    raw.compare(YBEGIN_AT0, 0, 8, 0, 8) === 0
+  ) {
+    pos = 0;
+  } else {
+    const at = raw.indexOf(YBEGIN_CRLF);
+    if (at < 0) {
+      throw new YencDecodeError(
+        'no_start_found',
+        'yEnc decode failed: no_start_found'
+      );
+    }
+    pos = at + 2; // skip the leading CRLF
+  }
+
+  let fileSize: number | undefined;
+  let totalParts: number | undefined;
+  let name: string | undefined;
+  let byteRange: [number, number] | undefined;
+  let multipart = false;
+
+  // Walk the header lines (`=ybegin`, optional `=ypart`, rarely more) until the
+  // first line that does not start with `=y`, which is where the data begins.
+  // `=ybegin` is always first; `=ypart` (when present) carries the byte range.
+  let first = true;
+  while (pos < raw.length && raw[pos] === EQ && raw[pos + 1] === Y) {
+    let eol = raw.indexOf(LF, pos);
+    if (eol < 0) eol = raw.length;
+    // Header lines are short; latin1 keeps a 1:1 byte↔char mapping.
+    const lineEnd = eol > pos && raw[eol - 1] === CR ? eol - 1 : eol;
+    const line = raw.toString('latin1', pos, lineEnd);
+    if (first) {
+      // `=ybegin part=1 total=6 line=128 size=768000 name=...`
+      fileSize = toInt(/(?:^|\s)size=(\d+)/.exec(line)?.[1]);
+      totalParts = toInt(/(?:^|\s)total=(\d+)/.exec(line)?.[1]);
+      name = /(?:^|\s)name=(.*)$/.exec(line)?.[1];
+      const part = YBEGIN_PART_RE.exec(line)?.[1];
+      multipart = part !== undefined;
+      checkPart(toInt(part), opts?.expectedPart);
+      first = false;
+    } else if (line.startsWith('=ypart ')) {
+      multipart = true;
+      const pb = toInt(/(?:^|\s)begin=(\d+)/.exec(line)?.[1]);
+      const pe = toInt(/(?:^|\s)end=(\d+)/.exec(line)?.[1]);
+      if (pb !== undefined && pe !== undefined) {
+        // =ypart begin/end are 1-based inclusive → 0-based half-open.
+        byteRange = [pb - 1, pe];
+      }
+    }
+    pos = eol + 1;
+  }
+  const dataStart = pos;
+
+  // The data region ends at the trailing `\r\n=yend`. Search from the end so a
+  // stray `=yend`-looking sequence inside the data can't end it early.
+  const dataEnd = raw.lastIndexOf(YEND_CRLF);
+  if (dataEnd < 0 || dataEnd < dataStart) {
+    throw new YencDecodeError(
+      'no_end_found',
+      'yEnc decode failed: no_end_found'
+    );
+  }
+
+  const slice = raw.subarray(dataStart, dataEnd);
+  // Decoded length is always ≤ encoded length (escapes + line breaks shrink),
+  // so the encoded slice length is a safe destination size; decodeTo returns
+  // the exact written count.
+  const dst =
+    out && out.length >= slice.length ? out : Buffer.allocUnsafe(slice.length);
+  const written = yencode.decodeTo(slice, dst, true);
+  const body = dst.subarray(0, written);
+
+  if (byteRange !== undefined && byteRange[1] - byteRange[0] !== written) {
+    throw new YencDecodeError(
+      'size_mismatch',
+      `yEnc decode failed: size_mismatch (=ypart spans ${byteRange[1] - byteRange[0]} bytes, decoded ${written})`
+    );
+  }
+  verifyTrailer(raw, dataEnd + 2, body, multipart, opts?.verifyCrc === true);
+
+  return { body, byteRange, fileSize, totalParts, name, size: written };
+}
+
+/** A reused Message-ID can serve another post's article. */
+function checkPart(
+  part: number | undefined,
+  expected: number | undefined
+): void {
+  if (part === undefined || expected === undefined || part === expected) {
+    return;
+  }
+  throw new YencDecodeError(
+    'wrong_part',
+    `yEnc decode failed: wrong_part (=ybegin part=${part}, NZB segment ${expected})`
+  );
+}
+
+/**
+ * Check `body` against the `=yend` line at `at`: the pcrc32 (or, on a
+ * single-part post, crc32) when asked for and present, else `size=`.
+ */
+function verifyTrailer(
+  raw: Buffer,
+  at: number,
+  body: Buffer,
+  multipart: boolean,
+  verifyCrc: boolean
+): void {
+  let eol = raw.indexOf(LF, at);
+  if (eol < 0) eol = raw.length;
+  const lineEnd = eol > at && raw[eol - 1] === CR ? eol - 1 : eol;
+  const line = raw.toString(
+    'latin1',
+    at,
+    Math.min(lineEnd, at + YEND_LINE_CAP)
+  );
+  if (verifyCrc) {
+    // A bare crc32 covers the whole file, so it only describes this body on a
+    // single-part post. Compare numerically: some posters strip leading zeros.
+    const hex =
+      YEND_PCRC32_RE.exec(line)?.[1] ??
+      (multipart ? undefined : YEND_CRC32_RE.exec(line)?.[1]);
+    if (hex !== undefined) {
+      const expected = Number.parseInt(hex, 16);
+      const actual = yencode.crc32(body).readUInt32BE(0);
+      if (actual !== expected) {
+        throw new YencDecodeError(
+          'crc_mismatch',
+          `yEnc decode failed: crc_mismatch (trailer ${hex}, computed ${actual.toString(16).padStart(8, '0')})`
+        );
+      }
+      return;
+    }
+  }
+  const size = toInt(YEND_SIZE_RE.exec(line)?.[1]);
+  if (size !== undefined && size !== body.length) {
+    throw new YencDecodeError(
+      'size_mismatch',
+      `yEnc decode failed: size_mismatch (=yend size=${size}, decoded ${body.length})`
+    );
+  }
+}
+
+/**
+ * Some obfuscated posts declare a bogus, too-small yEnc `=ybegin size=` (e.g.
+ * ~5 MB in the first part of a ~200 MB multipart volume).
+ *
+ * Returns true when `fileSize` is too small to be
+ * this multipart file's real decoded size, so the caller must instead derive
+ * the size from the last part's `=ypart end=`.
+ */
+export function isImplausibleYencFileSize(
+  fileSize: number,
+  numParts: number,
+  ref: {
+    encodedSize?: number;
+    firstPartLen?: number;
+    yencTotalParts?: number;
+  }
+): boolean {
+  // `=ybegin size=` measures the whole file, so it is only this file's size
+  // when this file holds every part. An NZB that splits one post across
+  // several <file> elements leaves each holding a fraction of `total`.
+  if (ref.yencTotalParts !== undefined && ref.yencTotalParts > numParts) {
+    return true;
+  }
+  if (numParts <= 1) return false; // single part: `=ybegin size=` IS the part
+  if (ref.encodedSize && ref.encodedSize > 0) {
+    return fileSize < ref.encodedSize * 0.5;
+  }
+  if (ref.firstPartLen && ref.firstPartLen > 0) {
+    return fileSize < ref.firstPartLen * (numParts - 1);
+  }
+  return false; // no reference to judge against → trust it (no regression)
+}
+
+/**
+ * Streaming yEnc decoder for piping article bytes as they arrive off the wire.
+ * Wraps `yencode.decodeChunk`, carrying state between chunks and performing
+ * NNTP dot-unstuffing. Emits decoded payload bytes only.
+ */
+export class StreamingYencDecoder {
+  private state: string | null = null;
+  private _ended = false;
+
+  get ended(): boolean {
+    return this._ended;
+  }
+
+  /**
+   * Feed a chunk of raw (dot-stuffed) article bytes; returns the decoded bytes
+   * produced from this chunk (may be empty). Once the end marker is reached,
+   * subsequent input is ignored.
+   */
+  push(chunk: Buffer): Buffer {
+    if (this._ended || chunk.length === 0) return Buffer.alloc(0);
+    const res = yencode.decodeChunk(chunk, undefined, this.state);
+    this.state = res.state;
+    if (res.ended) this._ended = true;
+    return res.written === res.output.length
+      ? res.output
+      : res.output.subarray(0, res.written);
+  }
+}
+
+function toInt(value: string | undefined): number | undefined {
+  if (value === undefined) return undefined;
+  const n = Number.parseInt(value, 10);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/** Cap on raw bytes searched for the `=ybegin`/`=ypart` header lines. */
+const HEAD_CAPTURE_HEADER_CAP = 4096;
+
+/**
+ * Streaming "head-only" article consumer for import probes: decodes just the
+ * leading `want` bytes (plus the yEnc header fields) and then stops decoding
+ * while the remaining raw bytes drain on the wire (the CPU/RAM-side half of
+ * the probe diet). When the headers carry no part range or total size, decoding
+ * continues to the end purely to COUNT the part's decoded length (nothing
+ * beyond the head is retained either way).
+ */
+export class YencHeadCapture {
+  private decoder = new StreamingYencDecoder();
+  /**
+   * Raw bytes buffered until the `=ybegin`/`=ypart` lines are located. The
+   * underlying `yencode.decodeChunk` is a DATA-region decoder: fed from the
+   * article start it reads `=ybegin`'s `\r\n=y` shape as the end marker, so
+   * the header lines must be stripped before feeding it.
+   */
+  private pendingRaw: Buffer[] = [];
+  private pendingLen = 0;
+  private headerParsed = false;
+  private headChunks: Buffer[] = [];
+  private headLen = 0;
+  private decoding = true;
+  private countToEnd = false;
+  private decodedCount = 0;
+
+  byteRange?: [number, number];
+  fileSize?: number;
+  totalParts?: number;
+  name?: string;
+  private part?: number;
+
+  constructor(
+    private want: number,
+    private expectedPart?: number
+  ) {}
+
+  push(raw: Buffer): void {
+    if (this.headerParsed) {
+      this.feed(raw);
+      return;
+    }
+    // Copy: the reader may hand over views into reused socket chunks.
+    this.pendingRaw.push(Buffer.from(raw));
+    this.pendingLen += raw.length;
+    this.tryParseHeader();
+  }
+
+  /** Assemble the result once the article's payload has fully drained. */
+  finish(): {
+    head: Buffer;
+    byteRange?: [number, number];
+    fileSize?: number;
+    totalParts?: number;
+    name?: string;
+    size?: number;
+  } {
+    checkPart(this.part, this.expectedPart);
+    const head = Buffer.concat(this.headChunks).subarray(0, this.want);
+    let size: number | undefined;
+    if (this.byteRange) {
+      size = this.byteRange[1] - this.byteRange[0];
+    } else if (this.fileSize !== undefined) {
+      // No =ypart ⇒ single-part post: the part IS the file.
+      size = this.fileSize;
+    } else if (this.decoding) {
+      // Decoded all the way through (header-less/odd article).
+      size = this.decodedCount;
+    }
+    return {
+      head,
+      byteRange: this.byteRange,
+      fileSize: this.fileSize,
+      totalParts: this.totalParts,
+      name: this.name,
+      size,
+    };
+  }
+
+  private feed(raw: Buffer): void {
+    if (!this.decoding) return;
+    const out = this.decoder.push(raw);
+    if (out.length === 0) return;
+    this.decodedCount += out.length;
+    if (this.headLen < this.want) {
+      // Copy: `out` aliases the decoder's transferable scratch buffer.
+      this.headChunks.push(Buffer.from(out));
+      this.headLen += out.length;
+    }
+    if (this.headLen >= this.want && !this.countToEnd) {
+      this.decoding = false;
+    }
+  }
+
+  private tryParseHeader(): void {
+    const joined =
+      this.pendingRaw.length === 1
+        ? this.pendingRaw[0]
+        : Buffer.concat(this.pendingRaw);
+    const text = joined.toString(
+      'latin1',
+      0,
+      Math.min(joined.length, HEAD_CAPTURE_HEADER_CAP)
+    );
+    const giveUp = (): void => {
+      // Not yEnc-shaped within the cap: decode-from-start to the end so size
+      // falls back to whatever the decoder makes of it. Best-effort only.
+      this.headerParsed = true;
+      this.countToEnd = true;
+      this.flushPending(0);
+    };
+
+    // Not anchored: real posts sometimes carry stray bytes before `=ybegin`
+    // (from_post tolerates this too).
+    const begin = text.match(/(?:^|\r?\n)(=ybegin ([^\r\n]*))\r?\n/);
+    if (!begin) {
+      if (joined.length >= HEAD_CAPTURE_HEADER_CAP) giveUp();
+      return;
+    }
+    const attrs = begin[2].replace(/\r$/, '');
+    let dataStart = begin.index! + begin[0].length;
+    this.part = toInt(/ part=(\d+)/.exec(` ${attrs}`)?.[1]);
+    const isMultipart = this.part !== undefined;
+    let byteRange: [number, number] | undefined;
+    if (isMultipart) {
+      const part = text.slice(dataStart).match(/^=ypart ([^\r\n]*)\r?\n/);
+      if (!part) {
+        if (joined.length >= HEAD_CAPTURE_HEADER_CAP) giveUp();
+        return;
+      }
+      const partBegin = toInt(part[1].match(/(?:^| )begin=(\d+)/)?.[1]);
+      const partEnd = toInt(part[1].match(/(?:^| )end=(\d+)/)?.[1]);
+      if (partBegin !== undefined && partEnd !== undefined) {
+        byteRange = [partBegin - 1, partEnd];
+      } else {
+        this.countToEnd = true;
+      }
+      dataStart += part[0].length;
+    }
+    this.fileSize = toInt(attrs.match(/(?:^| )size=(\d+)/)?.[1]);
+    this.totalParts = toInt(attrs.match(/(?:^| )total=(\d+)/)?.[1]);
+    this.name = attrs.match(/(?:^| )name=(.*)$/)?.[1];
+    this.byteRange = byteRange;
+    this.headerParsed = true;
+    // Hand everything past the header lines to the decoder (latin1 keeps a
+    // 1:1 char↔byte mapping, so the text offset IS the byte offset).
+    this.flushPending(dataStart);
+  }
+
+  private flushPending(from: number): void {
+    const joined =
+      this.pendingRaw.length === 1
+        ? this.pendingRaw[0]
+        : Buffer.concat(this.pendingRaw);
+    this.pendingRaw = [];
+    this.pendingLen = 0;
+    if (from < joined.length) this.feed(joined.subarray(from));
+  }
+}

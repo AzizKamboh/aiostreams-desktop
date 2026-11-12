@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dist-standalone/
+*.tsbuildinfo
+out/
+.next/
+next-env.d.ts
+.wrangler/
+.env
+metadata.json
+data/
+testing/
+build/
+/.embedded-build/
+/.embedded-releases/

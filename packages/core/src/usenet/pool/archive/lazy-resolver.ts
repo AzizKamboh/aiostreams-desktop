@@ -1,0 +1,498 @@
+import pLimit from 'p-limit';
+import { createLogger } from '../../../logging/logger.js';
+import { RandomAccess } from './random-access.js';
+import { DataFragment } from './types.js';
+import { walkVolume } from './rar/index.js';
+import type { VolumeParse } from './rar/types.js';
+import { NotStreamableError } from './errors.js';
+import { definitiveLossKind } from '../../nntp/errors.js';
+
+const logger = createLogger('usenet/lazy');
+
+/** Fallback resolve parallelism when the caller doesn't thread one through. */
+const DEFAULT_RESOLVE_CONCURRENCY = 8;
+
+/** Kept narrow so the sweep leaves playback its download budget. */
+const BACKGROUND_RESOLVE_CONCURRENCY = 2;
+const BACKGROUND_RESOLVE_BACKOFF_MS = 250;
+/** Idle stream: stop sweeping rather than keep fetching for a viewer who left. */
+const BACKGROUND_RESOLVE_IDLE_MS = 60_000;
+
+export interface LazyResolveHooks {
+  /**
+   * A resolution batch committed; `fragments` is the NEW immutable table.
+   * Used to patch the persisted layout so later opens skip the resolve.
+   */
+  onCommit?: (fragments: DataFragment[]) => void;
+  /**
+   * Resolution proved the layout structurally wrong (continuation header
+   * missing/mismatched): the caller should invalidate the persisted layout
+   * so the next open takes the full-parse path. Fired at most once.
+   */
+  onInvalid?: (err: Error) => void;
+}
+
+/**
+ * Resolves the PENDING fragments of a lazily-parsed split RAR file on demand.
+ *
+ * A pending fragment is a middle volume whose continuation header was never
+ * read at import: its offset/length are capacity estimates whose per-file sum
+ * is forced exact. This resolver reads the volume's header (≈1 segment via the
+ * shared {@link walkVolume} path) on first touch, replaces the estimate with
+ * the exact fragment, and rebalances the remaining estimate error onto the
+ * last still-pending fragment so the file's total size never drifts.
+ *
+ * Correctness contract (the reason estimates are safe): bytes are only ever
+ * served from the EXACT prefix: {@link resolveThrough} resolves every pending
+ * fragment overlapping `[0, endOffset)` before the read proceeds, so logical
+ * offsets within the served range always map through exact lengths. Estimates
+ * only steer which volumes a resolve must cover.
+ *
+ * Concurrency: volumes resolve in parallel (bounded), per-volume single-flight;
+ * commits are synchronous table swaps (in-flight readers hold the old array,
+ * whose exact entries are unchanged and whose estimates are never read from).
+ */
+export class LazyFragmentResolver {
+  private table: DataFragment[];
+  /** Exact fragments resolved but possibly not yet committed, by volume. */
+  private resolvedByVolume = new Map<number, DataFragment>();
+  private inflight = new Map<number, Promise<void>>();
+  private readonly limit: ReturnType<typeof pLimit>;
+  /** Set on structural mismatch; all further resolution throws this. */
+  private invalid?: Error;
+  private sweepRunners = 0;
+  private sweepDone = false;
+  /** Reads waiting on a resolve, which the sweep yields to. */
+  private blocking = 0;
+  private lastReadAt = Date.now();
+
+  constructor(
+    private readonly source: RandomAccess,
+    private readonly ranges: Array<{ start: number; end: number }>,
+    private readonly target: { name: string; size: number },
+    fragments: DataFragment[],
+    private readonly opts: {
+      concurrency?: number;
+      hooks?: LazyResolveHooks;
+    } = {}
+  ) {
+    this.table = fragments.slice();
+    this.limit = pLimit(
+      Math.max(1, opts.concurrency ?? DEFAULT_RESOLVE_CONCURRENCY)
+    );
+  }
+
+  /** Current immutable fragment table (exact prefix + estimated pendings). */
+  fragments(): DataFragment[] {
+    return this.table;
+  }
+
+  hasPending(): boolean {
+    return this.table.some((f) => f.pending !== undefined);
+  }
+
+  /**
+   * Resolve every pending fragment overlapping logical `[0, endOffset)` and
+   * return the updated table. All needed volumes resolve in PARALLEL: a
+   * player's open-time end-of-file metadata read otherwise serializes one
+   * volume per round-trip. Loops because a commit shifts estimated boundaries
+   * slightly; terminates since every iteration resolves ≥1 new volume.
+   */
+  async resolveThrough(endOffset: number): Promise<DataFragment[]> {
+    this.blocking++;
+    try {
+      for (;;) {
+        if (this.invalid) throw this.invalid;
+        const volumes: number[] = [];
+        let logical = 0;
+        for (const f of this.table) {
+          if (logical >= endOffset) break;
+          if (f.pending !== undefined) volumes.push(f.pending);
+          logical += f.length;
+        }
+        if (volumes.length === 0) return this.table;
+        await Promise.all(volumes.map((v) => this.resolveVolume(v)));
+        this.commit();
+      }
+    } finally {
+      this.blocking--;
+    }
+  }
+
+  /**
+   * Suffix-anchored mirror of {@link resolveThrough}: resolve every pending
+   * fragment overlapping logical `[startOffset, size)`. A read near EOF resolves
+   * only the trailing volumes it touches, not the whole prefix chain, because
+   * the file total is forced exact so the resolved suffix's logical start is
+   * exact even while the prefix stays estimated.
+   */
+  async resolveFrom(startOffset: number): Promise<DataFragment[]> {
+    this.blocking++;
+    try {
+      for (;;) {
+        if (this.invalid) throw this.invalid;
+        const volumes: number[] = [];
+        let logical = 0;
+        for (const f of this.table) {
+          const fragEnd = logical + f.length;
+          if (fragEnd > startOffset && f.pending !== undefined)
+            volumes.push(f.pending);
+          logical = fragEnd;
+        }
+        if (volumes.length === 0) return this.table;
+        await Promise.all(volumes.map((v) => this.resolveVolume(v)));
+        this.commit();
+      }
+    } finally {
+      this.blocking--;
+    }
+  }
+
+  /** Keeps the sweep alive, and restarts one that gave up on an idle stream. */
+  noteRead(): void {
+    this.lastReadAt = Date.now();
+    if (this.sweepRunners === 0 && !this.sweepDone) {
+      this.resolveAllInBackground();
+    }
+  }
+
+  /**
+   * A seek can only be mapped once every pending fragment on one side of it is
+   * exact, so paying for that here spares it a header fetch per volume it skips
+   * over. Fire-and-forget, idempotent.
+   */
+  resolveAllInBackground(): void {
+    if (this.sweepRunners > 0 || this.sweepDone || this.invalid) return;
+    const pending = this.table
+      .filter((f) => f.pending !== undefined)
+      .map((f) => f.pending as number);
+    if (pending.length === 0) {
+      this.sweepDone = true;
+      return;
+    }
+    let next = 0;
+    const step = (): void => {
+      if (this.invalid || next >= pending.length) {
+        this.sweepDone = !this.invalid && next >= pending.length;
+        this.sweepRunners--;
+        return;
+      }
+      if (Date.now() - this.lastReadAt > BACKGROUND_RESOLVE_IDLE_MS) {
+        this.sweepRunners--;
+        return;
+      }
+      if (this.blocking > 0) {
+        setTimeout(step, BACKGROUND_RESOLVE_BACKOFF_MS).unref?.();
+        return;
+      }
+      const volume = pending[next++];
+      this.resolveVolume(volume)
+        .then(() => this.commit())
+        .catch(() => {})
+        .finally(step);
+    };
+    for (let i = 0; i < BACKGROUND_RESOLVE_CONCURRENCY; i++) {
+      this.sweepRunners++;
+      step();
+    }
+  }
+
+  /**
+   * Fire-and-forget: pre-resolve the next `count` pending volumes past
+   * `endOffset` so sequential playback never blocks at a volume crossing.
+   * Errors are swallowed; the first blocking touch surfaces them.
+   */
+  resolveAhead(endOffset: number, count = 1): void {
+    if (this.invalid || count <= 0) return;
+    const volumes: number[] = [];
+    let logical = 0;
+    for (const f of this.table) {
+      if (f.pending !== undefined && logical + f.length > endOffset) {
+        volumes.push(f.pending);
+        if (volumes.length >= count) break;
+      }
+      logical += f.length;
+    }
+    for (const v of volumes) {
+      this.resolveVolume(v)
+        .then(() => this.commit())
+        .catch(() => {});
+    }
+  }
+
+  /** Single-flight exact resolution of one pending volume. */
+  private resolveVolume(volume: number): Promise<void> {
+    if (this.resolvedByVolume.has(volume)) return Promise.resolve();
+    let p = this.inflight.get(volume);
+    if (!p) {
+      p = this.limit(() => this.doResolve(volume)).then(
+        (frag) => {
+          this.resolvedByVolume.set(volume, frag);
+          this.inflight.delete(volume);
+        },
+        (err) => {
+          // Transient errors (article gone, transport) drop out of the map so
+          // a later touch retries; structural errors poisoned us already.
+          this.inflight.delete(volume);
+          throw err;
+        }
+      );
+      this.inflight.set(volume, p);
+    }
+    return p;
+  }
+
+  /**
+   * Read the volume's continuation header and return the exact data fragment.
+   * Transport errors (incl. ArticleNotFound) propagate as-is; the pending
+   * fragment survives and is retried on the next touch/open. Structural
+   * mismatches poison the resolver (the layout itself is wrong).
+   */
+  private async doResolve(volume: number): Promise<DataFragment> {
+    const range = this.ranges[volume];
+    if (!range) {
+      throw this.poison(
+        new NotStreamableError(
+          'archive_incomplete',
+          `lazy resolve: no volume range for pending volume ${volume}`
+        )
+      );
+    }
+    const startedAt = Date.now();
+    // No password by invariant: encrypted sets never produce pending fragments
+    // (the lazy parse bails for header-encrypted AND data-encrypted entries),
+    // so a resolvable middle volume always has plaintext headers.
+    let vp: VolumeParse;
+    try {
+      vp = await walkVolume(this.source, { range, perVolume: true });
+    } catch (err) {
+      // A pending fragment survives its resolve failing, so a dead header
+      // article would be retried (and padded around) by every later read.
+      if (definitiveLossKind(err) === undefined) throw err;
+      const inferred = await this.inferFromSibling(volume, range);
+      if (!inferred) throw err;
+      logger.warn(
+        {
+          name: this.target.name,
+          volume,
+          sibling: inferred.sibling,
+          err: (err as Error).message,
+        },
+        'lazy resolve: volume header unreadable; fragment inferred from a sibling volume'
+      );
+      return inferred.fragment;
+    }
+    if (vp.error) {
+      // The bytes were read but carry no RAR marker: structural, not transient.
+      throw this.poison(
+        new NotStreamableError(
+          'archive_incomplete',
+          `lazy resolve: ${vp.error.message} (volume ${volume})`
+        )
+      );
+    }
+    // Serve-time backstop for a scrambled set whose first/last positions look
+    // correct but whose middles are out of order: the resolved volume's RAR header number must equal the
+    // position it's standing in.
+    if (vp.volumeNumber !== undefined && vp.volumeNumber !== volume) {
+      throw this.poison(
+        new NotStreamableError(
+          'archive_incomplete',
+          `lazy resolve: volume ${volume} header number ${vp.volumeNumber} != position (scrambled set)`
+        )
+      );
+    }
+    const b = vp.blocks[0];
+    // Every pending is a STRICT middle of the target file: its first block
+    // must be a continuation (not first), still split-after (not last), of
+    // the same name. Anything else means the import's boundary walk and this
+    // volume disagree; the layout cannot be trusted.
+    if (!b || b.file.first || b.file.last || b.file.name !== this.target.name) {
+      throw this.poison(
+        new NotStreamableError(
+          'archive_incomplete',
+          `lazy resolve: volume ${volume} is not a middle of ${this.target.name}`
+        )
+      );
+    }
+    const frag = b.fragment;
+    if (
+      frag.length <= 0 ||
+      frag.offset < range.start ||
+      frag.offset + frag.length > range.end
+    ) {
+      throw this.poison(
+        new NotStreamableError(
+          'archive_incomplete',
+          `lazy resolve: implausible fragment in volume ${volume} (${frag.offset}+${frag.length})`
+        )
+      );
+    }
+    logger.trace(
+      {
+        volume,
+        offset: frag.offset,
+        length: frag.length,
+        latency: Date.now() - startedAt,
+      },
+      'resolved pending volume'
+    );
+    return { offset: frag.offset, length: frag.length };
+  }
+
+  /**
+   * Fragment of `volume` derived from a sibling middle volume: a split file's
+   * middles carry identical headers and trailers, so the sibling's lengths
+   * applied to this volume's range give its data run. First and last volumes
+   * are never used as the sibling.
+   */
+  private async inferFromSibling(
+    volume: number,
+    range: { start: number; end: number }
+  ): Promise<{ fragment: DataFragment; sibling: number } | undefined> {
+    const exact = new Map<number, DataFragment>();
+    for (let i = 1; i < this.table.length - 1; i++) {
+      const f = this.table[i];
+      if (f.pending !== undefined) continue;
+      const v = this.ranges.findIndex(
+        (r) => f.offset >= r.start && f.offset < r.end
+      );
+      if (v > 0) exact.set(v, f);
+    }
+    for (const [v, f] of this.resolvedByVolume) exact.set(v, f);
+    let geometry:
+      | { headerLen: number; trailerLen: number; sibling: number }
+      | undefined;
+    const nearest = [...exact.keys()].sort(
+      (a, b) => Math.abs(a - volume) - Math.abs(b - volume)
+    )[0];
+    if (nearest !== undefined) {
+      const f = exact.get(nearest)!;
+      const r = this.ranges[nearest];
+      geometry = {
+        headerLen: f.offset - r.start,
+        trailerLen: r.end - (f.offset + f.length),
+        sibling: nearest,
+      };
+    } else {
+      // Read a neighbour directly rather than through the single-flight map,
+      // which is already waiting on this resolve.
+      for (const v of [volume + 1, volume - 1]) {
+        const r = this.ranges[v];
+        if (!r) continue;
+        try {
+          const vp = await walkVolume(this.source, {
+            range: r,
+            perVolume: true,
+          });
+          const b = vp.blocks[0];
+          if (vp.error || !b || b.file.first || b.file.last) continue;
+          if (b.file.name !== this.target.name) continue;
+          geometry = {
+            headerLen: b.fragment.offset - r.start,
+            trailerLen: r.end - (b.fragment.offset + b.fragment.length),
+            sibling: v,
+          };
+          break;
+        } catch {
+          // Not fatal: try the other neighbour.
+        }
+      }
+    }
+    if (!geometry || geometry.headerLen < 0 || geometry.trailerLen < 0) {
+      return undefined;
+    }
+    const offset = range.start + geometry.headerLen;
+    const length =
+      range.end - range.start - geometry.headerLen - geometry.trailerLen;
+    if (length <= 0) return undefined;
+    return { fragment: { offset, length }, sibling: geometry.sibling };
+  }
+
+  /**
+   * Swap in a new table with every resolved volume's exact fragment, then
+   * rebalance the residual estimate error onto the LAST still-pending fragment
+   * so the total stays exactly `target.size`. Synchronous; concurrent readers
+   * hold either the old or the new immutable array.
+   */
+  private commit(): void {
+    if (this.invalid || this.resolvedByVolume.size === 0) return;
+    let changed = false;
+    const next: DataFragment[] = this.table.map((f) => {
+      if (f.pending === undefined) return f;
+      const r = this.resolvedByVolume.get(f.pending);
+      if (!r) return f;
+      changed = true;
+      return { offset: r.offset, length: r.length };
+    });
+    if (!changed) return;
+
+    let sum = 0;
+    let lastPending = -1;
+    for (let i = 0; i < next.length; i++) {
+      sum += next[i].length;
+      if (next[i].pending !== undefined) lastPending = i;
+    }
+    const diff = this.target.size - sum;
+    if (diff !== 0) {
+      if (lastPending < 0) {
+        // Everything exact yet the sum is off: the headers and the import
+        // walk disagree about the file. Never serve from this table.
+        this.poison(
+          new NotStreamableError(
+            'archive_incomplete',
+            `lazy resolve: exact fragment sum ${sum} != size ${this.target.size}`
+          )
+        );
+        return;
+      }
+      const f = next[lastPending];
+      const newLength = f.length + diff;
+      const range = this.ranges[f.pending!];
+      if (newLength <= 0 || (range && newLength > range.end - range.start)) {
+        this.poison(
+          new NotStreamableError(
+            'archive_incomplete',
+            `lazy resolve: rebalanced estimate implausible (${newLength})`
+          )
+        );
+        return;
+      }
+      next[lastPending] = { ...f, length: newLength };
+    }
+
+    // Committed volumes never get re-consulted (no longer pending in the table).
+    for (const [v] of this.resolvedByVolume) {
+      if (!next.some((f) => f.pending === v)) this.resolvedByVolume.delete(v);
+    }
+
+    this.table = next;
+    const remaining = next.filter((f) => f.pending !== undefined).length;
+    logger.debug(
+      { name: this.target.name, fragments: next.length, pending: remaining },
+      'committed resolved fragments'
+    );
+    try {
+      this.opts.hooks?.onCommit?.(next);
+    } catch {
+      // Persistence hooks must never break serving.
+    }
+  }
+
+  /** Mark the resolver permanently invalid (first error wins) and return it. */
+  private poison(err: Error): Error {
+    if (!this.invalid) {
+      this.invalid = err;
+      logger.warn(
+        { name: this.target.name, err: err.message },
+        'lazy layout invalidated'
+      );
+      try {
+        this.opts.hooks?.onInvalid?.(err);
+      } catch {
+        // Hook failures must not mask the original error.
+      }
+    }
+    return this.invalid;
+  }
+}

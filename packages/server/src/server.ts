@@ -1,0 +1,588 @@
+import app, { embeddedDesktop } from './app.js';
+import type { Server } from 'node:http';
+import { secureDesktopUpgrades } from './desktop.js';
+import {
+  attachJellyfinWebSocket,
+  registerJellyfinTasks,
+} from './routes/jellyfin/index.js';
+import {
+  startMetricsHistory,
+  settleMetricsHistory,
+  stopMetricsHistory,
+} from './utils/system-metrics.js';
+import { attachPartyRelay, closePartyRelay } from './party/relay.js';
+import { startNfsShare, stopNfsShare } from './nfs.js';
+import { startFuseMount, stopFuseMount } from './fuse.js';
+
+import {
+  Env,
+  config as appConfig,
+  createLogger,
+  initDb,
+  initialiseConfig,
+  installPrivateAddressGuard,
+  closeDb,
+  UserRepository,
+  logStartupInfo,
+  Cache,
+  sharedBackend,
+  RegexAccess,
+  SelAccess,
+  AnimeDatabase,
+  ConfigStartupError,
+  arrConfigured,
+  ProwlarrAddon,
+  TemplateManager,
+  CommunityService,
+  CommunityFederation,
+  SeaDexDataset,
+  SceneMappingDataset,
+  IdMappingDataset,
+  ensureConfigAccessKey,
+  warnLegacyAuthVarsIfNeeded,
+  warnMissingConfigPermission,
+  initialiseOidc,
+  startAnalytics,
+  stopAnalytics,
+  ConfigSessionRepository,
+  AppReportRepository,
+  TaskManager,
+  instanceId,
+  flushWatchState,
+  flushPendingIds,
+  drainUsenetMetrics,
+  pruneUsenetMetrics,
+  runLibraryRecheck,
+  runUsenetArrQueueCleanup,
+  requeueInterruptedInspects,
+  backfillProxiedNzbAliases,
+  flushAllDiskCaches,
+  ReleaseBlocklistRemoteService,
+  ReleaseBlocklistPublishService,
+  flushStreamSessions,
+  pruneStreamSessions,
+  pruneMediaInfoProbes,
+  recoverStreamSessions,
+  streamRegistry,
+} from '@aiostreams/core';
+
+const logger = createLogger('server');
+let httpServer: Server | undefined;
+let stopping: Promise<void> | undefined;
+
+async function initialiseDatabase() {
+  try {
+    await initDb(appConfig.bootstrap.databaseUri);
+    await initialiseConfig();
+    installPrivateAddressGuard();
+  } catch (error) {
+    if (error instanceof ConfigStartupError) throw error;
+    logger.error('Failed to initialise database:', error);
+    throw error;
+  }
+}
+
+function registerPruneTask() {
+  const maxDays = appConfig.tasks.pruning.maxDays;
+  TaskManager.register({
+    id: 'prune-users',
+    label: 'Prune inactive users',
+    description:
+      'Deletes user configs that have not been accessed within the configured window.',
+    category: 'users',
+    kind: 'scheduled',
+    intervalMs: appConfig.tasks.pruning.interval * 1000,
+    enabled: maxDays >= 0,
+    destructive: true,
+    multiReplica: 'single',
+    run: async () => {
+      if (appConfig.tasks.pruning.maxDays < 0)
+        return { ok: true, message: 'pruning disabled' };
+      const n = await UserRepository.pruneUsers(
+        appConfig.tasks.pruning.maxDays
+      );
+      return { ok: true, message: `pruned ${n} users` };
+    },
+  });
+}
+
+function registerConfigSessionTask() {
+  TaskManager.register({
+    id: 'prune-config-sessions',
+    label: 'Prune expired sign-in sessions',
+    description: 'Deletes remembered configuration sign-ins that have expired.',
+    category: 'users',
+    kind: 'scheduled',
+    intervalMs: 60 * 60 * 1000,
+    enabled: true,
+    destructive: false,
+    multiReplica: 'single',
+    run: async () => {
+      const n = await ConfigSessionRepository.prune();
+      return { ok: true, message: `pruned ${n} sessions` };
+    },
+  });
+}
+
+function registerAppReportTask() {
+  TaskManager.register({
+    id: 'prune-app-reports',
+    label: 'Prune app reports',
+    description: 'Deletes reports from the apps older than their retention.',
+    category: 'users',
+    kind: 'scheduled',
+    intervalMs: 6 * 60 * 60 * 1000,
+    enabled: true,
+    destructive: false,
+    multiReplica: 'single',
+    run: async () => {
+      const n = await AppReportRepository.prune(
+        appConfig.appReports.retention * 1000
+      );
+      return { ok: true, message: `pruned ${n} reports` };
+    },
+  });
+}
+
+function registerCacheTasks() {
+  TaskManager.register({
+    id: 'clear-all-cache',
+    label: 'Clear all cache',
+    description: 'Wipes every registered cache backend. Destructive.',
+    category: 'cache',
+    kind: 'manual',
+    enabled: true,
+    destructive: true,
+    multiReplica: 'all',
+    run: async () => {
+      await Cache.clearAll();
+      return { ok: true, message: 'cache cleared' };
+    },
+  });
+  TaskManager.register({
+    id: 'clear-expired-cache',
+    label: 'Clear expired cache keys',
+    description: 'Deletes expired SQL cache rows (memory/redis self-expire).',
+    category: 'cache',
+    kind: 'manual',
+    enabled: true,
+    destructive: false,
+    multiReplica: 'single',
+    run: async () => {
+      const n = await Cache.clearExpired();
+      return { ok: true, message: `removed ${n} expired rows` };
+    },
+  });
+}
+
+// Retain usenet provider rollups for ~13 months so the "all time" / monthly
+// views have history without the table growing unbounded.
+const USENET_METRICS_RETENTION_DAYS = 400;
+
+function registerUsenetTasks() {
+  TaskManager.register({
+    id: 'usenet-proxied-aliases',
+    label: 'Alias proxied NZBs by their source',
+    description:
+      'Keys library entries added through the NZB proxy by the URL behind it, ' +
+      'so they keep matching after the proxy credential changes. Runs at ' +
+      'startup until it has succeeded once.',
+    category: 'usenet',
+    kind: 'manual',
+    enabled: true,
+    destructive: false,
+    multiReplica: 'single',
+    run: async () => {
+      const { proxied, added } = await backfillProxiedNzbAliases();
+      return {
+        ok: true,
+        message: `${added} aliases added for ${proxied} proxied nzbs`,
+      };
+    },
+  });
+  TaskManager.register({
+    id: 'usenet-metrics-drain',
+    label: 'Flush usenet provider metrics',
+    description:
+      'Drains the in-memory native usenet engine counters into the hourly ' +
+      'provider metrics table that powers the dashboard charts.',
+    category: 'usenet',
+    kind: 'scheduled',
+    intervalMs: 60_000,
+    enabled: true,
+    destructive: false,
+    multiReplica: 'all',
+    run: async () => {
+      const n = await drainUsenetMetrics();
+      return { ok: true, message: `flushed ${n} provider deltas` };
+    },
+  });
+  TaskManager.register({
+    id: 'usenet-metrics-prune',
+    label: 'Prune old usenet metrics',
+    description:
+      'Deletes native usenet provider rollups older than the retention window.',
+    category: 'usenet',
+    kind: 'scheduled',
+    intervalMs: 24 * 60 * 60_000,
+    enabled: true,
+    destructive: true,
+    multiReplica: 'single',
+    run: async () => {
+      const n = await pruneUsenetMetrics(USENET_METRICS_RETENTION_DAYS);
+      return { ok: true, message: `pruned ${n} metric rows` };
+    },
+  });
+  TaskManager.register({
+    id: 'usenet-library-recheck',
+    label: 'Recheck usenet library',
+    description:
+      'Re-verifies library entries against your providers on a schedule keyed ' +
+      'to how old each post is, so a release taken down after it was added is ' +
+      'marked failed instead of staying playable on paper. Does nothing until ' +
+      'the recheck scope is turned on in the usenet settings.',
+    category: 'usenet',
+    kind: 'scheduled',
+    intervalMs: 5 * 60_000,
+    enabled: true,
+    destructive: false,
+    multiReplica: 'single',
+    // Scope is read at run time, so switching it on takes effect immediately.
+    run: async (ctx) => runLibraryRecheck({ signal: ctx?.signal }),
+  });
+  TaskManager.register({
+    id: 'arr-queue-cleanup',
+    label: 'Clean up stuck Sonarr/Radarr imports',
+    description:
+      'Looks through the queues of your Sonarr/Radarr instances for downloads ' +
+      'AIOStreams handed over that they could not import, and acts on the ' +
+      'reason they gave: replace a bad release, push an import through, or ' +
+      'clear a stale entry. Does nothing until queue cleanup is turned on in ' +
+      'the Sonarr/Radarr settings.',
+    category: 'usenet',
+    kind: 'scheduled',
+    intervalMs: 5 * 60_000,
+    enabled: true,
+    destructive: true,
+    multiReplica: 'single',
+    run: async () => runUsenetArrQueueCleanup(),
+  });
+}
+
+function registerStreamTasks() {
+  TaskManager.register({
+    id: 'streams-flush',
+    label: 'Flush stream sessions',
+    description:
+      'Writes live stream sessions and their served bytes to the database, ' +
+      'ends sessions that have gone quiet, and applies bandwidth limits, ' +
+      'bans and stop requests raised on another instance.',
+    category: 'data-sync',
+    kind: 'scheduled',
+    intervalMs: 5_000,
+    enabled: true,
+    destructive: false,
+    multiReplica: 'all',
+    run: async () => {
+      const { written, ended } = await flushStreamSessions();
+      return { ok: true, message: `wrote ${written} sessions, ended ${ended}` };
+    },
+  });
+  TaskManager.register({
+    id: 'streams-prune',
+    label: 'Prune stream history',
+    description:
+      'Deletes finished stream sessions past the retention window, expired ' +
+      'bans, and bandwidth rollups older than the retention window.',
+    category: 'data-sync',
+    kind: 'scheduled',
+    intervalMs: 24 * 60 * 60_000,
+    enabled: true,
+    destructive: false,
+    multiReplica: 'single',
+    run: async () => {
+      const n = await pruneStreamSessions();
+      return { ok: true, message: `pruned ${n} rows` };
+    },
+  });
+  TaskManager.register({
+    id: 'media-info-probes-prune',
+    label: 'Prune media info probes',
+    description: 'Deletes probe attempts older than 30 days.',
+    category: 'data-sync',
+    kind: 'scheduled',
+    intervalMs: 24 * 60 * 60_000,
+    enabled: true,
+    destructive: false,
+    multiReplica: 'single',
+    run: async () => {
+      const { deleted } = await pruneMediaInfoProbes();
+      return { ok: true, message: `pruned ${deleted} rows` };
+    },
+  });
+}
+
+function registerReleaseBlocklistTasks() {
+  TaskManager.register({
+    id: 'release-blocklist-refresh',
+    label: 'Refresh remote blocklists',
+    description:
+      'Re-fetches subscribed remote release blocklists whose per-source ' +
+      'refresh interval has elapsed.',
+    category: 'data-sync',
+    kind: 'scheduled',
+    intervalMs: 15 * 60_000,
+    enabled: true,
+    destructive: false,
+    multiReplica: 'single',
+    run: async () => ReleaseBlocklistRemoteService.refreshDue(),
+  });
+  TaskManager.register({
+    id: 'release-blocklist-publish',
+    label: 'Publish blocklist to remote targets',
+    description:
+      'Pushes the release blocklist to configured publish targets ' +
+      '(GitHub gists, repositories, HTTP endpoints) whose per-target ' +
+      'interval has elapsed. Unchanged lists are skipped.',
+    category: 'data-sync',
+    kind: 'scheduled',
+    intervalMs: 15 * 60_000,
+    enabled: true,
+    destructive: false,
+    multiReplica: 'single',
+    run: async () => ReleaseBlocklistPublishService.publishDue(),
+  });
+}
+
+async function initialiseRedis() {
+  if (appConfig.bootstrap.redisUri) {
+    await Cache.testRedisConnection();
+  }
+}
+
+async function initialiseAnimeDatabase() {
+  try {
+    await AnimeDatabase.getInstance().initialise();
+  } catch (error) {
+    logger.error('Failed to initialise AnimeDatabase:', error);
+  }
+}
+
+async function initialiseSeaDexDataset() {
+  try {
+    await SeaDexDataset.getInstance().initialise();
+  } catch {}
+}
+
+async function initialiseSceneMappingDataset() {
+  if (!appConfig.metadata.sceneMappings.enabled) {
+    return;
+  }
+  try {
+    await SceneMappingDataset.getInstance().initialise();
+  } catch {}
+}
+
+async function initialiseIdMappingDataset() {
+  if (!appConfig.metadata.idMappings.enabled) {
+    return;
+  }
+  try {
+    await IdMappingDataset.getInstance().initialise();
+  } catch {}
+}
+
+async function initialiseProwlarr() {
+  try {
+    await ProwlarrAddon.fetchpreconfiguredIndexers();
+  } catch (error) {
+    logger.error('Failed to initialise Prowlarr:', error);
+  }
+}
+
+async function initialiseTemplates() {
+  try {
+    await TemplateManager.loadTemplates();
+    await CommunityService.registerTrustedOnBoot();
+    CommunityFederation.initialise();
+  } catch (error) {
+    logger.error('Failed to initialise templates:', error);
+  }
+}
+
+async function initialiseAuth() {
+  await ensureConfigAccessKey();
+  warnLegacyAuthVarsIfNeeded();
+  warnMissingConfigPermission();
+  await initialiseOidc();
+}
+
+async function start() {
+  try {
+    startMetricsHistory();
+    await initialiseDatabase();
+    // Before anything registers a task: it is the identity runs are recorded
+    // under.
+    TaskManager.setInstanceId(instanceId());
+    await initialiseTemplates();
+    logStartupInfo();
+    await initialiseRedis();
+    await initialiseAnimeDatabase();
+    await initialiseSeaDexDataset();
+    await initialiseSceneMappingDataset();
+    await initialiseIdMappingDataset();
+    RegexAccess.initialise();
+    SelAccess.initialise();
+    await initialiseProwlarr();
+    registerPruneTask();
+    registerConfigSessionTask();
+    registerAppReportTask();
+    registerCacheTasks();
+    registerUsenetTasks();
+    registerStreamTasks();
+    registerReleaseBlocklistTasks();
+    registerJellyfinTasks();
+    // Otherwise sessions from the last run stay active forever.
+    await recoverStreamSessions().catch((error) =>
+      logger.warn('Failed to recover orphaned stream sessions:', error)
+    );
+    void requeueInterruptedInspects();
+    void TaskManager.hasSucceeded('usenet-proxied-aliases')
+      .then((done) =>
+        done ? undefined : TaskManager.runNow('usenet-proxied-aliases')
+      )
+      .catch((error) => logger.warn('Failed to alias proxied nzbs:', error));
+    await initialiseAuth();
+    await sharedBackend().start();
+    startAnalytics();
+    await startNfsShare();
+    await startFuseMount();
+    const server = app.listen(
+      {
+        port: appConfig.bootstrap.port,
+        ...(embeddedDesktop ? { host: '127.0.0.1' } : {}),
+      },
+      (error?: Error) => {
+        if (error) {
+          logger.error('Failed to start server:', error);
+          process.exit(1);
+        }
+        logger.info(
+          `Server running on port ${appConfig.bootstrap.port}: ${JSON.stringify(server.address())}`
+        );
+        settleMetricsHistory();
+        if (embeddedDesktop) {
+          process.stdout.write(
+            JSON.stringify({
+              event: 'aiostreams-desktop-ready',
+              port: appConfig.bootstrap.port,
+              url: embeddedDesktop.origin,
+            }) + '\n'
+          );
+        }
+      }
+    );
+    httpServer = server;
+    attachJellyfinWebSocket(server);
+    attachPartyRelay(server);
+    secureDesktopUpgrades(server, embeddedDesktop);
+  } catch (error) {
+    if (error instanceof ConfigStartupError) throw error;
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+async function shutdown() {
+  TaskManager.stopAll();
+  stopMetricsHistory();
+  await stopFuseMount().catch(() => undefined);
+  await stopNfsShare().catch(() => undefined);
+  // Write live sessions out so the next boot doesn't reclaim them as stale.
+  streamRegistry.closeAll('stale');
+  await flushStreamSessions().catch(() => undefined);
+  await stopAnalytics().catch(() => undefined);
+  await flushAllDiskCaches().catch(() => undefined);
+  await flushWatchState().catch(() => undefined);
+  await flushPendingIds().catch(() => undefined);
+  await closePartyRelay();
+  await sharedBackend()
+    .stop()
+    .catch(() => undefined);
+  await Cache.close();
+  RegexAccess.cleanup();
+  SelAccess.cleanup();
+  await closeDb();
+}
+
+process.on('unhandledRejection', (reason) => {
+  logger.fatal({ err: reason }, 'unhandled promise rejection ');
+});
+process.on('uncaughtException', (err) => {
+  logger.fatal({ err }, 'uncaught exception ');
+});
+
+function requestShutdown(): Promise<void> {
+  if (stopping) return stopping;
+  stopping = (async () => {
+    // Closing the listening socket stops new work before database cleanup.
+    const deadline = setTimeout(() => process.exit(1), 10_000);
+    deadline.unref();
+    httpServer?.close();
+    httpServer?.closeAllConnections();
+    try {
+      await shutdown();
+    } finally {
+      process.exit(0);
+    }
+  })();
+  return stopping;
+}
+
+process.on('SIGTERM', () => {
+  void requestShutdown();
+});
+process.on('SIGINT', () => {
+  void requestShutdown();
+});
+
+if (embeddedDesktop && process.env.AIOSTREAMS_DESKTOP_STDIN_CONTROL === '1') {
+  let input = '';
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', (chunk: string) => {
+    input += chunk;
+    if (input.length > 4096) {
+      void requestShutdown();
+      return;
+    }
+    let newline: number;
+    while ((newline = input.indexOf('\n')) !== -1) {
+      const line = input.slice(0, newline);
+      input = input.slice(newline + 1);
+      try {
+        if (JSON.parse(line)?.command === 'shutdown') void requestShutdown();
+      } catch {
+        /* Unknown parent commands have no effect. */
+      }
+    }
+  });
+  // EOF also covers the native desktop crashing or being force-closed.
+  process.stdin.on('end', () => {
+    void requestShutdown();
+  });
+  process.stdin.on('error', () => {
+    void requestShutdown();
+  });
+  process.stdin.resume();
+}
+
+start().catch((error) => {
+  if (error instanceof ConfigStartupError) {
+    // The message is already a pre-formatted human-friendly banner — print
+    // it verbatim and exit 1 without dumping a node stack trace.
+    process.stderr.write(`${error.message}\n`);
+    process.exit(1);
+  }
+  logger.error('Failed to start server:', error);
+  process.exit(1);
+});

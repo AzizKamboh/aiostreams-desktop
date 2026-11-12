@@ -1,0 +1,526 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import '@aiostreams/ui/theme.css';
+
+/* The room the floating nav bar takes, which pages keep free. */
+:root {
+  --nav-bar: calc(5rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  :root:not([data-nav='bar']) {
+    --nav-bar: 0px;
+  }
+  /* Home's row buttons open pages the bar keeps in a menu but other navs list. */
+  :root:not([data-nav='bar']) [data-page='home'] [data-ui='media-row-action'] {
+    display: none;
+  }
+}
+
+/* A title's backdrop and the rotating hero scroll away at half the page's speed. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    :where(:root:not([data-tv]))
+      :is([data-ui='item-backdrop'], [data-ui='hero-backdrops']) {
+      animation: scroll-lag linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100vh;
+    }
+    /* Home under a back swipe follows its own scroll, not the page's above it. */
+    [data-page='home'][data-peek] [data-ui='hero-backdrops'] {
+      animation: none;
+      transform: translateY(calc(min(var(--home-y), 100vh) / 2));
+    }
+    /* What's over a phone's hero or a title's art fades as it scrolls away. */
+    @media (max-width: 639px) {
+      :where(:root:not([data-tv]))
+        :is(
+          [data-ui='hero-content'],
+          [data-ui='hero-dots'],
+          [data-ui='item-heading']
+        ) {
+        /* Longhands: the minifier turns a list in the shorthand into 0s durations. */
+        animation-name: scroll-fade, scroll-gone;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: scroll(root);
+        animation-range: 10vh 50vh;
+      }
+      [data-ui='item-heading'] {
+        animation-range: 25vh 60vh;
+      }
+      [data-page='home'][data-peek]
+        :is([data-ui='hero-content'], [data-ui='hero-dots']) {
+        animation: none;
+        opacity: var(--home-fade);
+      }
+    }
+  }
+}
+/* Only while inert, so it ends in the same frame Home returns to its place. */
+[data-page='home'][inert][data-peek] {
+  visibility: visible;
+  content-visibility: visible;
+  margin-top: var(--home-top);
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-page='home'][data-peek] {
+    transform: none !important;
+  }
+}
+/* Opening a title, see page-open.ts. */
+:root[data-sliding-open]::view-transition-old(root),
+:root[data-sliding-open]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+:root[data-sliding-open]::view-transition-new(root) {
+  box-shadow: 0 0 2rem rgb(0 0 0 / 0.6);
+}
+::view-transition-group(title-logo) {
+  animation-duration: 450ms;
+  animation-timing-function: cubic-bezier(0.05, 0.7, 0.1, 1);
+}
+::view-transition-old(hero-details),
+::view-transition-old(hero-dots),
+::view-transition-old(home-rows) {
+  animation-duration: 100ms;
+}
+[data-sliding] {
+  will-change: transform;
+  min-height: 100dvh;
+  background-color: var(--background);
+  box-shadow: 0 0 2rem rgb(0 0 0 / 0.6);
+}
+@keyframes scroll-lag {
+  to {
+    transform: translateY(50vh);
+  }
+}
+@keyframes scroll-fade {
+  to {
+    opacity: 0;
+  }
+}
+/* Stops a faded button being tapped; apart, as visibility would keep the fade off the compositor. */
+@keyframes scroll-gone {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* Several scores on a phone take a row of their own, or a separator would end the row they wrap from. */
+@media (max-width: 639px) {
+  :is([data-ui='item-meta'], [data-ui='hero-meta']):has(
+    > [data-name='score'] [data-ui='score'] + [data-ui='score']
+  ) {
+    row-gap: 1rem;
+  }
+  :is([data-ui='item-meta'], [data-ui='hero-meta'])
+    > [data-name='score']:has([data-ui='score'] + [data-ui='score']) {
+    order: 1;
+    flex-basis: 100%;
+    text-align: center;
+  }
+  :is([data-ui='item-meta'], [data-ui='hero-meta'])
+    > [data-ui='meta-separator']:has(
+      + [data-name='score'] [data-ui='score'] + [data-ui='score']
+    ),
+  :is([data-ui='item-meta'], [data-ui='hero-meta'])
+    > [data-name='score']:first-child:has([data-ui='score'] + [data-ui='score'])
+    + [data-ui='meta-separator'] {
+    display: none;
+  }
+}
+
+[data-ui='item-quick-action']:not([data-shown], [data-name='more']) {
+  display: none;
+}
+[data-ui='mobile-nav-item']:not([data-shown], [data-name='account']),
+[data-ui='account-menu-page'][data-shown] {
+  display: none;
+}
+
+/* see index.html; the page's background is then drawn by an element */
+html.see-through,
+html.see-through body {
+  background: transparent !important;
+}
+/* An on-screen keyboard pans the page up past its end, where only the root paints. */
+html.see-through[data-host='android-app']:not(.playing):not([data-video-hole]) {
+  background-color: var(--background) !important;
+}
+
+/* Important so custom CSS can't cover the video beneath the page. */
+html.playing .page-background {
+  display: none !important;
+}
+html.playing [data-ui='window-controls'] {
+  opacity: 0;
+  pointer-events: none;
+}
+html.playing:has([data-ui='player-controls'][data-visible])
+  [data-ui='window-controls'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* The player has its own full screen button. */
+html.playing [data-ui='window-controls'][data-fullscreen] {
+  display: none;
+}
+/* So does the player's top bar, unless a dialog covers it. */
+html:has([data-ui='player-window-buttons']):not(
+    :has([role='dialog'][data-state='open'])
+  )
+  [data-ui='window-controls'] {
+  display: none;
+}
+/* The top bar holds them while it shows, where nothing covers it. */
+@media (min-width: 1024px) {
+  html[data-window-buttons='bar']:not(.playing):not(
+      :has([role='dialog'][data-state='open'])
+    )
+    [data-ui='window-controls'] {
+    display: none;
+  }
+}
+
+/* macOS draws its window buttons over the top left of the page. */
+html[data-platform='macos'] [data-ui='sidebar-logo'] {
+  padding-top: 2.25rem;
+}
+/* Drawers on the window buttons' side open below them. A drawer's side is
+   its start or end, so right to left a left drawer opens on the right. */
+html[data-host='desktop']:not([data-platform='macos']):not([dir='rtl'])
+  .UI-Drawer__content[data-side='right'],
+html[data-host='desktop']:not([data-platform='macos'])[dir='rtl']
+  .UI-Drawer__content[data-side='left'],
+html[data-platform='macos']:not([dir='rtl'])
+  .UI-Drawer__content[data-side='left'],
+html[data-platform='macos'][dir='rtl'] .UI-Drawer__content[data-side='right'] {
+  margin-top: 2.5rem;
+  height: calc(100% - 2.5rem);
+}
+@media (min-width: 1024px) {
+  html[data-host='desktop']:not([data-platform='macos']):not([dir='rtl'])
+    .UI-Drawer__content[data-side='right'],
+  html[data-host='desktop']:not([data-platform='macos'])[dir='rtl']
+    .UI-Drawer__content[data-side='left'],
+  html[data-platform='macos']:not([dir='rtl'])
+    .UI-Drawer__content[data-side='left'],
+  html[data-platform='macos'][dir='rtl']
+    .UI-Drawer__content[data-side='right'] {
+    height: calc(100% - 2.5rem - 10px);
+  }
+}
+html[data-platform='macos'] [data-ui='player-top-bar'] {
+  padding-left: 5.25rem;
+}
+
+html.see-through.playing body,
+html.see-through.playing #root {
+  background: transparent !important;
+}
+
+/* The page's scrollbar never goes away (see app.tsx), so a scroll lock must not
+   make room for it again. Nor hide the body's overflow: the page scrolls on
+   html, and a hidden body becomes the scroll container sticky parts follow. */
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+  overflow: visible !important;
+}
+
+/* Chromium drops these pseudo-elements wherever scrollbar-width is set. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: rgb(128 128 128 / 0.4) padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(128 128 128 / 0.6);
+}
+/* The page's scrollbar takes its style from the body and lies beyond the
+   backdrop, so a see-through page would show the video surface there. */
+body::-webkit-scrollbar {
+  background-color: var(--background);
+}
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(128 128 128 / 0.4) transparent;
+  }
+}
+/* A TV has nothing to drag a scrollbar with. */
+[data-tv]::-webkit-scrollbar,
+[data-tv] ::-webkit-scrollbar {
+  display: none;
+}
+
+/* One focus mark everywhere, in the accent, over the shared components' faint
+   rings. Fields keep their own, and anything else drawing one sets
+   data-focus="own". Chained :not()s, since older TV browsers take no list. */
+html.dark {
+  --ring: rgb(var(--color-brand-400));
+}
+:focus-visible:not([data-focus='own']):not(input):not(textarea) {
+  --tw-ring-color: transparent;
+  --tw-ring-offset-width: 0px;
+  outline: 2px solid var(--ring) !important;
+  outline-offset: 2px;
+}
+[data-focus='own']:focus-visible {
+  outline: none;
+}
+/* TV web views can focus the page's roots; :not(#root) outranks the ring above. */
+#root:focus-visible,
+body:focus-visible:not(#root) {
+  outline: none !important;
+}
+/* Focus that came from a pointer (markPointerFocus). */
+html[data-pointer-focus] :focus-visible:not(input):not(textarea),
+html[data-pointer-focus] :focus-visible:not(input):not(textarea)::before,
+html[data-pointer-focus] :focus-visible:not(input):not(textarea)::after,
+html[data-pointer-focus] :focus-visible [data-focus-frame] {
+  outline: none !important;
+  --tw-ring-color: transparent !important;
+}
+/* A card's ring goes round its picture, outside it, so nothing of the
+   picture is hidden; rows leave room for it. */
+[data-focus='own']:focus-visible [data-focus-frame] {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+/* Seen from across a room. */
+[data-tv] [data-focus='own']:focus-visible [data-focus-frame] {
+  outline-width: 3px;
+}
+/* A card opened in its row draws its opened layer in place of its own parts.
+   While it opens, its frame moves to uncover the layer and draws nothing
+   itself; under a trailer, nothing covers the video beneath the page. */
+[data-ui='media-row-item'][data-open]
+  [data-focus-frame]
+  > :not([data-ui='open-card']) {
+  visibility: hidden;
+}
+[data-ui='media-row-item'][data-opening] [data-focus-frame],
+[data-ui='media-row-item'][data-trailer] [data-focus-frame] {
+  background: transparent;
+  box-shadow: none;
+}
+[data-ui='media-row-item'][data-opening] [data-focus-frame] {
+  outline-color: transparent !important;
+}
+
+/* Rows, the hero and scrolling menus clip anything past their edges. */
+.UI-Carousel__content :focus-visible:not([data-focus='own']):not(input),
+[data-ui='hero'] :focus-visible:not([data-focus='own']):not(input),
+[role^='menuitem']:focus-visible:not([data-focus='own']),
+[role='option']:focus-visible:not([data-focus='own']) {
+  outline-offset: -2px;
+}
+
+/* A guide programme's title moves with the day's scroll to stay beside the
+   channels, until its cell's end leaves no room. */
+[data-ui='guide-cell'] > [data-name='text'] {
+  padding-inline-start: max(
+    0.5rem,
+    min(
+      calc(var(--guide-scroll, 0px) - var(--x) + 0.5rem),
+      calc(var(--w) - 3rem)
+    )
+  );
+}
+
+[data-ui='player-controls'] {
+  --control: 2.5rem;
+  --icon: 1.4rem;
+  --title: 1rem;
+  --time: 0.875rem;
+}
+@media (min-width: 1600px) and (min-height: 860px) {
+  [data-ui='player-controls'] {
+    --control: 3rem;
+    --icon: 1.65rem;
+    --title: 1.125rem;
+    --time: 1rem;
+  }
+}
+[data-tv] [data-ui='player-controls'] {
+  --control: 3.25rem;
+  --icon: 1.85rem;
+  --title: 1.25rem;
+  --time: 1.125rem;
+}
+
+/* Glass for bars over the page; the grain breaks up the bands a strong blur leaves. */
+.bar-surface {
+  border: 1px solid rgb(255 255 255 / 0.1);
+  box-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.7);
+}
+.bar-surface[data-surface='solid'] {
+  background-color: var(--background);
+}
+.bar-surface:not([data-surface='solid']) {
+  background-color: rgb(14 14 18 / 0.55);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.07 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.02));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 12px 32px -12px rgb(0 0 0 / 0.7);
+  backdrop-filter: blur(24px) saturate(1.8);
+}
+.bar-surface[data-surface='liquid'] {
+  background-color: rgb(14 14 18 / 0.12);
+  border-color: rgb(255 255 255 / 0.14);
+  box-shadow:
+    inset 1px 1px 0.5px rgb(255 255 255 / 0.4),
+    inset -1px -1px 0.5px rgb(255 255 255 / 0.14),
+    inset 12px 12px 24px -16px rgb(255 255 255 / 0.16),
+    inset -12px -12px 24px -16px rgb(0 0 0 / 0.32),
+    0 12px 32px -12px rgb(0 0 0 / 0.6);
+}
+/* Over a bright picture, grey labels are lost. */
+:is(.bar-surface:not([data-surface='solid']), [data-ui='top-tabs'])
+  :is([data-ui='nav-item'], [data-ui='mobile-nav-item']):not(
+    [aria-current='page']
+  ) {
+  color: rgb(255 255 255 / 0.8);
+}
+
+/* Episodes not started, until the pointer, focus or its menu is on one. */
+html[data-blur-spoilers]
+  :is(
+    [data-ui='episode-card'],
+    [data-ui='episode-list-item'],
+    [data-ui='player-episode'],
+    [data-row='next-up'] [data-ui='wide-card'],
+    [data-row='upcoming'] [data-ui='wide-card'],
+    [data-row='resume'] [data-ui='wide-card'],
+    [data-ui='calendar-entry'][data-episode],
+    [data-ui='calendar-day']:not(:hover, :focus-within)
+      [data-ui='calendar-day-art'][data-episode]
+  ):not(
+    [data-watched],
+    [data-in-progress],
+    [data-current],
+    :hover,
+    :focus-within,
+    [data-menu-open] > *
+  )
+  [data-ui='artwork'] {
+  filter: blur(12px);
+}
+/* The text inside a title: a filter on the title itself would trap the overlay
+   that makes the whole episode its button. */
+html[data-blur-spoilers]
+  :is(
+    [data-ui='episode-card'],
+    [data-ui='episode-list-item'],
+    [data-ui='player-episode'],
+    [data-row='next-up'] [data-ui='wide-card'],
+    [data-row='upcoming'] [data-ui='wide-card'],
+    [data-row='resume'] [data-ui='wide-card'],
+    [data-ui='calendar-entry'][data-episode]
+  ):not(
+    [data-watched],
+    [data-in-progress],
+    [data-current],
+    :hover,
+    :focus-within,
+    [data-menu-open] > *
+  )
+  :is(
+    [data-ui='episode-title'] > span,
+    p[data-ui='episode-title'],
+    [data-ui='episode-synopsis'],
+    [data-ui='wide-card-subtitle'],
+    [data-ui='calendar-entry-subtitle']
+  ) {
+  filter: blur(5px);
+}
+html[data-blur-spoilers]:not([data-tv])
+  :is(
+    [data-ui='episode-card'],
+    [data-ui='episode-list-item'],
+    [data-ui='player-episode'],
+    [data-row='next-up'] [data-ui='wide-card'],
+    [data-row='upcoming'] [data-ui='wide-card'],
+    [data-row='resume'] [data-ui='wide-card'],
+    [data-ui='calendar-entry'][data-episode],
+    [data-ui='calendar-day-art'][data-episode]
+  )
+  :is(
+    [data-ui='artwork'],
+    [data-ui='episode-title'] > span,
+    p[data-ui='episode-title'],
+    [data-ui='episode-synopsis'],
+    [data-ui='wide-card-subtitle'],
+    [data-ui='calendar-entry-subtitle']
+  ) {
+  transition-property: transform, opacity, filter;
+  transition-duration: 250ms, 300ms, 300ms;
+}
+
+/* Only text meant to be read or copied is selectable. */
+@layer base {
+  body.jellyfin-web {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body.jellyfin-web :is(input, textarea, [contenteditable]) {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+  body.jellyfin-web :is(img, a) {
+    -webkit-user-drag: none;
+  }
+}
+
+@keyframes player-cover-drift {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes player-cover-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A party member's reaction rises over the video and fades. */
+@keyframes party-rise {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-12rem);
+    opacity: 0;
+  }
+}

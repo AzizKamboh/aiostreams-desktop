@@ -1,0 +1,290 @@
+import { t } from '@lingui/core/macro';
+import type { HostEvent } from '@/lib/downloads/types';
+import type { LicenseList } from '@/lib/licenses';
+import type { TimeRange } from '@/lib/playback/playhead';
+import type { Span } from '@/lib/subtitles/align';
+import { createLive, useLive } from '@/lib/live-value';
+
+/** A track as the app's player lists it; `url` is where an added one came from. */
+export interface AppTrack {
+  id: string;
+  type: 'audio' | 'subtitle';
+  title?: string;
+  language?: string;
+  codec?: string;
+  default: boolean;
+  forced: boolean;
+  hearingImpaired: boolean;
+  visualImpaired: boolean;
+  external: boolean;
+  url?: string;
+}
+
+/** What draws the video in the Mac app. */
+export type VideoOutput = 'mpv' | 'system' | 'compatibility';
+
+/** `external` marks what the player in its own window sends. */
+export type ShellMessage =
+  | {
+      type: 'backend-state';
+      state: 'starting' | 'ready' | 'failed' | 'stopped';
+      url?: string;
+      message?: string;
+      /** Native storage is encrypted with the current Windows user's DPAPI key. */
+      storage?: Record<string, string>;
+    }
+  | {
+      type: 'youtube-resolved';
+      request: string;
+      url: string | null;
+      originalLanguage?: string;
+    }
+  | {
+      type: 'player-state';
+      positionMs?: number;
+      durationMs?: number;
+      buffered?: TimeRange[];
+      paused?: boolean;
+      buffering?: boolean;
+      seeking?: boolean;
+      idle?: boolean;
+      volume?: number;
+      maxVolume?: number;
+      muted?: boolean;
+      speed?: number;
+      audio?: string | null;
+      subtitle?: string | null;
+      fullscreen?: boolean;
+      passthrough?: boolean;
+      external?: boolean;
+    }
+  | { type: 'player-tracks'; tracks: AppTrack[]; external?: boolean }
+  /** When lines of the file's subtitle asked for with `player-subtitle-lines` show. */
+  | { type: 'player-subtitle-lines'; track: string; lines: Span[] }
+  /** Answers `player-subtitle-index`: each of the file's own subtitles' lines by track, or null without an index. */
+  | { type: 'player-subtitle-index'; tracks: Record<string, Span[]> | null }
+  /** Where the app serves the JPEG of a keyframe asked for with `player-thumbnail`; without `src` the file has none. */
+  | {
+      type: 'player-thumbnail';
+      url: string;
+      positionMs?: number;
+      src: string | null;
+    }
+  | {
+      type: 'player-chapters';
+      chapters: { title?: string; startMs: number }[];
+      external?: boolean;
+    }
+  | {
+      type: 'player-event';
+      name: 'start' | 'loaded' | 'restart';
+      external?: boolean;
+    }
+  | {
+      type: 'player-ended';
+      reason: string;
+      error: string | null;
+      /** The HTTP status a failed load answered with. */
+      status?: number;
+      cause?: string;
+      external?: boolean;
+    }
+  | {
+      type: 'external-players';
+      players: { id: string; path: string | null }[];
+    }
+  | { type: 'external-ended'; error: string | null }
+  /** mpv's outputs on the desktop, as its `audio-device-list`. */
+  | {
+      type: 'audio-devices';
+      devices: { name: string; description: string }[] | null;
+    }
+  | { type: 'fullscreen'; value: boolean }
+  | { type: 'pip'; value: boolean }
+  /** A tap on the small video, a drag of it starting, where it is as it drags, or where it let go, in the page's pixels. */
+  | { type: 'player-frame'; event: 'tap' | 'grabbed' }
+  | { type: 'player-frame'; event: 'moving' | 'moved'; x: number; y: number }
+  | { type: 'back' }
+  /** A system back swipe under way; `back` follows if it lands. */
+  | { type: 'back-gesture'; event: 'start'; fromRight: boolean }
+  | { type: 'back-gesture'; event: 'move'; progress: number }
+  | { type: 'back-gesture'; event: 'cancel' }
+  /** The engine the Android app plays with now. */
+  | { type: 'player-engine'; name: string }
+  | { type: 'mpv-config'; text: string }
+  | { type: 'mpv-shaders'; names: string[] }
+  | {
+      type: 'player-stats';
+      stats: Record<string, unknown>;
+      /** The app's own process, which decoders and the page run outside. */
+      cpuMs: number;
+      atMs: number;
+    }
+  | { type: 'levels'; volume: number; brightness: number }
+  | { type: 'window-state'; maximized: boolean }
+  | {
+      type: 'app-info';
+      app: string;
+      platform: string;
+      mpv: string | null;
+      ffmpeg: string | null;
+      /** The Android app's player and its version. */
+      player?: string;
+      /** Whether the app can re-encode sound to Dolby Digital. */
+      ac3Encoder?: boolean;
+    }
+  | {
+      type: 'video-output';
+      /** Empty where the app has no choice. */
+      outputs: VideoOutput[];
+      running: VideoOutput;
+      chosen: VideoOutput;
+    }
+  | { type: 'diagnostics'; text: string }
+  /** What the app ships besides the page, in the shape of the page's own list. */
+  | ({ type: 'licenses' } & LicenseList)
+  /** Empty when the last run ended normally or was already shown. */
+  | {
+      type: 'crash-report';
+      at?: number;
+      summary?: string;
+      details?: string;
+      page?: boolean;
+    }
+  | {
+      type: 'update-state';
+      state: 'checking' | 'downloading' | 'ready' | 'current' | 'error' | 'off';
+      channel: 'stable' | 'nightly' | null;
+      version: string | null;
+      error: string | null;
+    }
+  | {
+      type: 'discord-status';
+      state: 'connected' | 'not-found' | 'failed' | 'refused';
+      message: string | null;
+    }
+  | { type: 'link'; url: string }
+  | { type: 'voice-hearing'; level?: number; text: string | null }
+  | {
+      type: 'voice-result';
+      text: string | null;
+      error?: 'no-speech' | 'failed';
+    }
+  | { type: 'gamepad'; input: string; down: boolean }
+  | { type: 'media-key'; key: MediaKey }
+  | { type: 'error'; message: string }
+  | {
+      type: 'download-state';
+      folder: string;
+      jobs: Extract<HostEvent, { type: 'state' }>['jobs'];
+    }
+  | {
+      type: 'download-progress';
+      id: string;
+      bytes: number;
+      total: number | null;
+      speed: number;
+    };
+
+/** A press on the system's media controls; positions and offsets are milliseconds. */
+export type MediaKey =
+  | { action: 'play' | 'pause' | 'toggle' | 'stop' | 'next' | 'previous' }
+  | { action: 'seek'; position: number }
+  | { action: 'skip'; offset: number };
+
+/** The AIOStreams apps' bridge to their player and system, on the desktop and Android. */
+interface ShellBridge {
+  /** This desktop distribution owns a private AIOStreams backend. */
+  backend?: boolean;
+  protocol: number;
+  version: string;
+  /** `windows`, `macos`, `linux` or `android`. */
+  platform: string;
+  /** The Android app on a TV. */
+  tv?: boolean;
+  /** The Android app on a device with a speech recogniser. */
+  voice?: boolean;
+  /** The app can play in picture-in-picture: the Android app where the device has it, and the Windows app. */
+  pip?: boolean;
+  /** The app can draw its video small over the page, with `player-frame`. */
+  miniPlayer?: boolean;
+  /** The app sends a controller's buttons as `gamepad` messages. */
+  gamepadButtons?: boolean;
+  /** The system's 12- or 24-hour clock, where the app can tell. */
+  hours24?: boolean;
+  /** The device's name. */
+  device: string;
+  /** The app's own id for this device, where it keeps one. */
+  deviceId?: string;
+  send(message: { type: string; [key: string]: unknown }): void;
+  subscribe(listener: (message: ShellMessage) => void): () => void;
+}
+
+declare global {
+  interface Window {
+    aiostreamsApp?: ShellBridge;
+  }
+}
+
+export function appBridge(): ShellBridge | undefined {
+  return window.aiostreamsApp;
+}
+
+/** A line for the app's log, which its problem reports show; the console's in a browser. */
+export function appLog(level: 'info' | 'warn', message: string): void {
+  const bridge = appBridge();
+  if (bridge) bridge.send({ type: 'log', level, message });
+  else console[level](message);
+}
+
+export type ShellAnswer<T extends ShellMessage['type']> = Extract<
+  ShellMessage,
+  { type: T }
+>;
+
+/** Sends `message` and resolves with the first `answer` it gets. */
+export function ask<T extends ShellMessage['type']>(
+  message: { type: string; [key: string]: unknown },
+  answer: T,
+  opts: {
+    timeoutMs?: number;
+    matches?: (m: ShellAnswer<T>) => boolean;
+    /** Fails on the next `error` the app sends, which only some requests answer with. */
+    errors?: boolean;
+  } = {}
+): Promise<ShellAnswer<T>> {
+  const bridge = appBridge();
+  if (!bridge) return Promise.reject(new Error('Only the apps answer this'));
+  return new Promise((resolve, reject) => {
+    const done = () => {
+      clearTimeout(timer);
+      stop();
+    };
+    const timer =
+      opts.timeoutMs === undefined
+        ? undefined
+        : setTimeout(() => {
+            done();
+            reject(new Error(t`The app did not answer`));
+          }, opts.timeoutMs);
+    const stop = bridge.subscribe((m) => {
+      if (m.type === 'error' && opts.errors) {
+        done();
+        reject(new Error(m.message));
+      } else if (m.type === answer && (opts.matches?.(m as never) ?? true)) {
+        done();
+        resolve(m as ShellAnswer<T>);
+      }
+    });
+    bridge.send(message);
+  });
+}
+
+/** The last `type` message the app sent, for a page that opens after it came. */
+export function bridgeStore<T extends ShellMessage['type']>(type: T) {
+  const last = createLive<ShellAnswer<T> | null>(null);
+  appBridge()?.subscribe((m) => {
+    if (m.type === type) last.set(m as ShellAnswer<T>);
+  });
+  return { get: last.get, use: () => useLive(last) };
+}

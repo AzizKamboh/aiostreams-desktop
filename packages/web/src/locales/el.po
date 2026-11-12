@@ -1,0 +1,5563 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-16 20:39+0100\n"
+"PO-Revision-Date: 2026-11-09 09:51+0000\n"
+"Last-Translator: Nasos Vasileiadis <nosvasedis@users.noreply.hosted.weblate.org>\n"
+"Language-Team: Greek <https://hosted.weblate.org/projects/aiostreams/web-app/el/>\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Weblate 2026.11.2.dev0\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: src/features/party/in-party.tsx
+msgid "(you)"
+msgstr "(εσύ)"
+
+#: src/app/sign-in/page.tsx
+msgid "{address} did not answer. Check that it is running, then try again."
+msgstr "Δεν υπήρξε απόκριση από το {address}. Έλεγξε ότι λειτουργεί και δοκίμασε ξανά."
+
+#: src/features/live-tv/live-reminders.tsx
+msgid "{at} on {channelName}"
+msgstr "{at} στο {channelName}"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "{badgeCount, plural, one {# badge of your own} other {# badges of your own}}"
+msgstr "{badgeCount, plural, one {# δική σου ετικέτα} other {# δικές σου ετικέτες}}"
+
+#: src/app/history/page.tsx
+msgid "{cleared, plural, one {Removed # title from the history} other {Removed # titles from the history}}"
+msgstr "{cleared, plural, one {Αφαιρέθηκε # τίτλος από το ιστορικό} other {Αφαιρέθηκαν # τίτλοι από το ιστορικό}}"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "{count, plural, one {# badge} other {# badges}}"
+msgstr "{count, plural, one {# ετικέτα} other {# ετικέτες}}"
+
+#: src/app/settings/playback.tsx
+msgid "{count, plural, one {# minute} other {# minutes}}"
+msgstr "{count, plural, one {# λεπτό} other {# λεπτά}}"
+
+#: src/app/settings/_components/common.tsx
+msgid "{count, plural, one {# second} other {# seconds}}"
+msgstr "{count, plural, one {# δευτερόλεπτο} other {# δευτερόλεπτα}}"
+
+#: src/features/playlists/playlists.tsx
+msgid "{count, plural, one {# title} other {# titles}}"
+msgstr "{count, plural, one {# τίτλος} other {# τίτλοι}}"
+
+#: src/features/party/not-in-party.tsx
+msgid "{count, plural, one {# watching · on {on}} other {# watching · on {on}}}"
+msgstr "{count, plural, one {# άτομο παρακολουθεί · στο {on}} other {# άτομα παρακολουθούν · στο {on}}}"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "{count, plural, one {Added # badge} other {Added # badges}}"
+msgstr "{count, plural, one {Προστέθηκε # ετικέτα} other {Προστέθηκαν # ετικέτες}}"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "{count, plural, one {Added # quick filter} other {Added # quick filters}}"
+msgstr "{count, plural, one {Προστέθηκε # γρήγορο φίλτρο} other {Προστέθηκαν # γρήγορα φίλτρα}}"
+
+#: src/lib/downloads/index.ts
+msgid "{count, plural, one {Download added} other {# downloads added}}"
+msgstr "{count, plural, one {Η λήψη προστέθηκε} other {Προστέθηκαν # λήψεις}}"
+
+#: src/app/item/_components/trailers.tsx
+msgid "{count, plural, one {Trailer} other {Trailers}}"
+msgstr "{count, plural, one {Τρέιλερ} other {Τρέιλερ}}"
+
+#: src/app/downloads/page.tsx
+msgid "{downloaded} downloaded"
+msgstr "Έχουν ληφθεί {downloaded}"
+
+#: src/app/history/page.tsx
+msgid "{episodeCount, plural, one {# episode watched} other {# episodes watched}}"
+msgstr "{episodeCount, plural, one {# επεισόδιο που έχεις δει} other {# επεισόδια που έχεις δει}}"
+
+#: src/app/downloads/page.tsx src/app/history/page.tsx
+#: src/app/item/_components/seasons.tsx
+msgid "{episodeCount, plural, one {# episode} other {# episodes}}"
+msgstr "{episodeCount, plural, one {# επεισόδιο} other {# επεισόδια}}"
+
+#: src/app/history/page.tsx
+msgid "{favorites, plural, one {# favourite} other {# favourites}}"
+msgstr "{favorites, plural, one {# αγαπημένο} other {# αγαπημένα}}"
+
+#: src/app/settings/downloads.tsx
+msgid "{folder}. New downloads go here; ones already saved stay where they are."
+msgstr "{folder}. Οι νέες λήψεις αποθηκεύονται εδώ. Τα ήδη αποθηκευμένα αρχεία παραμένουν στη θέση τους."
+
+#: src/features/versions/version-list.tsx
+msgid "{found, plural, one {# version} other {# versions}}"
+msgstr "{found, plural, one {# έκδοση} other {# εκδόσεις}}"
+
+#: src/features/versions/version-list.tsx
+msgid "{found, plural, one {Filter # version} other {Filter # versions}}"
+msgstr "{found, plural, one {Φιλτράρισμα # έκδοσης} other {Φιλτράρισμα # εκδόσεων}}"
+
+#: src/app/downloads/page.tsx
+msgid "{got} of {size}"
+msgstr "{got} από {size}"
+
+#: src/features/player/options.tsx
+msgid "{height}%"
+msgstr "{height}%"
+
+#: src/app/settings/cache.tsx
+msgid "{help} {bytes}."
+msgstr "{help} {bytes}."
+
+#: src/features/party/not-in-party.tsx
+msgid "{host}'s party"
+msgstr "Ομαδική προβολή · {host}"
+
+#. Hours, as in 2h
+#: src/lib/format.ts
+msgid "{hours}h"
+msgstr "{hours} ώ."
+
+#. Hours and minutes, as in 1h 15m
+#: src/lib/format.ts
+msgid "{hours}h {rest}m"
+msgstr "{hours} ώ. {rest} λ."
+
+#: src/app/history/page.tsx
+msgid "{inProgress, plural, one {# in progress} other {# in progress}}"
+msgstr "{inProgress, plural, one {# σε εξέλιξη} other {# σε εξέλιξη}}"
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "{key} is taken by {taken}"
+msgstr "Το {key} χρησιμοποιείται ήδη για: {taken}"
+
+#: src/app/downloads/page.tsx src/app/live-tv/_components/channel-details.tsx
+#: src/components/media/card-preview.tsx src/components/media/episodes.tsx
+msgid "{left} left"
+msgstr "Υπόλοιπο: {left}"
+
+#: src/features/party/not-in-party.tsx
+msgid "{members, plural, one {# watching} other {# watching}}"
+msgstr "{members, plural, one {# άτομο παρακολουθεί} other {# άτομα παρακολουθούν}}"
+
+#. Minutes, as in 45m
+#: src/lib/format.ts
+msgid "{minutes}m"
+msgstr "{minutes} λ."
+
+#: src/app/history/page.tsx
+msgid "{movieCount, plural, one {# movie watched} other {# movies watched}}"
+msgstr "{movieCount, plural, one {# ταινία που έχεις δει} other {# ταινίες που έχεις δει}}"
+
+#: src/app/history/page.tsx
+msgid "{movieCount, plural, one {# movie} other {# movies}}"
+msgstr "{movieCount, plural, one {# ταινία} other {# ταινίες}}"
+
+#: src/app/history/page.tsx
+msgid "{movies} and {episodes} watched"
+msgstr "Έχεις δει {movies} και {episodes}"
+
+#: src/app/settings/playback.tsx
+msgid "{n, plural, one {After # episode} other {After # episodes}}"
+msgstr "{n, plural, one {Μετά από # επεισόδιο} other {Μετά από # επεισόδια}}"
+
+#: src/features/versions/unaired-question.tsx
+msgid "{name} airs {day} ({until}). Download it anyway?"
+msgstr "Το {name} προβάλλεται {day} ({until}). Να γίνει λήψη ούτως ή άλλως;"
+
+#: src/features/versions/unaired-question.tsx
+msgid "{name} airs {day} ({until}). Play it anyway?"
+msgstr "Το {name} προβάλλεται {day} ({until}). Να γίνει αναπαραγωγή ούτως ή άλλως;"
+
+#: src/features/party/party-host.tsx
+msgid "{name} joined the party"
+msgstr "Συμμετέχει στην ομαδική προβολή: {name}"
+
+#: src/features/party/party-host.tsx
+msgid "{name} left the party"
+msgstr "Αποχώρησε από την ομαδική προβολή: {name}"
+
+#: src/features/versions/version-list.tsx
+msgid "{others, plural, one {Pick the version to download. The other episode gets the same release where it has it.} other {Pick the version to download. The other # episodes get the same release where they have it.}}"
+msgstr "{others, plural, one {Επίλεξε την έκδοση για λήψη. Για το άλλο επεισόδιο θα επιλεγεί η ίδια κυκλοφορία, εφόσον είναι διαθέσιμη.} other {Επίλεξε την έκδοση για λήψη. Για τα υπόλοιπα # επεισόδια θα επιλεγεί η ίδια κυκλοφορία, εφόσον είναι διαθέσιμη.}}"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "{packCount, plural, one {# pack} other {# packs}}"
+msgstr "{packCount, plural, one {# πακέτο} other {# πακέτα}}"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "{packs} and {own}"
+msgstr "{packs} και {own}"
+
+#: src/app/settings/playback.tsx
+msgid "{r}×"
+msgstr "{r}×"
+
+#: src/lib/party/party.ts
+msgid "{relay} didn't answer."
+msgstr "Δεν υπήρξε απόκριση από τον διακομιστή αναμετάδοσης {relay}."
+
+#: src/app/history/page.tsx
+msgid "{removed, plural, one {Removed # from the history} other {Removed # from the history}}"
+msgstr "{removed, plural, one {Αφαιρέθηκε # από το ιστορικό} other {Αφαιρέθηκαν # από το ιστορικό}}"
+
+#: src/features/party/not-in-party.tsx
+msgid "{rest, plural, one {# more} other {# more}}"
+msgstr "{rest, plural, one {# ακόμη} other {# ακόμη}}"
+
+#: src/app/settings/playback.tsx
+msgid "{s}%"
+msgstr "{s}%"
+
+#: src/features/party/in-party.tsx
+msgid "{seconds}s ahead"
+msgstr "{seconds} δευτ. μπροστά"
+
+#: src/features/party/in-party.tsx
+msgid "{seconds}s behind"
+msgstr "{seconds} δευτ. πίσω"
+
+#: src/app/history/page.tsx
+msgid "{selected, plural, one {# selected} other {# selected}}"
+msgstr "{selected, plural, one {# επιλεγμένο} other {# επιλεγμένα}}"
+
+#: src/features/player/keys.ts
+msgid "{shown}×"
+msgstr "{shown}×"
+
+#: src/features/player/controls.tsx src/features/player/picture-in-picture.tsx
+msgid "{stepSeconds, plural, one {Back # second} other {Back # seconds}}"
+msgstr "{stepSeconds, plural, one {Πίσω # δευτερόλεπτο} other {Πίσω # δευτερόλεπτα}}"
+
+#: src/features/player/controls.tsx src/features/player/picture-in-picture.tsx
+msgid "{stepSeconds, plural, one {Forward # second} other {Forward # seconds}}"
+msgstr "{stepSeconds, plural, one {Μπροστά # δευτερόλεπτο} other {Μπροστά # δευτερόλεπτα}}"
+
+#: src/app/history/page.tsx
+msgid "{time} watched"
+msgstr "Χρόνος παρακολούθησης: {time}"
+
+#: src/lib/party/follow.ts
+msgid "{title} isn't on your server."
+msgstr "Το {title} δεν υπάρχει στον διακομιστή σου."
+
+#: src/app/discover/page.tsx
+msgid "{total, plural, one {# title} other {# titles}}"
+msgstr "{total, plural, one {# τίτλος} other {# τίτλοι}}"
+
+#: src/app/item/_components/seasons.tsx
+msgid "{unairedCount, plural, one {# unaired} other {# unaired}}"
+msgstr "{unairedCount, plural, one {# δεν έχει προβληθεί ακόμη} other {# δεν έχουν προβληθεί ακόμη}}"
+
+#: src/features/player/options.tsx
+msgid "{unread, plural, one {Watch party, # new message} other {Watch party, # new messages}}"
+msgstr "{unread, plural, one {Ομαδική προβολή, # νέο μήνυμα} other {Ομαδική προβολή, # νέα μηνύματα}}"
+
+#. Each {name} is written in the player link as it is here.
+#: src/app/settings/playback.tsx
+msgid "{url} is the stream address, {encodedUrl} the same address URL-encoded, {scheme} its scheme, {filename} the file's name, {subtitles} each external subtitle (its parameter repeats per file), {title} the title with the episode, {position} the second to start at ({positionMs} in milliseconds), and {returnUrl} a link back here for a player that reports where it stopped. Values other than {url} are URL-encoded. After intent://, {url} goes without its scheme."
+msgstr "Το {url} είναι η διεύθυνση της ροής, το {encodedUrl} η ίδια διεύθυνση με κωδικοποίηση URL, το {scheme} το σχήμα της, το {filename} το όνομα του αρχείου, το {subtitles} κάθε εξωτερικός υπότιτλος (η παράμετρός του επαναλαμβάνεται για κάθε αρχείο), το {title} ο τίτλος μαζί με το επεισόδιο, το {position} το δευτερόλεπτο έναρξης ({positionMs} σε χιλιοστά του δευτερολέπτου) και το {returnUrl} ένας σύνδεσμος επιστροφής εδώ για προγράμματα αναπαραγωγής που αναφέρουν πού σταμάτησαν. Όλες οι τιμές εκτός από το {url} έχουν κωδικοποίηση URL. Μετά το intent://, το {url} χρησιμοποιείται χωρίς το σχήμα του."
+
+#: src/app/settings/cache.tsx
+msgid "{used} used. Past this, what was used longest ago goes first."
+msgstr "Χρησιμοποιούνται {used}. Όταν ξεπεραστεί αυτό το όριο, αφαιρούνται πρώτα όσα έχουν να χρησιμοποιηθούν περισσότερο καιρό."
+
+#: src/features/party/party-layer.tsx
+msgid "{who} jumped to {to}"
+msgstr "Μετάβαση στο {to} από: {who}"
+
+#: src/features/party/party-layer.tsx
+msgid "{who} paused"
+msgstr "Παύση από: {who}"
+
+#: src/features/party/party-layer.tsx
+msgid "{who} resumed"
+msgstr "Συνέχιση από: {who}"
+
+#: src/features/party/party-layer.tsx
+msgid "{who} started {title}"
+msgstr "Έναρξη του {title} από: {who}"
+
+#: src/lib/playback/sound.ts
+msgid "+{amount} ms"
+msgstr "+{amount} ms"
+
+#: src/lib/playback/sound.ts
+msgid "+{db} dB"
+msgstr "+{db} dB"
+
+#: src/lib/subtitles/delay.ts
+msgid "+{seconds}s"
+msgstr "+{seconds} δευτ."
+
+#: src/lib/subtitles/delay.ts
+msgid "+{time}"
+msgstr "+{time}"
+
+#: src/lib/playback/sound.ts
+msgid "−{amount} ms"
+msgstr "−{amount} ms"
+
+#: src/lib/subtitles/delay.ts
+msgid "−{seconds}s"
+msgstr "−{seconds} δευτ."
+
+#: src/lib/subtitles/delay.ts
+msgid "−{time}"
+msgstr "−{time}"
+
+#: src/lib/input/actions.ts
+msgid "0 to 9"
+msgstr "0 έως 9"
+
+#: src/lib/input/actions.ts
+msgid "1 jumps a tenth of the way in, 5 halfway and 0 back to the start."
+msgstr "Το 1 μεταβαίνει στο 10% της διάρκειας, το 5 στη μέση και το 0 στην αρχή."
+
+#: src/app/settings/interface.tsx
+msgid "12-hour ({twelve})"
+msgstr ""
+
+#: src/app/settings/interface.tsx
+msgid "24-hour ({twentyFour})"
+msgstr ""
+
+#: src/app/settings/audio.tsx
+msgid "5.1 surround"
+msgstr "Περιβάλλων ήχος 5.1"
+
+#: src/app/settings/audio.tsx
+msgid "7.1 surround"
+msgstr "Περιβάλλων ήχος 7.1"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "A badge shows on each version whose text matches its pattern: the name and description your formatter writes, the file name, and the tags read from it."
+msgstr "Μια ετικέτα εμφανίζεται σε κάθε έκδοση της οποίας το κείμενο ταιριάζει με το μοτίβο της: το όνομα και η περιγραφή που δημιουργεί ο μορφοποιητής σου, το όνομα του αρχείου και οι ετικέτες που εντοπίζονται σε αυτό."
+
+#: src/features/party/not-in-party.tsx
+msgid "A code is looked up on the relay picked above."
+msgstr "Η αναζήτηση κωδικού γίνεται στον διακομιστή αναμετάδοσης που έχει επιλεγεί παραπάνω."
+
+#: src/app/settings/cache.tsx
+msgid "A day"
+msgstr "Μία ημέρα"
+
+#: src/app/settings/cache.tsx
+msgid "A month"
+msgstr "Ένας μήνας"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "A regular expression. Case never matters."
+msgstr "Μια κανονική έκφραση. Δεν γίνεται διάκριση πεζών και κεφαλαίων."
+
+#: src/features/party/not-in-party.tsx
+msgid "A relay someone else runs, for people on other servers."
+msgstr "Ένας διακομιστής αναμετάδοσης τρίτου, για άτομα σε άλλους διακομιστές."
+
+#: src/components/shell/input-setup.tsx
+msgid "A remote's or gamepad's buttons work too."
+msgstr "Λειτουργούν και τα κουμπιά τηλεχειριστηρίου ή χειριστηρίου παιχνιδιών."
+
+#: src/app/settings/playback.tsx
+msgid "A set time before the end."
+msgstr "Καθορισμένο χρονικό διάστημα πριν από το τέλος."
+
+#: src/app/settings/audio.tsx
+msgid "A track the version marks as its default plays even when another is in one of your languages. Turn this off for your languages to always win."
+msgstr "Το κομμάτι ήχου που η έκδοση ορίζει ως προεπιλεγμένο αναπαράγεται ακόμη κι αν υπάρχει άλλο σε μία από τις γλώσσες σου. Απενεργοποίησέ το για να προηγούνται πάντα οι γλώσσες σου."
+
+#: src/app/settings/audio.tsx
+msgid "A version plays the first of these it has, otherwise its own default. Original language is the one the title was made in."
+msgstr "Κάθε έκδοση αναπαράγει την πρώτη από αυτές τις γλώσσες που διαθέτει, διαφορετικά τη δική της προεπιλογή. Πρωτότυπη γλώσσα είναι εκείνη στην οποία δημιουργήθηκε ο τίτλος."
+
+#: src/app/settings/cache.tsx
+msgid "A week"
+msgstr "Μία εβδομάδα"
+
+#: src/app/settings/page.tsx
+msgid "About"
+msgstr "Σχετικά"
+
+#: src/app/settings/theme.tsx
+msgid "Accent"
+msgstr "Χρώμα έμφασης"
+
+#: src/app/settings/page.tsx src/components/shell/layout.tsx
+#: src/components/shell/nav/mobile-nav.tsx
+msgid "Account"
+msgstr "Λογαριασμός"
+
+#: src/app/settings/cache.tsx
+msgid "Account and server"
+msgstr "Λογαριασμός και διακομιστής"
+
+#: src/app/history/page.tsx
+msgid "Actions"
+msgstr "Ενέργειες"
+
+#: src/app/history/page.tsx src/app/home/page.tsx src/app/settings/apps.tsx
+#: src/app/settings/cache.tsx src/app/settings/interface.tsx
+#: src/components/shell/layout.tsx
+msgid "Activity"
+msgstr "Δραστηριότητα"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Add"
+msgstr "Προσθήκη"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Add a badge"
+msgstr "Προσθήκη ετικέτας"
+
+#: src/features/player/options.tsx
+msgid "Add a file…"
+msgstr "Προσθήκη αρχείου…"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Add a filter"
+msgstr "Προσθήκη φίλτρου"
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Add a key for {label}"
+msgstr "Προσθήκη πλήκτρου για: {label}"
+
+#: src/app/settings/_components/common.tsx
+msgid "Add a language"
+msgstr "Προσθήκη γλώσσας"
+
+#: src/app.tsx src/app/servers/page.tsx
+msgid "Add a server"
+msgstr "Προσθήκη διακομιστή"
+
+#: src/app/settings/_components/common.tsx
+#, fuzzy
+msgid "Add a shader"
+msgstr "Προσθήκη ετικέτας"
+
+#: src/app/settings/_components/common.tsx
+msgid "Add another language"
+msgstr "Προσθήκη άλλης γλώσσας"
+
+#: src/components/media/no-catalogs.tsx
+msgid "Add catalogs to your configuration, then refresh."
+msgstr "Πρόσθεσε καταλόγους στη διαμόρφωσή σου και κάνε ανανέωση."
+
+#: src/app/item/_components/actions.tsx
+#: src/app/live-tv/_components/channel-details.tsx
+#: src/components/media/item-menu.tsx
+msgid "Add favourite"
+msgstr "Προσθήκη στα αγαπημένα"
+
+#: src/features/playlists/playlists.tsx
+msgid "Add from Continue watching"
+msgstr "Προσθήκη από τη «Συνέχεια παρακολούθησης»"
+
+#: src/app/item/_components/actions.tsx src/components/media/item-menu.tsx
+#: src/features/playlists/playlists.tsx
+msgid "Add to playlist"
+msgstr "Προσθήκη σε λίστα αναπαραγωγής"
+
+#: src/features/playlists/playlists.tsx
+msgid "Add to this playlist"
+msgstr "Προσθήκη σε αυτή τη λίστα"
+
+#: src/features/player/controls.tsx
+msgid "Added {name}"
+msgstr "Προστέθηκε: {name}"
+
+#: src/app/player/page.tsx src/features/playlists/playlists.tsx
+msgid "Added to {name}"
+msgstr "Προστέθηκε στη λίστα {name}"
+
+#: src/app/settings/account.tsx
+msgid "Addons, catalogs and users are set up on the configuration page."
+msgstr "Τα πρόσθετα, οι κατάλογοι και οι χρήστες ορίζονται στη σελίδα διαμόρφωσης."
+
+#: src/app/settings/about.tsx
+msgid "Address"
+msgstr "Διεύθυνση"
+
+#: src/app/settings/playback.tsx
+msgid "Ads"
+msgstr "Διαφημίσεις"
+
+#: src/lib/i18n.ts
+msgid "AIOStreams is a solo project built and maintained by me in my free time. If you find it useful, please consider supporting my work. Your donation helps me keep the project alive and improve it for everyone!"
+msgstr "Το AIOStreams είναι ένα προσωπικό έργο που αναπτύσσω και συντηρώ στον ελεύθερο χρόνο μου. Αν σου είναι χρήσιμο, μπορείς να στηρίξεις τη δουλειά μου. Η δωρεά σου με βοηθά να συνεχίσω το έργο και να το βελτιώνω για όλους!"
+
+#: src/app/item/_components/details.tsx
+msgid "Airs"
+msgstr "Προβολή"
+
+#: src/lib/format.ts
+msgid "Airs {day} · {until}"
+msgstr "Προβάλλεται {day} · {until}"
+
+#: src/app/discover/page.tsx src/app/favourites/page.tsx
+#: src/components/media/kind-tabs.tsx src/features/versions/version-list.tsx
+msgid "All"
+msgstr "Όλα"
+
+#: src/app/home/page.tsx src/features/live-tv/live-tv.ts
+msgid "All channels"
+msgstr "Όλα τα κανάλια"
+
+#: src/app/item/_components/seasons.tsx
+msgid "All episodes"
+msgstr "Όλα τα επεισόδια"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "All fields"
+msgstr "Όλα τα πεδία"
+
+#: src/features/playlists/playlists.tsx
+msgid "All playlists"
+msgstr "Όλες οι λίστες αναπαραγωγής"
+
+#: src/lib/downloads/index.ts
+msgid "Already downloaded or on the way"
+msgstr "Έχει ήδη ληφθεί ή γίνεται λήψη"
+
+#: src/features/playlists/playlists.tsx
+msgid "Already in {name}"
+msgstr "Υπάρχει ήδη στη λίστα {name}"
+
+#: src/components/send-report.tsx
+msgid "Also send to the developer"
+msgstr "Αποστολή και στον προγραμματιστή"
+
+#: src/app/settings/account.tsx
+msgid "Also when you come back to it after half an hour. Whoever was watching carries on without their PIN."
+msgstr "Επίσης, όταν επιστρέφεις μετά από μισή ώρα. Όποιος παρακολουθούσε συνεχίζει χωρίς να εισαγάγει PIN."
+
+#: src/lib/input/keys.ts
+msgid "Alt"
+msgstr "Alt"
+
+#: src/app/settings/audio.tsx src/app/settings/interface.tsx
+#: src/app/settings/subtitles.tsx
+msgid "Always"
+msgstr "Πάντα"
+
+#: src/app/settings/subtitles.tsx
+msgid "Always shows subtitles, in your language when the version has them."
+msgstr "Εμφανίζει πάντα υπότιτλους, στη γλώσσα σου όταν η έκδοση τους διαθέτει."
+
+#: src/app/settings/audio.tsx
+msgid "An audio track you pick while watching a show sets the language for its other episodes. Picking what the settings above would play forgets it."
+msgstr "Το κομμάτι ήχου που επιλέγεις όσο παρακολουθείς μια σειρά ορίζει τη γλώσσα και για τα άλλα επεισόδιά της. Αν επιλέξεις αυτό που θα αναπαρήγαγαν οι παραπάνω ρυθμίσεις, η προτίμηση διαγράφεται."
+
+#: src/app/settings/about.tsx src/app/settings/page.tsx
+#: src/lib/hosts/jellyfin-android.ts
+msgid "Android app"
+msgstr "Εφαρμογή Android"
+
+#: src/app/settings/playback.tsx
+msgid "Android's own player, which uses less battery: the screen shows the video as the device decodes it, at the video's frame rate. Plays video the device can decode. Styled subtitles look as they do in mpv."
+msgstr "Το πρόγραμμα αναπαραγωγής του Android καταναλώνει λιγότερη μπαταρία: η οθόνη εμφανίζει το βίντεο καθώς το αποκωδικοποιεί η συσκευή, στον ρυθμό καρέ του βίντεο. Αναπαράγει βίντεο που μπορεί να αποκωδικοποιήσει η συσκευή. Οι υπότιτλοι με μορφοποίηση εμφανίζονται όπως στο mpv."
+
+#: src/app/settings/playback.tsx src/lib/input/actions.ts
+msgid "Anime upscaling"
+msgstr ""
+
+#: src/features/player/keys.ts
+msgid "Anime upscaling: off"
+msgstr ""
+
+#: src/features/player/keys.ts
+msgid "Anime upscaling: on"
+msgstr ""
+
+#: src/features/party/not-in-party.tsx
+msgid "Another relay"
+msgstr "Άλλος διακομιστής αναμετάδοσης"
+
+#: src/features/party/not-in-party.tsx
+msgid "Anyone with the invite can join, from any server."
+msgstr "Όποιος έχει την πρόσκληση μπορεί να συμμετάσχει, από οποιονδήποτε διακομιστή."
+
+#: src/app/settings/page.tsx src/lib/hosts/native-shell.ts
+msgid "App"
+msgstr "Εφαρμογή"
+
+#: src/app/settings/interface.tsx
+msgid "App language"
+msgstr "Γλώσσα εφαρμογής"
+
+#: src/app/settings/apps.tsx
+msgid "App settings"
+msgstr "Ρυθμίσεις εφαρμογής"
+
+#: src/app/settings/theme.tsx
+msgid "Applied on top of the theme. Parts of the app carry a <0>data-ui</0> attribute to style them by, such as <1>[data-ui=\"progress-bar\"]</1>. If it ever hides the page, add <2>?safe</2> to the address to turn it off. See the <3>guide</3> for every selector and examples."
+msgstr "Εφαρμόζεται πάνω στο θέμα. Τμήματα της εφαρμογής διαθέτουν το γνώρισμα <0>data-ui</0>, ώστε να αλλάζεις την εμφάνισή τους, όπως με το <1>[data-ui=\"progress-bar\"]</1>. Αν κρύψει τη σελίδα, πρόσθεσε <2>?safe</2> στη διεύθυνση για να το απενεργοποιήσεις. Δες τον <3>οδηγό</3> για όλους τους επιλογείς και παραδείγματα."
+
+#: src/app/settings/theme.tsx
+msgid "Apply CSS"
+msgstr "Εφαρμογή CSS"
+
+#: src/app/settings/subtitles.tsx
+msgid "Apply to styled subtitles too"
+msgstr "Εφαρμογή και στους υπότιτλους με μορφοποίηση"
+
+#: src/app/sign-in/page.tsx
+msgid "Approved. Signing in…"
+msgstr "Εγκρίθηκε. Γίνεται σύνδεση…"
+
+#: src/features/player/next-episode.tsx
+msgid "Are you still watching?"
+msgstr "Συνεχίζεις να παρακολουθείς;"
+
+#: src/lib/i18n.ts
+msgid "Are you sure you want to continue?"
+msgstr "Θέλεις σίγουρα να συνεχίσεις;"
+
+#: src/app/settings/cache.tsx
+msgid "Artwork"
+msgstr "Εικόνες"
+
+#: src/features/party/in-party.tsx
+msgid "As the host"
+msgstr "Ως οικοδεσπότης"
+
+#: src/app/settings/playback.tsx
+msgid "Ask if you are still watching"
+msgstr "Ερώτηση αν συνεχίζεις να παρακολουθείς"
+
+#: src/app/settings/account.tsx
+msgid "Ask when the app opens"
+msgstr "Ερώτηση κατά το άνοιγμα της εφαρμογής"
+
+#: src/app/settings/subtitles.tsx
+msgid "At 0% there is no background."
+msgstr "Στο 0% δεν υπάρχει φόντο."
+
+#: src/app/settings/page.tsx src/features/player/options.tsx
+#: src/features/remote/remote-sheet.tsx
+msgid "Audio"
+msgstr "Ήχος"
+
+#: src/app/settings/audio.tsx
+msgid "Audio description, narrating what is on screen"
+msgstr "Ηχητική περιγραφή όσων εμφανίζονται στην οθόνη"
+
+#: src/app/settings/audio.tsx
+msgid "Audio languages"
+msgstr "Γλώσσες ήχου"
+
+#: src/app/settings/audio.tsx
+msgid "Audio types"
+msgstr "Τύποι ήχου"
+
+#: src/features/player/keys.ts
+msgid "Audio: {label}"
+msgstr "Ήχος: {label}"
+
+#: src/app/settings/playback.tsx
+msgid "Auto-play the first version"
+msgstr "Αυτόματη αναπαραγωγή της πρώτης έκδοσης"
+
+#: src/app/settings/audio.tsx src/app/settings/interface.tsx
+#: src/app/settings/playback.tsx
+msgid "Automatic"
+msgstr "Αυτόματα"
+
+#: src/app/settings/interface.tsx
+msgid "Automatic lists episodes on narrow screens and puts them in a row on wide ones."
+msgstr "Η αυτόματη επιλογή εμφανίζει τα επεισόδια σε λίστα στις στενές οθόνες και σε σειρά στις πλατιές."
+
+#: src/app/player/page.tsx src/app/servers/page.tsx
+#: src/app/settings/_components/licenses.tsx src/app/sign-in/page.tsx
+#: src/app/trailer/page.tsx src/components/shell/history-buttons.tsx
+#: src/features/party/not-in-party.tsx src/features/player/controls.tsx
+#: src/features/player/next-episode.tsx src/lib/input/actions.ts
+msgid "Back"
+msgstr "Πίσω"
+
+#: src/lib/input/keys.ts
+msgid "Back button"
+msgstr "Κουμπί επιστροφής"
+
+#: src/app/settings/playback.tsx
+msgid "Back in the player"
+msgstr "Επιστροφή στο πρόγραμμα αναπαραγωγής"
+
+#: src/app/settings/_components/version-settings.tsx
+#: src/app/settings/interface.tsx src/app/settings/subtitles.tsx
+#: src/app/settings/theme.tsx
+msgid "Background"
+msgstr "Φόντο"
+
+#: src/lib/input/keys.ts
+msgid "Backspace"
+msgstr "Backspace"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Badges"
+msgstr "Ετικέτες"
+
+#: src/app/settings/interface.tsx
+msgid "Bar"
+msgstr "Γραμμή"
+
+#: src/app/settings/playback.tsx
+msgid "Before the end"
+msgstr "Πριν από το τέλος"
+
+#: src/app/settings/audio.tsx
+msgid "Below zero plays the sound earlier, as for wireless headphones that lag behind the picture."
+msgstr "Οι αρνητικές τιμές αναπαράγουν τον ήχο νωρίτερα, για παράδειγμα όταν τα ασύρματα ακουστικά έχουν καθυστέρηση σε σχέση με την εικόνα."
+
+#: src/features/player/options.tsx src/lib/input/actions.ts
+msgid "Bigger subtitles"
+msgstr "Μεγαλύτεροι υπότιτλοι"
+
+#: src/lib/i18n.ts
+msgid "Black"
+msgstr "Μαύρο"
+
+#: src/lib/i18n.ts
+msgid "Blue"
+msgstr "Μπλε"
+
+#: src/app/settings/interface.tsx
+msgid "Blur episodes you haven't started"
+msgstr "Θόλωση επεισοδίων που δεν έχεις ξεκινήσει"
+
+#: src/app/settings/interface.tsx
+msgid "Blurs their pictures, titles and descriptions until the pointer, keyboard or remote is on one."
+msgstr "Θολώνει τις εικόνες, τους τίτλους και τις περιγραφές τους μέχρι να εστιάσεις σε κάποιο με τον δείκτη, το πληκτρολόγιο ή το τηλεχειριστήριο."
+
+#: src/app/settings/subtitles.tsx
+msgid "Bold"
+msgstr "Έντονα"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Border"
+msgstr "Περίγραμμα"
+
+#: src/app/person/page.tsx
+msgid "Born {date}"
+msgstr "Ημερομηνία γέννησης: {date}"
+
+#: src/app/person/page.tsx
+msgid "Born {date} (age {age})"
+msgstr "Ημερομηνία γέννησης: {date} (ηλικία: {age})"
+
+#: src/app/person/page.tsx
+msgid "Born {date} (age {age}) in {place}"
+msgstr "Ημερομηνία γέννησης: {date} (ηλικία: {age}) · Τόπος: {place}"
+
+#: src/app/person/page.tsx
+msgid "Born {date} in {place}"
+msgstr "Ημερομηνία γέννησης: {date} · Τόπος: {place}"
+
+#: src/app/person/page.tsx
+msgid "Born in {place}"
+msgstr "Τόπος γέννησης: {place}"
+
+#: src/app/settings/interface.tsx
+msgid "Bottom bar"
+msgstr "Κάτω γραμμή"
+
+#: src/features/player/gestures.ts
+msgid "Brightness {percent}%"
+msgstr "Φωτεινότητα {percent}%"
+
+#: src/lib/input/keys.ts
+msgid "Browser Home"
+msgstr "Αρχική σελίδα προγράμματος περιήγησης"
+
+#: src/lib/input/keys.ts
+msgid "Browser Search"
+msgstr "Αναζήτηση προγράμματος περιήγησης"
+
+#: src/lib/discord.ts
+msgid "Browsing"
+msgstr "Περιήγηση"
+
+#: src/lib/playback/player-choice.ts
+msgid "Built-in mpv"
+msgstr "Ενσωματωμένο mpv"
+
+#: src/lib/playback/player-choice.ts
+msgid "Built-in player"
+msgstr "Ενσωματωμένο πρόγραμμα αναπαραγωγής"
+
+#: src/app/settings/theme.tsx
+msgid "Buttons, progress bars and highlights."
+msgstr "Κουμπιά, γραμμές προόδου και επισημάνσεις."
+
+#: src/app/settings/page.tsx src/lib/hosts/shell/player.ts
+msgid "Cache"
+msgstr "Προσωρινή μνήμη"
+
+#: src/app/settings/playback.tsx
+msgid "Cache size"
+msgstr "Μέγεθος προσωρινής μνήμης"
+
+#: src/app/calendar/page.tsx src/app/home/page.tsx src/app/settings/apps.tsx
+#: src/app/settings/interface.tsx src/components/shell/layout.tsx
+msgid "Calendar"
+msgstr "Ημερολόγιο"
+
+#: src/app/servers/page.tsx
+msgid "Can’t reach"
+msgstr "Αδυναμία επικοινωνίας"
+
+#: src/app/sign-in/page.tsx src/components/shell/unreachable.tsx
+#: src/lib/jellyfin/client.ts
+msgid "Can't reach the server"
+msgstr "Αδυναμία επικοινωνίας με τον διακομιστή"
+
+#: src/app/sign-in/page.tsx
+msgid "Can’t reach the server"
+msgstr "Αδυναμία επικοινωνίας με τον διακομιστή"
+
+#: src/app/downloads/page.tsx src/app/settings/_components/version-settings.tsx
+#: src/components/send-report.tsx src/features/playlists/playlists.tsx
+#: src/lib/i18n.ts
+msgid "Cancel"
+msgstr "Ακύρωση"
+
+#: src/app/settings/interface.tsx
+msgid "Card you rest on"
+msgstr ""
+
+#: src/app/settings/interface.tsx
+msgid "Cards"
+msgstr "Κάρτες"
+
+#: src/components/media/people.tsx
+msgid "Cast"
+msgstr "Ηθοποιοί"
+
+#: src/app/settings/subtitles.tsx
+msgid "Casual"
+msgstr "Ανεπίσημη"
+
+#: src/app/discover/page.tsx
+msgid "Catalog"
+msgstr "Κατάλογος"
+
+#: src/app/settings/downloads.tsx
+msgid "Change"
+msgstr "Αλλαγή"
+
+#: src/app/downloads/page.tsx
+msgid "Change folder"
+msgstr "Αλλαγή φακέλου"
+
+#: src/app/settings/_components/reaction-setting.tsx
+msgid "Change reactions"
+msgstr "Αλλαγή αντιδράσεων"
+
+#: src/app/settings/account.tsx src/app/sign-in/page.tsx
+#: src/components/media/no-catalogs.tsx
+msgid "Change server"
+msgstr "Αλλαγή διακομιστή"
+
+#: src/components/shell/input-setup.tsx
+msgid "Change shortcuts"
+msgstr "Αλλαγή συντομεύσεων"
+
+#: src/features/party/in-party.tsx
+msgid "Change speed to catch up"
+msgstr "Αλλαγή ταχύτητας για συγχρονισμό"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Change these on a phone, a computer or in a browser."
+msgstr "Άλλαξέ τα από κινητό, υπολογιστή ή πρόγραμμα περιήγησης."
+
+#: src/app/settings/apps.tsx
+msgid "Channel"
+msgstr "Κανάλι"
+
+#: src/lib/input/keys.ts
+msgid "Channel down"
+msgstr "Προηγούμενο κανάλι"
+
+#: src/lib/input/keys.ts
+msgid "Channel up"
+msgstr "Επόμενο κανάλι"
+
+#: src/app/favourites/page.tsx src/app/live-tv/page.tsx src/app/search/page.tsx
+#: src/app/settings/audio.tsx src/features/live-tv/channel-list.tsx
+#: src/features/player/live.tsx src/features/player/options.tsx
+msgid "Channels"
+msgstr "Κανάλια"
+
+#: src/app/live-tv/page.tsx
+msgid "Channels show here once your setup has an addon with live TV."
+msgstr "Τα κανάλια εμφανίζονται εδώ όταν η διαμόρφωσή σου περιλαμβάνει πρόσθετο ζωντανής τηλεόρασης."
+
+#: src/features/player/chapters.tsx src/features/player/keys.ts
+msgid "Chapter {number}"
+msgstr "Κεφάλαιο {number}"
+
+#: src/features/player/chapters.tsx src/features/player/options.tsx
+msgid "Chapters"
+msgstr "Κεφάλαια"
+
+#: src/features/party/in-party.tsx
+msgid "Chat"
+msgstr "Συνομιλία"
+
+#: src/app/settings/apps.tsx
+msgid "Check now"
+msgstr "Έλεγχος τώρα"
+
+#: src/app/settings/apps.tsx src/lib/hosts/shell/index.ts
+msgid "Checking…"
+msgstr "Γίνεται έλεγχος…"
+
+#: src/app/settings/playback.tsx
+msgid "Choose"
+msgstr "Επιλογή"
+
+#: src/app/servers/page.tsx
+msgid "Choose a server"
+msgstr "Επίλεξε διακομιστή"
+
+#: src/components/media/item-menu.tsx
+msgid "Choose a version"
+msgstr "Επίλεξε έκδοση"
+
+#: src/app/settings/cache.tsx
+msgid "Clear"
+msgstr "Εκκαθάριση"
+
+#: src/app/search/page.tsx
+msgid "Clear all"
+msgstr "Εκκαθάριση όλων"
+
+#: src/app/settings/cache.tsx
+msgid "Clear everything"
+msgstr "Εκκαθάριση των πάντων"
+
+#: src/app/item/_components/rating.tsx
+msgid "Clear rating"
+msgstr "Αφαίρεση βαθμολογίας"
+
+#: src/app/history/page.tsx
+msgid "Clear selection"
+msgstr "Εκκαθάριση επιλογής"
+
+#: src/components/shell/crash-report.tsx
+#: src/components/shell/window-controls.tsx src/features/player/mini-player.tsx
+#: src/features/player/picture-in-picture.tsx
+msgid "Close"
+msgstr "Κλείσιμο"
+
+#: src/features/party/in-party.tsx
+msgid "Code copied"
+msgstr "Ο κωδικός αντιγράφηκε"
+
+#: src/features/party/not-in-party.tsx
+msgid "Code or invite link"
+msgstr "Κωδικός ή σύνδεσμος πρόσκλησης"
+
+#: src/app/discover/page.tsx src/app/item/_components/collection.tsx
+#: src/lib/format.ts
+msgid "Collections"
+msgstr "Συλλογές"
+
+#: src/app/settings/subtitles.tsx
+msgid "Colour"
+msgstr "Χρώμα"
+
+#: src/app/settings/page.tsx
+msgid "Colours and custom CSS"
+msgstr "Χρώματα και προσαρμοσμένο CSS"
+
+#: src/app/settings/interface.tsx
+msgid "Combine movie and show results"
+msgstr "Ενιαία αποτελέσματα για ταινίες και σειρές"
+
+#: src/app/settings/audio.tsx src/lib/playback/controller.ts
+msgid "Commentary"
+msgstr "Σχολιασμός"
+
+#: src/app/settings/apps.tsx
+msgid "Compatibility"
+msgstr "Συμβατότητα"
+
+#: src/components/media/people.tsx
+msgid "Composer"
+msgstr "Συνθέτης"
+
+#: src/app/settings/account.tsx
+msgid "Configuration"
+msgstr "Διαμόρφωση"
+
+#: src/components/send-report.tsx
+msgid "Configuration ids are left out of their copy too."
+msgstr "Τα αναγνωριστικά διαμόρφωσης παραλείπονται και από το αντίγραφο που λαμβάνει ο προγραμματιστής."
+
+#: src/app/sign-in/page.tsx
+msgid "Configuration password"
+msgstr "Κωδικός πρόσβασης διαμόρφωσης"
+
+#: src/app/item/_components/no-details.tsx src/components/media/no-catalogs.tsx
+msgid "Configure"
+msgstr "Διαμόρφωση"
+
+#: src/lib/i18n.ts
+msgid "Confirm"
+msgstr "Επιβεβαίωση"
+
+#: src/app/servers/page.tsx
+msgid "Connect"
+msgstr "Σύνδεση"
+
+#: src/app/settings/apps.tsx
+msgid "Connected to Discord."
+msgstr "Έγινε σύνδεση με το Discord."
+
+#: src/features/party/in-party.tsx
+msgid "Connection lost"
+msgstr "Η σύνδεση χάθηκε"
+
+#: src/app.tsx src/app/sign-in/page.tsx
+msgid "Continue"
+msgstr "Συνέχεια"
+
+#: src/app/home/page.tsx src/app/settings/interface.tsx
+#: src/features/player/next-episode.tsx
+msgid "Continue watching"
+msgstr "Συνέχεια παρακολούθησης"
+
+#: src/app/settings/playback.tsx
+msgid "Controls"
+msgstr "Στοιχεία ελέγχου"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Copied as JSON"
+msgstr "Αντιγράφηκε ως JSON"
+
+#: src/app/settings/apps.tsx src/components/shell/crash-report.tsx
+msgid "Copy"
+msgstr "Αντιγραφή"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Copy as JSON"
+msgstr "Αντιγραφή ως JSON"
+
+#: src/features/party/in-party.tsx
+msgid "Copy code"
+msgstr "Αντιγραφή κωδικού"
+
+#: src/app/player/page.tsx src/features/party/in-party.tsx
+msgid "Copy link"
+msgstr "Αντιγραφή συνδέσμου"
+
+#: src/features/versions/version-list.tsx
+msgid "Copy stream link"
+msgstr "Αντιγραφή συνδέσμου ροής"
+
+#: src/app/settings/interface.tsx
+msgid "Corner button"
+msgstr "Κουμπί στη γωνία"
+
+#: src/app/player/page.tsx src/features/playlists/playlists.tsx
+msgid "Could not add to {name}"
+msgstr "Δεν ήταν δυνατή η προσθήκη στη λίστα {name}"
+
+#: src/lib/hosts/shell/index.ts
+msgid "Could not check: {error}"
+msgstr "Δεν ήταν δυνατός ο έλεγχος: {error}"
+
+#: src/app/settings/apps.tsx
+msgid "Could not connect: {message}"
+msgstr "Δεν ήταν δυνατή η σύνδεση: {message}"
+
+#: src/components/shell/crash-report.tsx
+msgid "Could not copy it"
+msgstr "Δεν ήταν δυνατή η αντιγραφή"
+
+#: src/features/party/in-party.tsx
+msgid "Could not copy the code"
+msgstr "Δεν ήταν δυνατή η αντιγραφή του κωδικού"
+
+#: src/features/party/in-party.tsx
+msgid "Could not copy the invite link"
+msgstr "Δεν ήταν δυνατή η αντιγραφή του συνδέσμου πρόσκλησης"
+
+#: src/app/player/page.tsx src/features/versions/version-list.tsx
+msgid "Could not copy the link"
+msgstr "Δεν ήταν δυνατή η αντιγραφή του συνδέσμου"
+
+#: src/app/settings/_components/version-settings.tsx src/app/settings/apps.tsx
+msgid "Could not copy them"
+msgstr "Δεν ήταν δυνατή η αντιγραφή τους"
+
+#: src/features/player/next-episode.tsx
+msgid "Could not find versions of that episode"
+msgstr "Δεν βρέθηκαν εκδόσεις για αυτό το επεισόδιο"
+
+#: src/features/player/next-episode.tsx
+msgid "Could not find versions of that title"
+msgstr "Δεν βρέθηκαν εκδόσεις για αυτόν τον τίτλο"
+
+#: src/lib/downloads/index.ts
+msgid "Could not find versions: {message}"
+msgstr "Δεν ήταν δυνατή η εύρεση εκδόσεων: {message}"
+
+#: src/features/party/not-in-party.tsx
+msgid "Could not join"
+msgstr "Δεν ήταν δυνατή η συμμετοχή"
+
+#: src/components/media/item-menu.tsx
+#: src/features/downloads/download-button.tsx
+msgid "Could not list the episodes"
+msgstr "Δεν ήταν δυνατή η εμφάνιση των επεισοδίων"
+
+#: src/app/live-tv/page.tsx
+msgid "Could not load Live TV"
+msgstr "Δεν ήταν δυνατή η φόρτωση της ζωντανής τηλεόρασης"
+
+#: src/app/calendar/page.tsx
+msgid "Could not load the calendar"
+msgstr "Δεν ήταν δυνατή η φόρτωση του ημερολογίου"
+
+#: src/features/player/episodes.tsx
+msgid "Could not load the episodes."
+msgstr "Δεν ήταν δυνατή η φόρτωση των επεισοδίων."
+
+#: src/app/history/page.tsx
+msgid "Could not load the history"
+msgstr "Δεν ήταν δυνατή η φόρτωση του ιστορικού"
+
+#: src/features/playlists/playlists.tsx
+msgid "Could not load the playlists."
+msgstr "Δεν ήταν δυνατή η φόρτωση των λιστών αναπαραγωγής."
+
+#: src/features/versions/version-list.tsx
+msgid "Could not load the versions: {loadError}"
+msgstr "Δεν ήταν δυνατή η φόρτωση των εκδόσεων: {loadError}"
+
+#: src/app/person/page.tsx
+msgid "Could not load their work"
+msgstr "Δεν ήταν δυνατή η φόρτωση των έργων"
+
+#: src/app/discover/page.tsx
+msgid "Could not load this catalog"
+msgstr "Δεν ήταν δυνατή η φόρτωση αυτού του καταλόγου"
+
+#: src/app/person/page.tsx
+msgid "Could not load this person"
+msgstr "Δεν ήταν δυνατή η φόρτωση αυτού του προσώπου"
+
+#: src/features/playlists/playlists.tsx
+msgid "Could not load this playlist."
+msgstr "Δεν ήταν δυνατή η φόρτωση αυτής της λίστας αναπαραγωγής."
+
+#: src/app/item/page.tsx
+msgid "Could not load this title"
+msgstr "Δεν ήταν δυνατή η φόρτωση αυτού του τίτλου"
+
+#: src/app/discover/page.tsx
+msgid "Could not load your catalogs"
+msgstr "Δεν ήταν δυνατή η φόρτωση των καταλόγων σου"
+
+#: src/app/favourites/page.tsx
+msgid "Could not load your favourites"
+msgstr "Δεν ήταν δυνατή η φόρτωση των αγαπημένων σου"
+
+#: src/components/media/random-pick.tsx
+msgid "Could not pick one."
+msgstr "Δεν ήταν δυνατή η επιλογή έκδοσης."
+
+#: src/lib/subtitles/files.ts
+msgid "Could not read that file"
+msgstr "Δεν ήταν δυνατή η ανάγνωση αυτού του αρχείου"
+
+#: src/lib/jellyfin/user-config.ts
+msgid "Could not save that setting"
+msgstr "Δεν ήταν δυνατή η αποθήκευση αυτής της ρύθμισης"
+
+#: src/features/party/not-in-party.tsx
+msgid "Could not start a party"
+msgstr "Δεν ήταν δυνατή η έναρξη ομαδικής προβολής"
+
+#: src/lib/party/follow.ts
+msgid "Couldn't open {title}."
+msgstr "Δεν ήταν δυνατό το άνοιγμα του {title}."
+
+#: src/lib/party/party.ts
+msgid "Couldn't reach {relay}."
+msgstr "Δεν ήταν δυνατή η επικοινωνία με τον διακομιστή αναμετάδοσης {relay}."
+
+#: src/app/settings/playback.tsx
+msgid "Countdown"
+msgstr "Αντίστροφη μέτρηση"
+
+#: src/app/item/_components/details.tsx
+msgid "Country"
+msgstr "Χώρα"
+
+#: src/app/settings/playback.tsx
+msgid "Counts down, then plays the next episode in the same kind of version. Off, the prompt waits for you."
+msgstr "Μετρά αντίστροφα και αναπαράγει το επόμενο επεισόδιο σε αντίστοιχη έκδοση. Αν απενεργοποιηθεί, η προτροπή περιμένει την επιλογή σου."
+
+#: src/app/settings/playback.tsx
+msgid "Counts down, then plays the next episode. Off, the prompt waits for you."
+msgstr "Μετρά αντίστροφα και αναπαράγει το επόμενο επεισόδιο. Αν απενεργοποιηθεί, η προτροπή περιμένει την επιλογή σου."
+
+#: src/features/playlists/playlists.tsx
+msgid "Create"
+msgstr "Δημιουργία"
+
+#: src/components/media/people.tsx
+msgid "Creator"
+msgstr "Δημιουργός"
+
+#: src/app/settings/playback.tsx
+msgid "Credits"
+msgstr "Τίτλοι τέλους"
+
+#: src/app/settings/about.tsx
+msgctxt "Projects the app is built on"
+msgid "Credits"
+msgstr "Συντελεστές"
+
+#: src/app/settings/playback.tsx
+msgid "Credits that end an episode are left to the next episode prompt when it shows."
+msgstr "Όταν εμφανίζεται η προτροπή για το επόμενο επεισόδιο, η παράλειψη των τίτλων τέλους γίνεται από εκεί."
+
+#: src/components/media/people.tsx
+msgid "Crew"
+msgstr "Ομάδα παραγωγής"
+
+#: src/app/settings/theme.tsx
+msgid "Crimson"
+msgstr "Βυσσινί"
+
+#: src/features/player/options.tsx
+msgid "Crop"
+msgstr "Περικοπή"
+
+#: src/lib/input/keys.ts
+msgid "Ctrl"
+msgstr "Ctrl"
+
+#: src/app/settings/subtitles.tsx
+msgid "Cursive"
+msgstr "Καλλιγραφική"
+
+#: src/app/settings/theme.tsx
+msgid "Custom CSS"
+msgstr "Προσαρμοσμένο CSS"
+
+#: src/app/settings/theme.tsx
+msgid "Custom CSS applied"
+msgstr "Το προσαρμοσμένο CSS εφαρμόστηκε"
+
+#: src/app/settings/theme.tsx
+msgid "Custom CSS undone"
+msgstr "Η εφαρμογή του προσαρμοσμένου CSS αναιρέθηκε"
+
+#: src/lib/playback/player-choice.ts
+msgid "Custom link"
+msgstr "Προσαρμοσμένος σύνδεσμος"
+
+#: src/lib/i18n.ts
+msgid "Cyan"
+msgstr "Κυανό"
+
+#: src/app/history/page.tsx
+msgid "Date not known"
+msgstr "Άγνωστη ημερομηνία"
+
+#: src/app/live-tv/page.tsx
+msgid "Day"
+msgstr "Ημέρα"
+
+#: src/app/settings/playback.tsx
+msgid "Decodes nearly any video, in software where the device has no decoder for it. Takes your mpv.conf under Android app."
+msgstr "Αποκωδικοποιεί σχεδόν κάθε βίντεο, μέσω λογισμικού όταν η συσκευή δεν διαθέτει κατάλληλο αποκωδικοποιητή. Χρησιμοποιεί το mpv.conf που ορίζεις στην ενότητα «Εφαρμογή Android»."
+
+#: src/app/settings/playback.tsx
+msgid "Decodes on the graphics card. Turn it off if video shows artefacts or stays black."
+msgstr "Αποκωδικοποιεί μέσω της κάρτας γραφικών. Απενεργοποίησέ το αν εμφανίζονται αλλοιώσεις ή μαύρη εικόνα."
+
+#: src/app/settings/about.tsx
+msgid "Decodes what mpv plays."
+msgstr "Αποκωδικοποιεί ό,τι αναπαράγει το mpv."
+
+#: src/app/settings/theme.tsx
+msgid "Deep purple"
+msgstr "Βαθύ μοβ"
+
+#. No colour of its own
+#: src/app/settings/_components/version-settings.tsx
+#: src/app/settings/subtitles.tsx src/app/settings/theme.tsx src/lib/i18n.ts
+msgid "Default"
+msgstr "Προεπιλογή"
+
+#: src/features/player/options.tsx
+msgid "Delay"
+msgstr "Καθυστέρηση"
+
+#: src/app/settings/audio.tsx
+msgid "Delay: {delayLabel}"
+msgstr "Καθυστέρηση: {delayLabel}"
+
+#: src/app/downloads/page.tsx src/features/playlists/playlists.tsx
+msgid "Delete"
+msgstr "Διαγραφή"
+
+#: src/features/playlists/playlists.tsx
+msgid "Delete {name}"
+msgstr "Διαγραφή του {name}"
+
+#: src/app/downloads/page.tsx
+msgid "Delete all"
+msgstr "Διαγραφή όλων"
+
+#: src/features/playlists/playlists.tsx
+msgid "Delete playlist"
+msgstr "Διαγραφή λίστας αναπαραγωγής"
+
+#: src/app/settings/theme.tsx
+msgid "Desert"
+msgstr "Έρημος"
+
+#: src/app/settings/about.tsx src/app/settings/page.tsx
+msgid "Desktop app"
+msgstr "Εφαρμογή υπολογιστή"
+
+#: src/app/item/_components/details.tsx src/components/media/item-menu.tsx
+#: src/features/versions/version-list.tsx
+msgid "Details"
+msgstr "Λεπτομέρειες"
+
+#: src/app/settings/cache.tsx
+msgid "Details, seasons and episodes of what you open."
+msgstr "Λεπτομέρειες, σεζόν και επεισόδια του τίτλου που ανοίγεις."
+
+#: src/app/settings/audio.tsx
+msgid "Device"
+msgstr "Συσκευή"
+
+#: src/app/settings/apps.tsx
+msgid "Diagnostics copied"
+msgstr "Τα διαγνωστικά στοιχεία αντιγράφηκαν"
+
+#: src/lib/i18n.ts
+msgid "Dialog"
+msgstr "Πλαίσιο διαλόγου"
+
+#: src/features/player/options.tsx
+msgid "Dialogue"
+msgstr "Διάλογοι"
+
+#: src/app/settings/audio.tsx
+msgid "Dialogue boost"
+msgstr "Ενίσχυση διαλόγων"
+
+#: src/app/person/page.tsx
+msgid "Died {date}"
+msgstr "Ημερομηνία θανάτου: {date}"
+
+#: src/app/person/page.tsx
+msgid "Died {date} (aged {age})"
+msgstr "Ημερομηνία θανάτου: {date} (ηλικία: {age})"
+
+#: src/components/media/people.tsx
+msgid "Director"
+msgstr "Σκηνοθέτης"
+
+#: src/app/settings/apps.tsx
+msgid "Discord"
+msgstr "Discord"
+
+#: src/app/settings/apps.tsx
+msgid "Discord is not running on this computer."
+msgstr "Το Discord δεν εκτελείται σε αυτόν τον υπολογιστή."
+
+#: src/app/settings/apps.tsx
+msgid "Discord refused the status: {message}"
+msgstr "Το Discord απέρριψε την κατάσταση: {message}"
+
+#: src/app/discover/page.tsx src/app/settings/apps.tsx
+#: src/app/settings/interface.tsx src/components/shell/layout.tsx
+msgid "Discover"
+msgstr "Ανακάλυψη"
+
+#: src/components/shell/unreachable.tsx src/features/live-tv/live-reminders.tsx
+msgid "Dismiss"
+msgstr "Απόρριψη"
+
+#: src/app/settings/playback.tsx
+msgid "Do nothing"
+msgstr "Καμία ενέργεια"
+
+#: src/app/settings/interface.tsx
+msgid "Docked"
+msgstr "Σταθερή στήλη"
+
+#: src/app/settings/interface.tsx
+msgid "Docked keeps it in a column of its own. Floating hovers it over the page, a little in from the edge. Corner button shrinks it to the current page's button in the top corner, which opens into the whole menu."
+msgstr "Η σταθερή στήλη διατηρεί το μενού σε ξεχωριστή στήλη. Το αιωρούμενο μενού εμφανίζεται πάνω από τη σελίδα, λίγο μέσα από την άκρη. Το κουμπί στη γωνία το περιορίζει στο κουμπί της τρέχουσας σελίδας στην επάνω γωνία, που ανοίγει ολόκληρο το μενού."
+
+#: src/app/settings/about.tsx
+msgid "Documentation"
+msgstr "Τεκμηρίωση"
+
+#: src/features/player/options.tsx
+msgid "Doesn't match the video's own subtitles"
+msgstr "Δεν ταιριάζει με τους ενσωματωμένους υπότιτλους του βίντεο"
+
+#: src/app/settings/playback.tsx
+msgid "Dolby Vision"
+msgstr "Dolby Vision"
+
+#: src/app/settings/page.tsx
+msgid "Donate"
+msgstr "Δωρεά"
+
+#: src/lib/i18n.ts
+msgid "Donate to Me"
+msgstr "Στήριξε τη δουλειά μου"
+
+#: src/app/settings/_components/reaction-setting.tsx
+#: src/app/settings/_components/version-settings.tsx
+#: src/components/send-report.tsx src/features/player/subtitle-sync.tsx
+#: src/features/playlists/playlists.tsx
+msgid "Done"
+msgstr "Τέλος"
+
+#: src/lib/input/actions.ts
+msgid "Down"
+msgstr "Κάτω"
+
+#: src/app/item/_components/actions.tsx src/app/settings/about.tsx
+#: src/components/media/item-menu.tsx
+#: src/features/downloads/download-button.tsx
+#: src/features/versions/version-list.tsx
+msgid "Download"
+msgstr "Λήψη"
+
+#: src/features/versions/unaired-question.tsx
+msgid "Download anyway"
+msgstr "Λήψη ούτως ή άλλως"
+
+#: src/features/downloads/download-button.tsx
+msgid "Download needs attention"
+msgstr "Η λήψη χρειάζεται προσοχή"
+
+#: src/features/downloads/download-button.tsx
+msgid "Download paused"
+msgstr "Η λήψη έχει τεθεί σε παύση"
+
+#: src/components/media/item-menu.tsx
+msgid "Download the show"
+msgstr "Λήψη της σειράς"
+
+#: src/app/downloads/page.tsx src/features/downloads/download-button.tsx
+msgid "Downloaded"
+msgstr "Έχει ληφθεί"
+
+#: src/app/downloads/page.tsx src/features/downloads/download-button.tsx
+msgid "Downloading"
+msgstr "Γίνεται λήψη"
+
+#: src/lib/hosts/shell/index.ts
+msgid "Downloading version {version}…"
+msgstr "Γίνεται λήψη της έκδοσης {version}…"
+
+#: src/features/downloads/download-button.tsx
+msgid "Downloading, {percent}%"
+msgstr "Γίνεται λήψη, {percent}%"
+
+#: src/app/downloads/page.tsx src/app/settings/interface.tsx
+#: src/app/settings/page.tsx src/components/shell/layout.tsx
+#: src/components/shell/unreachable.tsx
+msgid "Downloads"
+msgstr "Λήψεις"
+
+#: src/app/settings/downloads.tsx
+msgid "Downloads at once"
+msgstr "Ταυτόχρονες λήψεις"
+
+#: src/app/settings/downloads.tsx
+msgid "Downloads wait for Wi-Fi or another unmetered network rather than use mobile data."
+msgstr "Οι λήψεις περιμένουν σύνδεση Wi-Fi ή άλλο δίκτυο χωρίς χρέωση βάσει χρήσης, αντί να χρησιμοποιούν δεδομένα κινητής."
+
+#: src/lib/i18n.ts
+msgid "Drawer"
+msgstr "Συρόμενο πλαίσιο"
+
+#: src/app/item/_components/actions.tsx
+msgid "Drop"
+msgstr "Εγκατάλειψη"
+
+#: src/app/item/_components/actions.tsx
+msgid "Drop show"
+msgstr "Εγκατάλειψη σειράς"
+
+#: src/features/player/controls.tsx
+msgid "Drop to add subtitles"
+msgstr "Σύρε εδώ για να προσθέσεις υπότιτλους"
+
+#. An episode number, as in E04
+#: src/lib/format.ts
+msgid "E{e}"
+msgstr "Ε{e}"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Each filter shows as a pill above the version list. Its search is words that must all appear, or a regular expression between slashes, such as /2160p|4k/. Case never matters."
+msgstr "Κάθε φίλτρο εμφανίζεται ως μικρό κουμπί πάνω από τη λίστα εκδόσεων. Η αναζήτησή του περιέχει λέξεις που πρέπει να εμφανίζονται όλες ή μια κανονική έκφραση ανάμεσα σε καθέτους, όπως /2160p|4k/. Δεν γίνεται διάκριση πεζών και κεφαλαίων."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Edit"
+msgstr "Επεξεργασία"
+
+#: src/features/player/controls.tsx
+msgid "Ends at {endsAt}"
+msgstr "Τελειώνει στις {endsAt}"
+
+#: src/app/settings/playback.tsx
+msgid "Engine"
+msgstr "Μηχανή"
+
+#: src/lib/input/keys.ts
+msgid "Enter"
+msgstr "Enter"
+
+#: src/features/party/not-in-party.tsx
+msgid "Enter an invite link, or a code and its relay"
+msgstr "Εισήγαγε έναν σύνδεσμο πρόσκλησης ή έναν κωδικό και τον διακομιστή αναμετάδοσής του"
+
+#: src/features/party/not-in-party.tsx
+msgid "Enter the address of a relay"
+msgstr "Εισήγαγε τη διεύθυνση ενός διακομιστή αναμετάδοσης"
+
+#: src/app/sign-in/page.tsx
+msgid "Enter this code under Quick Connect in an app already signed in to this server."
+msgstr "Εισήγαγε αυτόν τον κωδικό στη «Γρήγορη σύνδεση» μιας εφαρμογής που είναι ήδη συνδεδεμένη σε αυτόν τον διακομιστή."
+
+#: src/app/sign-in/page.tsx
+msgid "Enter this code under Quick Connect in an app already signed in, or approve it on the configuration page."
+msgstr "Εισήγαγε αυτόν τον κωδικό στη «Γρήγορη σύνδεση» μιας ήδη συνδεδεμένης εφαρμογής ή ενέκρινέ τον στη σελίδα διαμόρφωσης."
+
+#: src/app/sign-in/page.tsx
+msgid "Enter your password."
+msgstr "Εισήγαγε τον κωδικό πρόσβασής σου."
+
+#: src/components/media/episodes.tsx src/features/player/pause-screen.tsx
+msgid "Episode {number}"
+msgstr "Επεισόδιο {number}"
+
+#: src/components/media/episodes.tsx
+msgid "Episode details"
+msgstr "Λεπτομέρειες επεισοδίου"
+
+#: src/app/settings/interface.tsx
+msgid "Episode layout"
+msgstr "Διάταξη επεισοδίων"
+
+#: src/app/item/_components/seasons.tsx src/app/settings/interface.tsx
+#: src/features/player/episodes.tsx src/features/player/options.tsx
+msgid "Episodes"
+msgstr "Επεισόδια"
+
+#: src/app/settings/playback.tsx
+msgid "Episodes end without offering the next one."
+msgstr "Τα επεισόδια τελειώνουν χωρίς πρόταση για το επόμενο."
+
+#: src/app/settings/playback.tsx
+msgid "Episodes that haven't aired yet show as unaired, ask before playing, and are passed over when playing on or downloading a season. Turn off if their air dates are often wrong."
+msgstr "Τα επεισόδια που δεν έχουν προβληθεί ακόμη επισημαίνονται ως τέτοια, ζητούν επιβεβαίωση πριν από την αναπαραγωγή και παραλείπονται κατά τη συνεχή αναπαραγωγή ή τη λήψη μιας σεζόν. Απενεργοποίησέ το αν οι ημερομηνίες προβολής τους είναι συχνά λανθασμένες."
+
+#: src/lib/input/keys.ts
+msgid "Esc"
+msgstr "Esc"
+
+#: src/app/settings/audio.tsx
+msgid "Evens out loud and quiet scenes, for listening at a low volume. Not for sound passed through."
+msgstr "Εξισορροπεί τις δυνατές και τις ήσυχες σκηνές, για ακρόαση σε χαμηλή ένταση. Δεν εφαρμόζεται στον ήχο που μεταβιβάζεται απευθείας."
+
+#: src/app/item/_components/details.tsx
+msgid "Every {list}"
+msgstr "Κάθε {list}"
+
+#: src/app/item/_components/details.tsx
+msgid "Every {list} at {time}"
+msgstr "Κάθε {list} στις {time}"
+
+#: src/app/history/page.tsx
+msgid "Everyone"
+msgstr "Όλοι"
+
+#: src/app/history/page.tsx
+msgid "Everything"
+msgstr "Τα πάντα"
+
+#: src/features/downloads/download-button.tsx
+msgid "Everything unwatched"
+msgstr "Όλα όσα δεν έχεις δει"
+
+#: src/components/shell/window-controls.tsx src/features/player/options.tsx
+msgid "Exit full screen"
+msgstr "Έξοδος από πλήρη οθόνη"
+
+#: src/features/player/picture-in-picture.tsx
+#, fuzzy
+msgid "Exit picture-in-picture"
+msgstr "Εικόνα μέσα σε εικόνα"
+
+#: src/app/settings/playback.tsx
+msgid "ExoPlayer, which uses less battery, and mpv for a video this device has no decoder for."
+msgstr "ExoPlayer για χαμηλότερη κατανάλωση μπαταρίας και mpv για βίντεο που η συσκευή δεν μπορεί να αποκωδικοποιήσει."
+
+#: src/app/history/page.tsx
+msgid "Export"
+msgstr "Εξαγωγή"
+
+#: src/app/settings/interface.tsx
+msgid "Fade"
+msgstr "Διαβαθμισμένη σκίαση"
+
+#: src/app/downloads/page.tsx
+msgid "Failed"
+msgstr "Απέτυχε"
+
+#: src/features/remote/remote-sheet.tsx src/lib/input/keys.ts
+msgid "Fast forward"
+msgstr "Γρήγορη προώθηση"
+
+#: src/lib/input/actions.ts
+msgid "Faster"
+msgstr "Πιο γρήγορα"
+
+#: src/app/item/_components/actions.tsx src/features/live-tv/channel-list.tsx
+msgid "Favourite"
+msgstr "Αγαπημένο"
+
+#: src/app/favourites/page.tsx src/app/settings/apps.tsx
+#: src/app/settings/interface.tsx src/components/shell/layout.tsx
+#: src/features/live-tv/live-tv.ts
+msgid "Favourites"
+msgstr "Αγαπημένα"
+
+#: src/app/settings/interface.tsx
+msgid "Featured on home"
+msgstr "Προβεβλημένα στην αρχική"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Fields"
+msgstr "Πεδία"
+
+#: src/lib/format.ts
+msgid "Filler"
+msgstr "Επεισόδιο εκτός κύριας πλοκής"
+
+#: src/app/person/page.tsx
+msgid "Filmography"
+msgstr "Φιλμογραφία"
+
+#: src/app/discover/page.tsx
+msgid "Filter"
+msgstr "Φίλτρο"
+
+#: src/features/versions/version-list.tsx
+msgid "Filter versions"
+msgstr "Φιλτράρισμα εκδόσεων"
+
+#: src/app/settings/playback.tsx
+msgid "Find versions when a title opens"
+msgstr "Αναζήτηση εκδόσεων κατά το άνοιγμα ενός τίτλου"
+
+#: src/features/downloads/download-button.tsx
+msgid "Finding a version to download"
+msgstr "Αναζήτηση έκδοσης για λήψη"
+
+#: src/app/downloads/page.tsx src/app/player/page.tsx
+#: src/features/versions/version-picker.tsx
+msgid "Finding a version…"
+msgstr "Αναζήτηση έκδοσης…"
+
+#: src/features/versions/version-list.tsx
+msgid "Finding versions"
+msgstr "Αναζήτηση εκδόσεων"
+
+#: src/features/player/next-episode.tsx
+msgid "Finding versions of {name}…"
+msgstr "Αναζήτηση εκδόσεων του {name}…"
+
+#: src/app/item/_components/details.tsx
+msgid "First aired"
+msgstr "Πρώτη προβολή"
+
+#: src/features/player/options.tsx
+msgid "Fit"
+msgstr "Προσαρμογή"
+
+#: src/app/settings/interface.tsx
+msgid "Floating"
+msgstr "Αιωρούμενο"
+
+#: src/app/settings/interface.tsx
+msgid "Floating pills"
+msgstr "Αιωρούμενα κουμπιά"
+
+#: src/app/settings/downloads.tsx
+msgid "Folder"
+msgstr "Φάκελος"
+
+#: src/app/settings/interface.tsx
+msgid "Following pins it above the rows and shows the card the pointer, keyboard or remote is on, starting with a featured title, behind the whole page or in its top corner. Touch screens and narrow windows keep it rotating."
+msgstr "Η παρακολούθηση επιλογής το διατηρεί πάνω από τις σειρές καρτών και εμφανίζει την κάρτα στην οποία βρίσκεται ο δείκτης, το πληκτρολόγιο ή το τηλεχειριστήριο, ξεκινώντας από έναν προβεβλημένο τίτλο. Εμφανίζεται πίσω από ολόκληρη τη σελίδα ή στην επάνω γωνία της. Στις οθόνες αφής και στα στενά παράθυρα συνεχίζει την εναλλαγή."
+
+#: src/app/settings/interface.tsx
+msgid "Follows the selected card"
+msgstr "Ακολουθεί την επιλεγμένη κάρτα"
+
+#: src/app/settings/interface.tsx
+msgid "Follows the selected card, in the corner"
+msgstr "Ακολουθεί την επιλεγμένη κάρτα, στη γωνία"
+
+#: src/app/settings/subtitles.tsx
+msgid "Font"
+msgstr "Γραμματοσειρά"
+
+#: src/app/settings/audio.tsx
+msgid "For a receiver on an optical or ARC link, which gets other surround formats as stereo otherwise."
+msgstr "Για ενισχυτή με οπτική σύνδεση ή ARC, όπου οι άλλες μορφές περιβάλλοντος ήχου θα μεταδίδονταν διαφορετικά ως στερεοφωνικές."
+
+#: src/app/settings/interface.tsx
+msgid "For clocks and times of day, such as the player's clock and the TV guide."
+msgstr ""
+
+#: src/lib/playback/controller.ts
+msgid "Forced"
+msgstr "Αναγκαστικοί"
+
+#: src/app/settings/subtitles.tsx
+msgid "Forced, for foreign parts only"
+msgstr "Αναγκαστικοί, μόνο για ξενόγλωσσα σημεία"
+
+#: src/app/settings/audio.tsx
+msgid "Formats"
+msgstr "Μορφές"
+
+#: src/components/shell/history-buttons.tsx
+msgid "Forward"
+msgstr "Μπροστά"
+
+#: src/lib/hosts/shell/player.ts
+msgid "Frame timings"
+msgstr "Χρονισμός καρέ"
+
+#: src/app/live-tv/_components/channel-details.tsx src/features/player/live.tsx
+#: src/features/versions/version-list.tsx
+msgid "From the start"
+msgstr "Από την αρχή"
+
+#: src/app/settings/interface.tsx
+msgid "Frosted glass"
+msgstr "Θολό γυαλί"
+
+#: src/app/settings/subtitles.tsx
+msgid "Full"
+msgstr "Πλήρεις"
+
+#: src/app/live-tv/_components/channel-details.tsx
+#: src/features/player/options.tsx src/lib/input/actions.ts
+msgid "Full screen"
+msgstr "Πλήρης οθόνη"
+
+#: src/lib/input/actions.ts
+msgid "General"
+msgstr "Γενικά"
+
+#: src/components/send-report.tsx
+msgid "Give this code to whoever looks into it."
+msgstr "Δώσε αυτόν τον κωδικό στο άτομο που θα το διερευνήσει."
+
+#: src/app/settings/apps.tsx
+msgid "GLSL shader files for the built-in mpv, applied in name order to what plays. Heavy ones can make video stutter."
+msgstr ""
+
+#: src/router.tsx
+msgid "Go home"
+msgstr "Μετάβαση στην αρχική"
+
+#: src/features/player/live.tsx
+msgid "Go live"
+msgstr "Μετάβαση στη ζωντανή μετάδοση"
+
+#: src/components/media/item-menu.tsx
+msgid "Go to show"
+msgstr "Μετάβαση στη σειρά"
+
+#: src/lib/i18n.ts
+msgid "Green"
+msgstr "Πράσινο"
+
+#: src/lib/i18n.ts
+msgid "Grey"
+msgstr "Γκρι"
+
+#: src/app/live-tv/page.tsx src/app/settings/_components/version-settings.tsx
+msgid "Group"
+msgstr "Ομάδα"
+
+#: src/app/history/page.tsx
+msgid "Group by day"
+msgstr "Ομαδοποίηση ανά ημέρα"
+
+#: src/app/live-tv/page.tsx
+msgid "Groups"
+msgstr "Ομάδες"
+
+#: src/app/live-tv/_components/guide.tsx src/app/live-tv/page.tsx
+msgid "Guide"
+msgstr "Πρόγραμμα"
+
+#: src/app/settings/playback.tsx
+msgid "Hardware decoding"
+msgstr "Αποκωδικοποίηση μέσω υλικού"
+
+#: src/app/sign-in/page.tsx
+msgid "Has a PIN"
+msgstr "Με PIN"
+
+#: src/app/settings/playback.tsx
+#, fuzzy
+msgid "HDR output"
+msgstr "Έξοδος βίντεο"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Heard"
+msgstr "Ακούστηκε"
+
+#: src/lib/input/actions.ts
+msgid "Heard the line"
+msgstr "Η ατάκα ακούστηκε"
+
+#: src/features/player/options.tsx
+msgid "Height"
+msgstr "Ύψος"
+
+#: src/app/settings/subtitles.tsx
+msgid "Height: {position}%"
+msgstr "Ύψος: {position}%"
+
+#: src/app/settings/playback.tsx
+msgid "Held speed"
+msgstr "Ταχύτητα παρατεταμένου πατήματος"
+
+#: src/app/history/page.tsx
+msgid "Here"
+msgstr "Εδώ"
+
+#: src/app/settings/interface.tsx
+msgid "Hero"
+msgstr "Κεντρικό πλαίσιο"
+
+#: src/app/settings/interface.tsx
+msgid "Hidden"
+msgstr "Κρυφό"
+
+#: src/features/player/next-episode.tsx
+msgid "Hide"
+msgstr "Απόκρυψη"
+
+#: src/app/history/page.tsx
+msgid "Hide episodes"
+msgstr "Απόκρυψη επεισοδίων"
+
+#: src/features/party/in-party.tsx
+msgid "Hide QR code"
+msgstr "Απόκρυψη κωδικού QR"
+
+#. Holding the next key down, as in Hold + Enter
+#: src/lib/input/keys.ts
+msgid "Hold"
+msgstr "Παρατεταμένο πάτημα"
+
+#: src/app/settings/apps.tsx src/app/settings/interface.tsx
+#: src/components/shell/layout.tsx src/lib/input/actions.ts
+msgid "Home"
+msgstr "Αρχική"
+
+#: src/app/settings/interface.tsx
+msgid "Home and grids"
+msgstr "Αρχική και πλέγματα"
+
+#: src/app/settings/cache.tsx
+msgid "Home and libraries"
+msgstr "Αρχική και βιβλιοθήκες"
+
+#: src/features/party/in-party.tsx
+msgid "Host"
+msgstr "Οικοδεσπότης"
+
+#: src/app/settings/subtitles.tsx
+msgid "How far subtitles sit above their usual place near the bottom, or below it down to the edge."
+msgstr "Πόσο ψηλότερα εμφανίζονται οι υπότιτλοι από τη συνηθισμένη θέση τους κοντά στο κάτω μέρος ή πόσο χαμηλότερα, μέχρι την άκρη."
+
+#: src/app/settings/playback.tsx
+msgid "How far the skip buttons, double taps and the arrow keys jump."
+msgstr "Πόσο μετακινούνται τα κουμπιά παράλειψης, τα διπλά πατήματα και τα πλήκτρα βέλους."
+
+#: src/app/settings/playback.tsx
+msgid "How fast playback runs while you press and hold the video, or hold Space or Select."
+msgstr "Η ταχύτητα αναπαραγωγής όσο πατάς παρατεταμένα το βίντεο ή κρατάς πατημένο το Space ή το κουμπί επιλογής."
+
+#: src/app/settings/interface.tsx
+msgid "How large cards are in a grid."
+msgstr "Το μέγεθος των καρτών σε ένα πλέγμα."
+
+#: src/app/settings/interface.tsx
+msgid "How long the hero stays on a featured title while it rotates."
+msgstr "Πόσο παραμένει το κεντρικό πλαίσιο σε κάθε προβεβλημένο τίτλο κατά την εναλλαγή."
+
+#: src/app/settings/playback.tsx
+msgid "How much of the video the player holds in memory: ahead, to ride out a slow connection, and behind, to seek back at once. Automatic sizes it from this device's memory."
+msgstr "Πόσο βίντεο κρατά το πρόγραμμα αναπαραγωγής στη μνήμη: μπροστά, για να καλύπτει μια αργή σύνδεση, και πίσω, για άμεση επιστροφή. Η αυτόματη επιλογή ορίζει το μέγεθος με βάση τη μνήμη της συσκευής."
+
+#: src/app/settings/playback.tsx
+msgid "How much the volume keys and the scroll wheel change the volume."
+msgstr "Πόσο αλλάζουν την ένταση τα πλήκτρα έντασης και η ροδέλα κύλισης."
+
+#: src/app/settings/interface.tsx
+msgid "How the tabs sit over the page: as floating pills, on a bar across the top, or on nothing but a fade down from the top edge."
+msgstr "Πώς εμφανίζονται οι καρτέλες πάνω από τη σελίδα: ως αιωρούμενα κουμπιά, σε γραμμή στο επάνω μέρος ή μόνο πάνω σε σκίαση που εξασθενεί από την επάνω άκρη."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "How these work"
+msgstr "Πώς λειτουργούν"
+
+#: src/app/settings/about.tsx
+msgid "How to use the app and what each setting does."
+msgstr "Πώς να χρησιμοποιείς την εφαρμογή και τι κάνει κάθε ρύθμιση."
+
+#: src/lib/subtitles/style.ts
+msgid "Huge"
+msgstr "Τεράστιο"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Image"
+msgstr "Εικόνα"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Import"
+msgstr "Εισαγωγή"
+
+#: src/lib/discord.ts
+msgid "In Activity"
+msgstr "Στη Δραστηριότητα"
+
+#: src/lib/discord.ts
+msgid "In Discover"
+msgstr "Στην Ανακάλυψη"
+
+#: src/lib/discord.ts
+msgid "In Favourites"
+msgstr "Στα Αγαπημένα"
+
+#: src/lib/playback/sound.ts src/lib/subtitles/delay.ts
+msgid "In sync"
+msgstr "Σε συγχρονισμό"
+
+#: src/app/downloads/page.tsx src/features/downloads/download-button.tsx
+msgid "In the app's downloads"
+msgstr "Στις λήψεις της εφαρμογής"
+
+#: src/app/item/_components/collection.tsx
+msgid "In this collection"
+msgstr "Σε αυτή τη συλλογή"
+
+#: src/lib/hosts/shell/index.ts
+msgid "Install"
+msgstr "Εγκατάσταση"
+
+#: src/app/item/_components/no-details.tsx
+msgid "Install a metadata addon from Addons → Marketplace. For one that isn't listed, use the Custom addon there."
+msgstr "Εγκατάστησε ένα πρόσθετο μεταδεδομένων από τα Πρόσθετα → Αγορά προσθέτων. Αν δεν περιλαμβάνεται στη λίστα, χρησιμοποίησε εκεί την επιλογή «Προσαρμοσμένο πρόσθετο»."
+
+#: src/components/media/no-catalogs.tsx
+msgid "Install catalog addons from Addons → Marketplace. For one that isn't listed, use the Custom addon there."
+msgstr "Εγκατάστησε πρόσθετα καταλόγων από τα Πρόσθετα → Αγορά προσθέτων. Αν κάποιο δεν περιλαμβάνεται στη λίστα, χρησιμοποίησε εκεί την επιλογή «Προσαρμοσμένο πρόσθετο»."
+
+#: src/app/settings/page.tsx
+msgid "Interface"
+msgstr "Περιβάλλον χρήστη"
+
+#: src/app/settings/playback.tsx
+msgid "Intros"
+msgstr "Εισαγωγές"
+
+#: src/features/party/in-party.tsx
+msgid "Invite"
+msgstr "Πρόσκληση"
+
+#: src/features/party/not-in-party.tsx
+msgid "Invite code or link"
+msgstr "Κωδικός ή σύνδεσμος πρόσκλησης"
+
+#: src/features/party/in-party.tsx
+msgid "Invite link copied"
+msgstr "Ο σύνδεσμος πρόσκλησης αντιγράφηκε"
+
+#: src/app/settings/_components/licenses.tsx
+msgid "It came with no licence text."
+msgstr "Δεν συνοδευόταν από κείμενο άδειας χρήσης."
+
+#: src/components/send-report.tsx
+msgid "It carries this device's details and the app's recent log. Passwords and tokens are left out."
+msgstr "Περιλαμβάνει τα στοιχεία αυτής της συσκευής και το πρόσφατο αρχείο καταγραφής της εφαρμογής. Οι κωδικοί πρόσβασης και τα διακριτικά πρόσβασης παραλείπονται."
+
+#: src/components/send-report.tsx
+msgid "It didn't reach the developer, only this server: {forwardError}"
+msgstr "Έφτασε μόνο σε αυτόν τον διακομιστή, όχι στον προγραμματιστή: {forwardError}"
+
+#: src/app/settings/theme.tsx
+msgid "It will be undone unless you keep it."
+msgstr "Θα αναιρεθεί αν δεν επιλέξεις να το διατηρήσεις."
+
+#: src/app/settings/about.tsx
+msgid "Its Metal and AVFoundation video outputs."
+msgstr "Οι έξοδοι βίντεο Metal και AVFoundation."
+
+#: src/app/settings/about.tsx
+msgid "Jellyfin API"
+msgstr "API Jellyfin"
+
+#: src/features/party/not-in-party.tsx
+msgid "Join"
+msgstr "Συμμετοχή"
+
+#: src/features/party/not-in-party.tsx src/features/party/party-sheet.tsx
+msgid "Join a party"
+msgstr "Συμμετοχή σε ομαδική προβολή"
+
+#: src/features/party/not-in-party.tsx
+msgid "Joining leaves the party you're in."
+msgstr "Η συμμετοχή θα σε απομακρύνει από την τρέχουσα ομαδική προβολή."
+
+#: src/features/party/in-party.tsx
+msgid "Joining the party…"
+msgstr "Γίνεται συμμετοχή στην ομαδική προβολή…"
+
+#: src/lib/input/actions.ts
+msgid "Jump through the video"
+msgstr "Μετακίνηση στο βίντεο"
+
+#: src/lib/format.ts
+msgid "just now"
+msgstr "μόλις τώρα"
+
+#: src/app/settings/theme.tsx
+msgid "Keep"
+msgstr "Διατήρηση"
+
+#: src/app/settings/playback.tsx
+msgid "Keep in step by changing speed"
+msgstr "Συγχρονισμός με αλλαγή ταχύτητας"
+
+#: src/features/party/in-party.tsx
+msgid "Keeping in step"
+msgstr "Γίνεται συγχρονισμός"
+
+#: src/app/settings/apps.tsx
+msgid "Keeps the sound going with the screen off, or when you leave the app."
+msgstr "Συνεχίζει την αναπαραγωγή ήχου με σβηστή οθόνη ή όταν φεύγεις από την εφαρμογή."
+
+#: src/app/settings/apps.tsx
+msgid "Keeps the sound going with the screen off, or when you leave without picture-in-picture."
+msgstr "Συνεχίζει την αναπαραγωγή ήχου με σβηστή οθόνη ή όταν φεύγεις χωρίς εικόνα μέσα σε εικόνα."
+
+#: src/app/settings/apps.tsx
+msgid "Keeps the video playing in a small window when you leave the app."
+msgstr "Συνεχίζει την αναπαραγωγή βίντεο σε μικρό παράθυρο όταν φεύγεις από την εφαρμογή."
+
+#: src/app/settings/_components/common.tsx
+msgid "Kept on this device."
+msgstr "Αποθηκεύεται σε αυτή τη συσκευή."
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Kept on this device. Select + and press a key to add it; a remote, a gamepad or the scroll wheel works too."
+msgstr "Αποθηκεύεται σε αυτή τη συσκευή. Επίλεξε + και πάτησε ένα πλήκτρο για να το προσθέσεις. Λειτουργούν επίσης τηλεχειριστήριο, χειριστήριο παιχνιδιών και ροδέλα κύλισης."
+
+#: src/components/shell/input-setup.tsx src/lib/input/actions.ts
+msgid "Keyboard shortcuts"
+msgstr "Συντομεύσεις πληκτρολογίου"
+
+#: src/app/settings/page.tsx
+msgid "Keys, remotes and gamepads"
+msgstr "Πλήκτρα, τηλεχειριστήρια και χειριστήρια παιχνιδιών"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Label"
+msgstr "Όνομα ετικέτας"
+
+#: src/app/settings/audio.tsx src/app/settings/interface.tsx
+#: src/app/settings/page.tsx src/app/settings/subtitles.tsx
+msgid "Language"
+msgstr "Γλώσσα"
+
+#: src/app/settings/page.tsx
+msgid "Language and how subtitles look"
+msgstr "Γλώσσα και εμφάνιση υποτίτλων"
+
+#: src/app/settings/page.tsx
+msgid "Language and output"
+msgstr "Γλώσσα και έξοδος"
+
+#: src/app/settings/page.tsx
+msgid "Language, home, grids and episodes"
+msgstr "Γλώσσα, αρχική, πλέγματα και επεισόδια"
+
+#: src/app/settings/interface.tsx src/lib/subtitles/style.ts
+msgid "Large"
+msgstr "Μεγάλο"
+
+#: src/app/live-tv/_components/channel-details.tsx
+#: src/components/shell/update-prompt.tsx
+msgid "Later"
+msgstr "Αργότερα"
+
+#: src/app.tsx
+msgid "Leave {from} to add {adding}?"
+msgstr "Να αποχωρήσεις από το {from} για να προσθέσεις το {adding};"
+
+#: src/app.tsx
+msgid "Leave {from} to open this on {target}?"
+msgstr "Να αποχωρήσεις από το {from} για να το ανοίξεις στο {target};"
+
+#: src/features/party/in-party.tsx
+msgid "Leave the party"
+msgstr "Αποχώρηση από την ομαδική προβολή"
+
+#: src/app.tsx
+msgid "Leave this server to add {adding}?"
+msgstr "Να αποχωρήσεις από αυτόν τον διακομιστή για να προσθέσεις το {adding};"
+
+#: src/app/settings/apps.tsx
+msgid "Leaving the app"
+msgstr "Κατά την έξοδο από την εφαρμογή"
+
+#: src/lib/input/actions.ts
+msgid "Left"
+msgstr "Αριστερά"
+
+#: src/app/settings/interface.tsx
+msgid "Left empty, posters stand alone. A poster without artwork still shows its title."
+msgstr "Αν μείνει κενό, εμφανίζονται μόνο οι αφίσες. Μια αφίσα χωρίς εικόνα εξακολουθεί να εμφανίζει τον τίτλο της."
+
+#: src/features/player/options.tsx
+msgid "Less dialogue boost"
+msgstr "Μικρότερη ενίσχυση διαλόγων"
+
+#: src/features/party/in-party.tsx
+msgid "Let new people join"
+msgstr "Να επιτρέπονται νέες συμμετοχές"
+
+#: src/app/settings/playback.tsx
+msgid "Lets the TV's decoder keep picture and sound in step itself, which plays 4K and HDR more smoothly on some TVs. Only for videos ExoPlayer plays. Turn it off if video stutters or stays black."
+msgstr "Επιτρέπει στον αποκωδικοποιητή της τηλεόρασης να συγχρονίζει την εικόνα και τον ήχο, για πιο ομαλή αναπαραγωγή 4K και HDR σε ορισμένες τηλεοράσεις. Μόνο για βίντεο που αναπαράγει το ExoPlayer. Απενεργοποίησέ το αν η εικόνα κολλάει ή παραμένει μαύρη."
+
+#: src/app/settings/playback.tsx
+msgid "Lets the TV's decoder keep picture and sound in step itself, which plays 4K and HDR more smoothly on some TVs. Turn it off if video stutters or stays black."
+msgstr "Επιτρέπει στον αποκωδικοποιητή της τηλεόρασης να συγχρονίζει την εικόνα και τον ήχο, για πιο ομαλή αναπαραγωγή 4K και HDR σε ορισμένες τηλεοράσεις. Απενεργοποίησέ το αν η εικόνα κολλάει ή παραμένει μαύρη."
+
+#: src/app/settings/_components/licenses.tsx
+msgid "Licences"
+msgstr "Άδειες χρήσης"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Link a pack someone shares, in this app's format or the one Fusion and Nuvio use. It stays up to date with its author's changes."
+msgstr "Σύνδεσε ένα πακέτο που μοιράζεται κάποιος, στη μορφή αυτής της εφαρμογής ή σε εκείνη των Fusion και Nuvio. Ενημερώνεται αυτόματα με τις αλλαγές του δημιουργού του."
+
+#: src/app/settings/interface.tsx
+msgid "Liquid glass"
+msgstr "Ρευστό γυαλί"
+
+#: src/app/settings/interface.tsx
+msgid "List"
+msgstr "Λίστα"
+
+#: src/app/settings/subtitles.tsx
+msgid "List only my languages"
+msgstr "Εμφάνιση μόνο των γλωσσών μου"
+
+#: src/app/search/page.tsx
+msgid "Listening…"
+msgstr "Σε ακούω…"
+
+#: src/features/player/live.tsx
+msgid "Live"
+msgstr "Ζωντανά"
+
+#: src/app/home/page.tsx src/app/live-tv/page.tsx
+#: src/app/settings/interface.tsx src/components/shell/layout.tsx
+#: src/lib/input/actions.ts
+msgid "Live TV"
+msgstr "Ζωντανή τηλεόραση"
+
+#: src/features/party/in-party.tsx
+msgid "Loading"
+msgstr "Φόρτωση"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Loading…"
+msgstr "Γίνεται φόρτωση…"
+
+#: src/features/player/controls.tsx
+msgid "Lock screen"
+msgstr "Κλείδωμα οθόνης"
+
+#: src/app/settings/apps.tsx
+msgid "Logs"
+msgstr "Αρχεία καταγραφής"
+
+#: src/features/party/not-in-party.tsx
+msgid "Looking for the party…"
+msgstr "Αναζήτηση ομαδικής προβολής…"
+
+#: src/app/settings/playback.tsx
+msgid "Looks for versions as soon as a title's page opens, so Play and the version list don't wait. Each title you open is looked up, even if you don't play it."
+msgstr "Αναζητά εκδόσεις μόλις ανοίξει η σελίδα ενός τίτλου, ώστε η αναπαραγωγή και η λίστα εκδόσεων να είναι έτοιμες. Γίνεται αναζήτηση για κάθε τίτλο που ανοίγεις, ακόμη κι αν δεν τον αναπαράγεις."
+
+#: src/features/party/in-party.tsx
+msgid "Lost the connection to {relay}. Reconnecting… Your player carries on, and gets back in step once it's back."
+msgstr "Η σύνδεση με τον διακομιστή αναμετάδοσης {relay} χάθηκε. Γίνεται επανασύνδεση… Η αναπαραγωγή συνεχίζεται και θα συγχρονιστεί ξανά όταν αποκατασταθεί η σύνδεση."
+
+#: src/features/player/options.tsx src/lib/input/actions.ts
+msgid "Lower subtitles"
+msgstr "Χαμήλωμα υποτίτλων"
+
+#: src/app/settings/apps.tsx
+msgid "macOS draws the video, using less power, and shows Dolby Vision itself. Shaders and mpv's picture options do not apply."
+msgstr "Το macOS αποδίδει το βίντεο με χαμηλότερη κατανάλωση ενέργειας και εμφανίζει το Dolby Vision απευθείας. Τα shaders και οι επιλογές εικόνας του mpv δεν εφαρμόζονται."
+
+#: src/lib/i18n.ts
+msgid "Magenta"
+msgstr "Ματζέντα"
+
+#: src/app/settings/audio.tsx
+msgid "Main"
+msgstr "Κύριο"
+
+#: src/features/versions/external-prompt.tsx
+msgid "Mark as watched"
+msgstr "Το έχω δει"
+
+#: src/app/settings/playback.tsx
+msgid "Mark unaired episodes"
+msgstr "Επισήμανση επεισοδίων που δεν έχουν προβληθεί ακόμη"
+
+#: src/app/history/page.tsx src/app/item/_components/actions.tsx
+#: src/components/media/item-menu.tsx
+msgid "Mark unwatched"
+msgstr "Δεν το έχω δει"
+
+#: src/app/item/_components/actions.tsx src/components/media/item-menu.tsx
+msgid "Mark watched"
+msgstr "Το έχω δει"
+
+#: src/components/media/item-menu.tsx
+msgid "Mark watched up to here"
+msgstr "Τα έχω δει μέχρι εδώ"
+
+#: src/lib/playback/external-return.ts
+msgid "Marked as watched"
+msgstr "Σημειώθηκε ότι το έχεις δει"
+
+#: src/app/history/page.tsx
+msgid "Marked unwatched"
+msgstr "Σημειώθηκε ότι δεν το έχεις δει"
+
+#: src/app/settings/playback.tsx
+msgid "Match the video's frame rate"
+msgstr "Αντιστοίχιση με τον ρυθμό καρέ του βίντεο"
+
+#: src/components/shell/window-controls.tsx
+msgid "Maximise"
+msgstr "Μεγιστοποίηση"
+
+#: src/app/settings/interface.tsx
+msgid "Medium"
+msgstr "Μεσαίο"
+
+#: src/lib/input/keys.ts
+msgid "Menu key"
+msgstr "Πλήκτρο μενού"
+
+#: src/app/settings/interface.tsx
+msgid "Merge continue watching and next up"
+msgstr "Ενοποίηση της συνέχειας παρακολούθησης με τα επόμενα επεισόδια"
+
+#: src/features/party/chat.tsx
+msgid "Message"
+msgstr "Μήνυμα"
+
+#: src/features/party/in-party.tsx
+msgid "Messages"
+msgstr "Μηνύματα"
+
+#: src/app/settings/theme.tsx
+msgid "Midnight"
+msgstr "Μεσάνυχτα"
+
+#: src/features/player/controls.tsx
+msgid "Mini player"
+msgstr "Μικρό πρόγραμμα αναπαραγωγής"
+
+#: src/components/shell/window-controls.tsx
+msgid "Minimise"
+msgstr "Ελαχιστοποίηση"
+
+#: src/lib/format.ts
+msgid "Missing"
+msgstr "Λείπει"
+
+#: src/app/settings/subtitles.tsx
+msgid "Monospace"
+msgstr "Σταθερού πλάτους"
+
+#: src/app/downloads/page.tsx src/app/item/_components/header.tsx
+#: src/components/media/episodes.tsx src/components/media/overview.tsx
+#: src/features/playlists/playlists.tsx src/features/versions/version-list.tsx
+msgid "More"
+msgstr "Περισσότερα"
+
+#: src/features/party/chat.tsx
+msgid "More can be sent once the party is back."
+msgstr "Μπορείς να στείλεις περισσότερα μόλις αποκατασταθεί η σύνδεση με την ομαδική προβολή."
+
+#: src/features/player/options.tsx
+msgid "More dialogue boost"
+msgstr "Μεγαλύτερη ενίσχυση διαλόγων"
+
+#: src/components/media/hero.tsx
+msgid "More info"
+msgstr "Περισσότερες πληροφορίες"
+
+#: src/features/player/options.tsx
+msgid "More languages ({hidden})"
+msgstr "Περισσότερες γλώσσες ({hidden})"
+
+#: src/app/item/_components/similar.tsx
+msgid "More like this"
+msgstr "Παρόμοιοι τίτλοι"
+
+#: src/app/settings/_components/common.tsx
+msgid "Move {name} down"
+msgstr "Μετακίνηση του {name} κάτω"
+
+#: src/app/settings/_components/common.tsx
+msgid "Move {name} up"
+msgstr "Μετακίνηση του {name} πάνω"
+
+#: src/app/settings/_components/version-settings.tsx
+#: src/features/playlists/playlists.tsx
+msgid "Move down"
+msgstr "Μετακίνηση κάτω"
+
+#: src/app/settings/_components/version-settings.tsx
+#: src/features/playlists/playlists.tsx
+msgid "Move up"
+msgstr "Μετακίνηση πάνω"
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Moves between what's on screen, and to Search and Home. A gamepad's d-pad and left stick move too."
+msgstr "Μετακινεί την επιλογή ανάμεσα στα στοιχεία της οθόνης, καθώς και στην Αναζήτηση και την Αρχική. Λειτουργούν επίσης τα πλήκτρα κατεύθυνσης και ο αριστερός μοχλός χειριστηρίου παιχνιδιών."
+
+#: src/app/discover/page.tsx src/app/favourites/page.tsx
+#: src/app/search/page.tsx src/components/media/kind-tabs.tsx
+#: src/components/media/random-pick.tsx src/lib/format.ts
+msgid "Movies"
+msgstr "Ταινίες"
+
+#: src/app/search/page.tsx
+msgid "Movies, shows and people"
+msgstr "Ταινίες, σειρές και πρόσωπα"
+
+#: src/lib/input/actions.ts
+msgid "Moving around"
+msgstr "Πλοήγηση"
+
+#: src/app/settings/apps.tsx
+msgid "mpv configuration"
+msgstr "Διαμόρφωση mpv"
+
+#: src/app/settings/apps.tsx
+msgid "mpv draws the video, with your mpv.conf and shaders."
+msgstr "Το mpv αποδίδει το βίντεο, χρησιμοποιώντας το mpv.conf και τα shaders σου."
+
+#: src/app/settings/playback.tsx
+msgid "mpv inside this window, with this app's controls and playback settings. Your own mpv.conf, scripts and shaders work here too: put them in its mpv folder under Desktop app."
+msgstr "Το mpv μέσα σε αυτό το παράθυρο, με τα στοιχεία ελέγχου και τις ρυθμίσεις αναπαραγωγής της εφαρμογής. Λειτουργούν επίσης το δικό σου mpv.conf, τα scripts και τα shaders: τοποθέτησέ τα στον φάκελο mpv, στην ενότητα «Εφαρμογή υπολογιστή»."
+
+#: src/app/settings/apps.tsx
+msgid "mpv.conf, input.conf, scripts and shaders in this folder apply to the built-in mpv."
+msgstr "Τα mpv.conf, input.conf, scripts και shaders σε αυτόν τον φάκελο εφαρμόζονται στο ενσωματωμένο mpv."
+
+#: src/features/player/picture-in-picture.tsx src/features/player/volume.tsx
+#: src/lib/input/actions.ts
+msgid "Mute"
+msgstr "Σίγαση"
+
+#: src/lib/input/keys.ts
+msgid "Mute key"
+msgstr "Πλήκτρο σίγασης"
+
+#: src/app/settings/_components/version-settings.tsx
+#: src/features/playlists/playlists.tsx
+msgid "Name"
+msgstr "Όνομα"
+
+#: src/app/settings/interface.tsx
+msgid "Navigation"
+msgstr "Πλοήγηση"
+
+#: src/app/sign-in/page.tsx
+msgid "Needed to switch to this user."
+msgstr "Απαιτείται για μετάβαση σε αυτόν τον χρήστη."
+
+#: src/app/downloads/page.tsx
+msgid "Needs attention"
+msgstr "Χρειάζεται προσοχή"
+
+#: src/app/settings/playback.tsx
+msgid "Never"
+msgstr "Ποτέ"
+
+#: src/app/sign-in/page.tsx
+msgid "New code"
+msgstr "Νέος κωδικός"
+
+#: src/features/playlists/playlists.tsx
+msgid "New playlist"
+msgstr "Νέα λίστα αναπαραγωγής"
+
+#: src/features/player/controls.tsx src/features/remote/remote-sheet.tsx
+#: src/lib/i18n.ts
+msgid "Next"
+msgstr "Επόμενο"
+
+#: src/lib/input/actions.ts
+msgid "Next audio track"
+msgstr "Επόμενο κομμάτι ήχου"
+
+#: src/app/player/page.tsx src/features/player/controls.tsx
+#: src/lib/input/actions.ts
+msgid "Next channel"
+msgstr "Επόμενο κανάλι"
+
+#: src/lib/input/actions.ts
+msgid "Next chapter"
+msgstr "Επόμενο κεφάλαιο"
+
+#: src/app/settings/playback.tsx src/features/player/controls.tsx
+#: src/features/player/next-episode.tsx src/lib/input/actions.ts
+msgid "Next episode"
+msgstr "Επόμενο επεισόδιο"
+
+#: src/app/settings/page.tsx
+msgid "Next episode, controls and players"
+msgstr "Επόμενο επεισόδιο, στοιχεία ελέγχου και προγράμματα αναπαραγωγής"
+
+#: src/features/player/next-episode.tsx
+msgid "Next in {playlistName}"
+msgstr "Επόμενο στη λίστα {playlistName}"
+
+#: src/app/calendar/page.tsx
+msgid "Next month"
+msgstr "Επόμενος μήνας"
+
+#: src/lib/input/actions.ts
+msgid "Next subtitles"
+msgstr "Επόμενοι υπότιτλοι"
+
+#: src/lib/input/keys.ts
+msgid "Next track"
+msgstr "Επόμενο κομμάτι"
+
+#: src/app/trailer/page.tsx src/features/player/controls.tsx
+msgid "Next trailer"
+msgstr "Επόμενο τρέιλερ"
+
+#: src/app/home/page.tsx src/app/settings/interface.tsx
+msgid "Next up"
+msgstr "Επόμενα επεισόδια"
+
+#: src/app/settings/audio.tsx src/features/player/options.tsx
+msgid "Night mode"
+msgstr "Νυχτερινή λειτουργία"
+
+#: src/app/settings/apps.tsx
+msgid "Nightly"
+msgstr "Nightly"
+
+#: src/app/settings/apps.tsx
+msgid "Nightly builds come from every change, ahead of releases, and can break."
+msgstr "Οι εκδόσεις Nightly δημιουργούνται με κάθε αλλαγή, πριν από τις επίσημες κυκλοφορίες, και ενδέχεται να παρουσιάζουν προβλήματα."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "No badges match."
+msgstr "Δεν ταιριάζει καμία ετικέτα."
+
+#: src/components/media/no-catalogs.tsx
+msgid "No catalogs yet"
+msgstr "Δεν υπάρχουν ακόμη κατάλογοι"
+
+#: src/features/live-tv/channel-number.tsx
+msgid "No channel {typed}"
+msgstr "Δεν υπάρχει κανάλι {typed}"
+
+#: src/app/live-tv/page.tsx
+msgid "No channels in this group."
+msgstr "Δεν υπάρχουν κανάλια σε αυτή την ομάδα."
+
+#: src/app/item/_components/no-details.tsx
+msgid "No details for this title"
+msgstr "Δεν υπάρχουν λεπτομέρειες για αυτόν τον τίτλο"
+
+#: src/features/downloads/download-button.tsx
+msgid "No episodes to download there"
+msgstr "Δεν υπάρχουν επεισόδια για λήψη εκεί"
+
+#: src/app/favourites/page.tsx
+msgid "No favourite channels yet."
+msgstr "Δεν υπάρχουν ακόμη αγαπημένα κανάλια."
+
+#: src/app/settings/cache.tsx
+msgid "No limit"
+msgstr "Χωρίς όριο"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "No line matches."
+msgstr "Δεν ταιριάζει καμία ατάκα."
+
+#: src/app/live-tv/page.tsx
+msgid "No live TV here"
+msgstr "Δεν υπάρχει ζωντανή τηλεόραση εδώ"
+
+#: src/features/party/chat.tsx
+msgid "No messages yet. Say hello."
+msgstr "Δεν υπάρχουν ακόμη μηνύματα. Πες ένα γεια."
+
+#: src/features/remote/remote-sheet.tsx
+msgid "No other device is ready. Open the app on another device signed in here, and it shows up."
+msgstr "Δεν είναι έτοιμη καμία άλλη συσκευή. Άνοιξε την εφαρμογή σε άλλη συσκευή, συνδεδεμένη εδώ, για να εμφανιστεί."
+
+#: src/lib/party/party.ts
+msgid "No party has that code on {relay}."
+msgstr "Δεν υπάρχει ομαδική προβολή με αυτόν τον κωδικό στον διακομιστή αναμετάδοσης {relay}."
+
+#: src/features/player/use-play.ts
+msgid "No playable version was found"
+msgstr "Δεν βρέθηκε έκδοση που να μπορεί να αναπαραχθεί"
+
+#: src/features/playlists/playlists.tsx
+msgid "No playlists yet. Make one here, or add a title to one from its menu."
+msgstr "Δεν υπάρχουν ακόμη λίστες αναπαραγωγής. Δημιούργησε μία εδώ ή πρόσθεσε έναν τίτλο σε λίστα από το μενού του."
+
+#: src/lib/jellyfin/servers.ts
+msgid "No server answered at that address."
+msgstr "Δεν αποκρίθηκε κανένας διακομιστής σε αυτή τη διεύθυνση."
+
+#: src/lib/subtitles/files.ts
+msgid "No subtitles were found in that file"
+msgstr "Δεν βρέθηκαν υπότιτλοι σε αυτό το αρχείο"
+
+#: src/lib/party/follow.ts
+msgid "No version of {title} plays here."
+msgstr "Καμία έκδοση του {title} δεν μπορεί να αναπαραχθεί εδώ."
+
+#: src/app/downloads/page.tsx
+msgid "No version was found to match. Pick one."
+msgstr "Δεν βρέθηκε αντίστοιχη έκδοση. Επίλεξε μία."
+
+#: src/features/versions/version-list.tsx
+msgid "No versions match."
+msgstr "Δεν ταιριάζει καμία έκδοση."
+
+#: src/features/versions/version-list.tsx
+msgid "No versions were found."
+msgstr "Δεν βρέθηκαν εκδόσεις."
+
+#: src/app/settings/audio.tsx src/app/settings/subtitles.tsx
+msgid "None"
+msgstr "Κανένα"
+
+#: src/app/item/_components/no-details.tsx
+msgid "None of your addons has details for {id}. Add a metadata addon to your configuration, then refresh."
+msgstr "Κανένα από τα πρόσθετά σου δεν διαθέτει λεπτομέρειες για το {id}. Πρόσθεσε ένα πρόσθετο μεταδεδομένων στη διαμόρφωσή σου και κάνε ανανέωση."
+
+#: src/app/settings/subtitles.tsx src/features/player/keys.ts
+#: src/lib/subtitles/style.ts
+msgid "Normal"
+msgstr "Κανονική"
+
+#: src/features/player/keys.ts src/lib/input/actions.ts
+msgid "Normal speed"
+msgstr "Κανονική ταχύτητα"
+
+#: src/features/versions/unaired-question.tsx
+msgid "Not aired yet"
+msgstr "Δεν έχει προβληθεί ακόμη"
+
+#: src/lib/hosts/shell/index.ts
+msgid "Not checked yet."
+msgstr "Δεν έχει ελεγχθεί ακόμη."
+
+#: src/lib/hosts/shell/player.ts
+msgid "not found"
+msgstr "δεν βρέθηκε"
+
+#: src/app/settings/playback.tsx
+msgid "Not found on this computer. Choose where {name} is installed."
+msgstr "Δεν βρέθηκε σε αυτόν τον υπολογιστή. Επίλεξε πού είναι εγκατεστημένο το {name}."
+
+#: src/features/versions/external-prompt.tsx
+msgid "Not now"
+msgstr "Όχι τώρα"
+
+#: src/features/party/chat.tsx
+msgid "Not sent. Try again"
+msgstr "Δεν στάλθηκε. Δοκίμασε ξανά"
+
+#: src/app/settings/interface.tsx
+msgid "Nothing"
+msgstr "Τίποτα"
+
+#: src/app/calendar/page.tsx
+msgid "Nothing airs this month from your shows or watchlist."
+msgstr "Δεν προβάλλεται κάτι αυτόν τον μήνα από τις σειρές σου ή τη λίστα παρακολούθησης."
+
+#: src/app/downloads/page.tsx
+msgid "Nothing downloaded yet. Download a movie or episode from its page, or a whole season from the show's."
+msgstr "Δεν έχει γίνει ακόμη καμία λήψη. Κατέβασε μια ταινία ή ένα επεισόδιο από τη σελίδα του ή μια ολόκληρη σεζόν από τη σελίδα της σειράς."
+
+#: src/app/search/page.tsx
+msgid "Nothing found for “{query}”."
+msgstr "Δεν βρέθηκε τίποτα για «{query}»."
+
+#: src/app/person/page.tsx
+msgid "Nothing found."
+msgstr "Δεν βρέθηκε τίποτα."
+
+#: src/features/playlists/playlists.tsx
+msgid "Nothing here yet. Add titles from their menu, or from the suggestions below."
+msgstr "Δεν υπάρχει ακόμη τίποτα εδώ. Πρόσθεσε τίτλους από το μενού τους ή από τις παρακάτω προτάσεις."
+
+#: src/app/discover/page.tsx src/app/item/_components/collection.tsx
+msgid "Nothing here."
+msgstr "Δεν υπάρχει τίποτα εδώ."
+
+#: src/features/remote/remote-sheet.tsx
+msgid "Nothing is playing there."
+msgstr "Δεν αναπαράγεται τίποτα εκεί."
+
+#: src/app/favourites/page.tsx src/components/media/random-pick.tsx
+msgid "Nothing marked as a favourite yet."
+msgstr "Δεν έχει προστεθεί ακόμη τίποτα στα αγαπημένα."
+
+#: src/app/discover/page.tsx src/app/live-tv/page.tsx
+#: src/app/settings/_components/licenses.tsx
+#: src/app/settings/_components/version-settings.tsx src/app/settings/audio.tsx
+#: src/app/settings/interface.tsx
+msgid "Nothing matches."
+msgstr "Δεν υπάρχει καμία αντιστοιχία."
+
+#: src/features/party/not-in-party.tsx
+msgid "Nothing playing yet."
+msgstr "Δεν αναπαράγεται ακόμη τίποτα."
+
+#: src/app/player/page.tsx
+msgid "Nothing plays on this channel right now."
+msgstr "Δεν μεταδίδεται τίποτα σε αυτό το κανάλι αυτή τη στιγμή."
+
+#: src/lib/hosts/shell/android.ts
+msgid "Nothing was heard"
+msgstr "Δεν ακούστηκε τίποτα"
+
+#: src/app/history/page.tsx
+msgid "Nothing watched yet."
+msgstr "Δεν έχεις παρακολουθήσει ακόμη τίποτα."
+
+#: src/features/party/in-party.tsx
+msgid "Nothing yet. Anything anyone plays now plays for everyone."
+msgstr "Δεν υπάρχει ακόμη τίποτα. Από εδώ και πέρα, ό,τι αναπαράγει κάποιος θα αναπαράγεται για όλους."
+
+#: src/app.tsx
+msgid "Notifications"
+msgstr "Ειδοποιήσεις"
+
+#: src/app/history/_components/sessions.tsx
+msgid "Now playing"
+msgstr "Τώρα παίζει"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Now tap Heard when that line is spoken."
+msgstr "Τώρα πάτησε «Ακούστηκε» όταν ακουστεί αυτή η ατάκα."
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Now tap Saw when that line shows."
+msgstr "Τώρα πάτησε «Εμφανίστηκε» όταν εμφανιστεί αυτή η ατάκα."
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Now: {shown}"
+msgstr "Τώρα: {shown}"
+
+#: src/app/settings/interface.tsx
+#, fuzzy
+msgid "Nowhere"
+msgstr "Δεν υπάρχει τίποτα εδώ."
+
+#: src/app/settings/theme.tsx
+msgid "Ocean"
+msgstr "Ωκεανός"
+
+#: src/app/settings/audio.tsx src/app/settings/subtitles.tsx
+#: src/features/player/options.tsx src/features/remote/remote-sheet.tsx
+#: src/lib/playback/sound.ts
+msgid "Off"
+msgstr "Ανενεργό"
+
+#: src/app/settings/theme.tsx
+msgid "Off for this visit, since the address ends in <0>?safe</0>. Fix or clear it here, then open the app without it."
+msgstr "Είναι ανενεργό σε αυτή την επίσκεψη, επειδή η διεύθυνση τελειώνει σε <0>?safe</0>. Διόρθωσέ το ή διαγράψ' το εδώ και άνοιξε την εφαρμογή χωρίς αυτή την προσθήκη."
+
+#: src/app/settings/interface.tsx
+msgid "Off, a trailer still plays with sound once you open it whole."
+msgstr ""
+
+#: src/features/party/in-party.tsx
+msgid "Off, the video jumps instead."
+msgstr "Αν απενεργοποιηθεί, γίνεται άμεση μετακίνηση στο βίντεο."
+
+#: src/components/shell/usage-stats.tsx
+msgid "OK"
+msgstr ""
+
+#: src/app/settings/cache.tsx
+msgid "Older ones wait for the server instead. Without a connection, everything saved is shown."
+msgstr "Τα παλαιότερα περιμένουν απόκριση από τον διακομιστή. Χωρίς σύνδεση, εμφανίζονται όλα τα αποθηκευμένα στοιχεία."
+
+#: src/features/party/in-party.tsx
+msgid "on {relay}"
+msgstr "στον διακομιστή αναμετάδοσης {relay}"
+
+#: src/lib/discord.ts
+msgid "On the calendar"
+msgstr "Στο ημερολόγιο"
+
+#: src/lib/discord.ts
+msgid "On the home page"
+msgstr "Στην αρχική σελίδα"
+
+#: src/features/party/not-in-party.tsx
+msgid "On this server"
+msgstr "Σε αυτόν τον διακομιστή"
+
+#: src/app/settings/interface.tsx
+msgid "On wide screens"
+msgstr "Σε πλατιές οθόνες"
+
+#: src/components/shell/usage-stats.tsx
+msgid "Once a day, the app sends an anonymous count with your type of device, system, app version, language, and country and region. Nothing that identifies you or what you watch is kept."
+msgstr ""
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Once one of the controls is selected, the arrow keys move between the controls instead."
+msgstr "Μόλις επιλεγεί ένα στοιχείο ελέγχου, τα πλήκτρα βέλους μετακινούν την επιλογή ανάμεσα στα στοιχεία ελέγχου."
+
+#: src/app/settings/interface.tsx
+msgid "Once you rest on a title for a moment. In the hero, only one you went to."
+msgstr ""
+
+#: src/lib/subtitles/files.ts
+msgid "Only {names} files can be added"
+msgstr "Μπορούν να προστεθούν μόνο αρχεία {names}"
+
+#: src/app/settings/subtitles.tsx
+msgid "Only forced"
+msgstr "Μόνο αναγκαστικοί"
+
+#: src/features/party/in-party.tsx
+msgid "Only I control playback"
+msgstr "Μόνο εγώ ελέγχω την αναπαραγωγή"
+
+#: src/app/settings/downloads.tsx
+msgid "Only on Wi-Fi"
+msgstr "Μόνο μέσω Wi-Fi"
+
+#: src/features/party/not-in-party.tsx
+msgid "Only people signed in to this server can join."
+msgstr "Μόνο άτομα συνδεδεμένα σε αυτόν τον διακομιστή μπορούν να συμμετάσχουν."
+
+#: src/app/settings/subtitles.tsx
+msgid "Only subtitles for foreign-language parts."
+msgstr "Μόνο υπότιτλοι για τα ξενόγλωσσα σημεία."
+
+#: src/lib/party/party.ts
+msgid "Only the host controls playback."
+msgstr "Μόνο ο οικοδεσπότης ελέγχει την αναπαραγωγή."
+
+#: src/app/settings/audio.tsx
+msgid "Only the ones your TV or receiver decodes; this app decodes the rest. DTS-HD needs DTS too."
+msgstr "Μόνο όσες αποκωδικοποιεί η τηλεόραση ή ο ενισχυτής σου. Τις υπόλοιπες αποκωδικοποιεί η εφαρμογή. Το DTS-HD απαιτεί και DTS."
+
+#: src/lib/i18n.ts
+msgid "Oops!"
+msgstr "Κάτι πήγε στραβά!"
+
+#: src/app/settings/subtitles.tsx
+msgid "Opacity: {backgroundOpacity}%"
+msgstr "Αδιαφάνεια: {backgroundOpacity}%"
+
+#: src/app/history/page.tsx src/app/settings/account.tsx
+#: src/app/settings/apps.tsx src/app/settings/downloads.tsx
+#: src/components/media/item-menu.tsx src/components/media/random-pick.tsx
+msgid "Open"
+msgstr "Άνοιγμα"
+
+#: src/app/downloads/page.tsx src/app/settings/apps.tsx
+msgid "Open folder"
+msgstr "Άνοιγμα φακέλου"
+
+#: src/app/trailer/page.tsx
+msgid "Open its page"
+msgstr "Άνοιγμα της σελίδας του"
+
+#: src/features/versions/version-list.tsx
+msgid "Open link"
+msgstr "Άνοιγμα συνδέσμου"
+
+#: src/lib/i18n.ts
+msgid "Open main menu"
+msgstr "Άνοιγμα κύριου μενού"
+
+#: src/features/playlists/playlists.tsx
+msgid "Open playlist"
+msgstr "Άνοιγμα λίστας αναπαραγωγής"
+
+#: src/app/downloads/page.tsx
+msgid "Open the app's downloads"
+msgstr "Άνοιγμα των λήψεων της εφαρμογής"
+
+#: src/app/settings/interface.tsx
+msgid "Opens out to its details"
+msgstr ""
+
+#: src/lib/input/actions.ts
+msgid "Opens the menu of what is selected, as a right click does."
+msgstr "Ανοίγει το μενού του επιλεγμένου στοιχείου, όπως το δεξί κλικ."
+
+#: src/app/settings/playback.tsx
+msgid "Opens the mini player"
+msgstr "Ανοίγει το μικρό πρόγραμμα αναπαραγωγής"
+
+#: src/app/settings/playback.tsx
+msgid "Opens versions in {target}, which brings you back here with your place saved."
+msgstr "Ανοίγει τις εκδόσεις στο {target}, που σε επιστρέφει εδώ με αποθηκευμένο το σημείο διακοπής."
+
+#: src/app/settings/playback.tsx
+msgid "Opens versions in {target}. It can't tell this app where you stopped, so you mark what you watched yourself."
+msgstr "Ανοίγει τις εκδόσεις στο {target}. Δεν μπορεί να ενημερώσει αυτή την εφαρμογή πού σταμάτησες, οπότε σημειώνεις μόνος σου όσα παρακολούθησες."
+
+#: src/components/send-report.tsx
+msgid "Optional."
+msgstr "Προαιρετικό."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Optional. An image address, shown in place of the label."
+msgstr "Προαιρετικό. Διεύθυνση εικόνας που εμφανίζεται στη θέση του ονόματος της ετικέτας."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Optional. Match only these parts of a version, named as the formatter names them, such as seMatched for the stream expression it matched."
+msgstr "Προαιρετικό. Αντιστοίχιση μόνο σε αυτά τα πεδία μιας έκδοσης, με τις ονομασίες του μορφοποιητή, όπως seMatched για την έκφραση ροής με την οποία αντιστοιχίστηκε."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Optional. Only the first badge of a group that matches shows."
+msgstr "Προαιρετικό. Εμφανίζεται μόνο η πρώτη ετικέτα κάθε ομάδας που ταιριάζει."
+
+#: src/lib/input/actions.ts
+msgid "Options"
+msgstr "Επιλογές"
+
+#: src/app/servers/page.tsx
+msgid "Options for {name}"
+msgstr "Επιλογές για: {name}"
+
+#: src/app/settings/apps.tsx
+msgid "Options for the built-in mpv, one per line, as mpv's manual lists them."
+msgstr "Επιλογές για το ενσωματωμένο mpv, μία ανά γραμμή, όπως αναφέρονται στο εγχειρίδιο του mpv."
+
+#: src/lib/hosts/native-shell.ts
+msgid "Options the app keeps for itself."
+msgstr "Επιλογές που διαχειρίζεται η ίδια η εφαρμογή."
+
+#: src/app/settings/_components/reaction-setting.tsx
+msgid "Or type one"
+msgstr "Ή πληκτρολόγησε μία"
+
+#: src/app/settings/audio.tsx
+msgid "Original language"
+msgstr "Πρωτότυπη γλώσσα"
+
+#: src/lib/playback/player-choice.ts
+msgid "Other app"
+msgstr "Άλλη εφαρμογή"
+
+#: src/features/remote/remote-sheet.tsx
+msgid "Other devices"
+msgstr "Άλλες συσκευές"
+
+#: src/app/sign-in/page.tsx
+msgid "Other user"
+msgstr "Άλλος χρήστης"
+
+#: src/app/player/page.tsx
+msgid "Other versions"
+msgstr "Άλλες εκδόσεις"
+
+#: src/app/settings/playback.tsx
+msgid "Otherwise the next episode's version list opens when it has more than one."
+msgstr "Διαφορετικά, ανοίγει η λίστα εκδόσεων του επόμενου επεισοδίου όταν υπάρχουν περισσότερες από μία."
+
+#: src/app/settings/playback.tsx
+msgid "Otherwise the next episode's version list opens when none is like the one you watched."
+msgstr "Διαφορετικά, ανοίγει η λίστα εκδόσεων του επόμενου επεισοδίου όταν καμία δεν είναι αντίστοιχη με εκείνη που παρακολουθούσες."
+
+#: src/app/settings/subtitles.tsx
+msgid "Outline and shadow"
+msgstr "Περίγραμμα και σκιά"
+
+#: src/app/settings/audio.tsx
+msgid "Output"
+msgstr "Έξοδος"
+
+#: src/features/party/in-party.tsx
+msgid "Over the video"
+msgstr "Πάνω στο βίντεο"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Pack address"
+msgstr "Διεύθυνση πακέτου"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Packs"
+msgstr "Πακέτα"
+
+#. A button on a gamepad, as in Pad A
+#: src/lib/input/keys.ts
+msgid "Pad {button}"
+msgstr "Κουμπί χειριστηρίου {button}"
+
+#: src/lib/input/keys.ts
+msgid "Page Down"
+msgstr "Page Down"
+
+#: src/app/settings/interface.tsx
+msgid "Page names"
+msgstr "Ονόματα σελίδων"
+
+#: src/lib/input/keys.ts
+msgid "Page Up"
+msgstr "Page Up"
+
+#: src/app/settings/cache.tsx
+msgid "Pages and artwork open straight away from this device, then refresh. Without a connection, whatever was saved can still be browsed."
+msgstr "Οι σελίδες και οι εικόνες ανοίγουν αμέσως από αυτή τη συσκευή και μετά ανανεώνονται. Χωρίς σύνδεση, μπορείς να περιηγείσαι σε ό,τι έχει αποθηκευτεί."
+
+#: src/app/settings/page.tsx
+msgid "Pages and artwork saved on this device"
+msgstr "Σελίδες και εικόνες αποθηκευμένες σε αυτή τη συσκευή"
+
+#: src/app/settings/theme.tsx
+msgid "Pages and panels take their shades from it. Dark colours read best."
+msgstr "Οι σελίδες και τα πλαίσια αντλούν τις αποχρώσεις τους από αυτό. Τα σκούρα χρώματα προσφέρουν καλύτερη αναγνωσιμότητα."
+
+#: src/app/settings/cache.tsx
+msgid "Pages load from the server again until they are saved anew."
+msgstr "Οι σελίδες φορτώνονται ξανά από τον διακομιστή μέχρι να αποθηκευτούν εκ νέου."
+
+#: src/app/settings/audio.tsx
+msgid "Pass surround audio through"
+msgstr "Απευθείας μεταβίβαση περιβάλλοντος ήχου"
+
+#: src/app/sign-in/page.tsx
+msgid "Password"
+msgstr "Κωδικός πρόσβασης"
+
+#: src/app/settings/cache.tsx
+msgid "Past this, what was used longest ago goes first."
+msgstr "Όταν ξεπεραστεί αυτό το όριο, αφαιρούνται πρώτα όσα έχουν να χρησιμοποιηθούν περισσότερο καιρό."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Paste badges as JSON to add them to yours, or paste a pack's address to link it."
+msgstr "Επικόλλησε ετικέτες σε μορφή JSON για να τις προσθέσεις στις δικές σου ή τη διεύθυνση ενός πακέτου για να το συνδέσεις."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Paste quick filters as JSON, or the address of a file with them, to add them to these."
+msgstr "Επικόλλησε γρήγορα φίλτρα σε μορφή JSON ή τη διεύθυνση ενός αρχείου που τα περιέχει, για να τα προσθέσεις σε αυτά."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Pattern"
+msgstr "Μοτίβο"
+
+#: src/app/downloads/page.tsx src/features/player/controls.tsx
+#: src/features/player/mini-player.tsx
+#: src/features/player/picture-in-picture.tsx
+#: src/features/remote/remote-sheet.tsx src/lib/input/actions.ts
+#: src/lib/input/keys.ts
+msgid "Pause"
+msgstr "Παύση"
+
+#: src/app/downloads/page.tsx
+msgid "Pause all"
+msgstr "Παύση όλων"
+
+#: src/app/history/_components/sessions.tsx
+msgid "Paused"
+msgstr "Σε παύση"
+
+#: src/app/downloads/page.tsx
+msgid "Paused · {of}"
+msgstr "Σε παύση · {of}"
+
+#: src/features/party/not-in-party.tsx
+msgid "Paused on {name}"
+msgstr "Σε παύση: {name}"
+
+#: src/features/party/not-in-party.tsx
+msgid "Paused on {name}, {at} in"
+msgstr "Σε παύση: {name}, στο {at}"
+
+#: src/app/settings/playback.tsx
+msgid "Pauses and asks before the next episode once this many have played in a row without a key, click or button press."
+msgstr "Κάνει παύση και ζητά επιβεβαίωση πριν από το επόμενο επεισόδιο, όταν έχουν αναπαραχθεί τόσα επεισόδια διαδοχικά χωρίς πάτημα πλήκτρου, κλικ ή κουμπιού."
+
+#: src/app/settings/playback.tsx
+msgid "Pausing, playing or skipping with a remote or the keyboard brings the controls up, for a moment after a skip. Turned off, only a brief icon shows."
+msgstr "Η παύση, η αναπαραγωγή ή η μετακίνηση μέσω τηλεχειριστηρίου ή πληκτρολογίου εμφανίζουν τα στοιχεία ελέγχου, για λίγο μετά τη μετακίνηση. Αν απενεργοποιηθεί, εμφανίζεται μόνο ένα σύντομο εικονίδιο."
+
+#: src/app/search/page.tsx
+msgid "People"
+msgstr "Πρόσωπα"
+
+#: src/features/party/in-party.tsx
+msgid "People and invite"
+msgstr "Συμμετέχοντες και πρόσκληση"
+
+#: src/lib/i18n.ts
+msgid "Pick a colour"
+msgstr "Επίλεξε χρώμα"
+
+#: src/app/settings/_components/reaction-setting.tsx
+msgid "Pick a slot, then what goes in it."
+msgstr "Επίλεξε μια θέση και μετά τι θα εμφανίζεται σε αυτή."
+
+#: src/app/downloads/page.tsx
+msgid "Pick a version"
+msgstr "Επίλεξε έκδοση"
+
+#: src/components/media/random-pick.tsx
+msgid "Pick again"
+msgstr "Νέα επιλογή"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Pick fields to search only those parts of a version."
+msgstr "Επίλεξε πεδία για αναζήτηση μόνο σε αυτά τα τμήματα μιας έκδοσης."
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Pick the line you heard at {heardAt}."
+msgstr "Επίλεξε την ατάκα που άκουσες στο {heardAt}."
+
+#: src/features/versions/version-list.tsx
+msgid "Pick the version to download."
+msgstr "Επίλεξε την έκδοση για λήψη."
+
+#: src/app/settings/apps.tsx src/features/player/options.tsx
+msgid "Picture-in-picture"
+msgstr "Εικόνα μέσα σε εικόνα"
+
+#: src/features/player/options.tsx
+msgid "Picture: {coming}"
+msgstr "Εικόνα: {coming}"
+
+#: src/features/player/options.tsx
+msgid "Picture: {current}"
+msgstr "Εικόνα: {current}"
+
+#: src/features/player/controls.tsx
+msgid "Picture: {label}"
+msgstr "Εικόνα: {label}"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Pills above the version list that each apply a search you save, such as one for 4K versions."
+msgstr "Κουμπιά πάνω από τη λίστα εκδόσεων που εφαρμόζουν αποθηκευμένες αναζητήσεις, όπως για εκδόσεις 4K."
+
+#: src/app/sign-in/page.tsx
+msgid "PIN"
+msgstr "PIN"
+
+#: src/app/sign-in/page.tsx
+msgid "PIN or password"
+msgstr "PIN ή κωδικός πρόσβασης"
+
+#: src/app/settings/theme.tsx
+msgid "Pink"
+msgstr "Ροζ"
+
+#: src/app/item/_components/header.tsx src/app/item/_components/no-details.tsx
+#: src/app/live-tv/_components/channel-details.tsx
+#: src/components/media/hero.tsx src/components/media/item-menu.tsx
+#: src/components/media/random-pick.tsx src/features/player/controls.tsx
+#: src/features/player/mini-player.tsx
+#: src/features/player/picture-in-picture.tsx
+#: src/features/playlists/playlists.tsx src/features/remote/remote-sheet.tsx
+#: src/lib/input/actions.ts src/lib/input/keys.ts
+msgid "Play"
+msgstr "Αναπαραγωγή"
+
+#: src/app/item/_components/header.tsx
+msgid "Play {code}"
+msgstr "Αναπαραγωγή {code}"
+
+#: src/features/versions/unaired-question.tsx
+msgid "Play anyway"
+msgstr "Αναπαραγωγή ούτως ή άλλως"
+
+#: src/app/settings/interface.tsx
+#, fuzzy
+msgid "Play by themselves"
+msgstr "Αναπαραγωγή της πρώτης έκδοσης"
+
+#: src/app/item/_components/header.tsx
+msgid "Play from the start"
+msgstr "Αναπαραγωγή από την αρχή"
+
+#: src/features/player/next-episode.tsx
+msgid "Play in {seconds}s"
+msgstr "Αναπαραγωγή σε {seconds} δευτ."
+
+#: src/app/settings/apps.tsx
+msgid "Play in the background"
+msgstr "Αναπαραγωγή στο παρασκήνιο"
+
+#: src/app/settings/playback.tsx
+msgid "Play it automatically"
+msgstr "Αυτόματη αναπαραγωγή"
+
+#: src/app/settings/playback.tsx
+msgid "Play lists the versions to choose from, but resuming goes back to the version you were watching. Hold Play to do the other: start the first version, or list them when resuming."
+msgstr "Η «Αναπαραγωγή» εμφανίζει τις εκδόσεις για να επιλέξεις, ενώ η συνέχιση επιστρέφει στην έκδοση που παρακολουθούσες. Πάτησε παρατεταμένα την «Αναπαραγωγή» για το αντίστροφο: έναρξη της πρώτης έκδοσης ή εμφάνιση της λίστας κατά τη συνέχιση."
+
+#: src/features/player/next-episode.tsx
+msgid "Play now"
+msgstr "Αναπαραγωγή τώρα"
+
+#: src/app/item/_components/actions.tsx
+msgid "Play on"
+msgstr "Αναπαραγωγή σε άλλη συσκευή"
+
+#: src/app/item/_components/actions.tsx src/components/media/item-menu.tsx
+#: src/features/remote/remote-sheet.tsx
+msgid "Play on another device"
+msgstr "Αναπαραγωγή σε άλλη συσκευή"
+
+#: src/lib/input/actions.ts
+msgid "Play or pause"
+msgstr "Αναπαραγωγή ή παύση"
+
+#: src/lib/input/actions.ts
+msgid "Play or pause, or go to the controls"
+msgstr "Αναπαραγωγή ή παύση ή μετάβαση στα στοιχεία ελέγχου"
+
+#: src/app/settings/playback.tsx
+msgid "Play starts the first version, and resuming goes back to the version you were watching. Hold Play to choose instead."
+msgstr "Η «Αναπαραγωγή» ξεκινά την πρώτη έκδοση και η συνέχιση επιστρέφει στην έκδοση που παρακολουθούσες. Πάτησε παρατεταμένα την «Αναπαραγωγή» για να επιλέξεις."
+
+#: src/components/media/item-menu.tsx
+msgid "Play straight away"
+msgstr "Άμεση αναπαραγωγή"
+
+#: src/app/settings/playback.tsx
+msgid "Play the first version"
+msgstr "Αναπαραγωγή της πρώτης έκδοσης"
+
+#: src/app/settings/playback.tsx
+msgid "Play the first version when none matches"
+msgstr "Αναπαραγωγή της πρώτης έκδοσης αν δεν ταιριάζει καμία"
+
+#: src/features/player/options.tsx
+msgid "Play the sound earlier"
+msgstr "Αναπαραγωγή ήχου νωρίτερα"
+
+#: src/features/player/options.tsx
+msgid "Play the sound later"
+msgstr "Αναπαραγωγή ήχου αργότερα"
+
+#: src/app/settings/audio.tsx
+msgid "Play the version's default track first"
+msgstr "Προτεραιότητα στο προεπιλεγμένο κομμάτι ήχου της έκδοσης"
+
+#: src/app/settings/playback.tsx
+msgid "Play versions in"
+msgstr "Αναπαραγωγή εκδόσεων σε"
+
+#: src/lib/hosts/shell/player.ts
+msgid "Play with ExoPlayer"
+msgstr "Αναπαραγωγή με ExoPlayer"
+
+#: src/lib/hosts/shell/player.ts
+msgid "Play with mpv"
+msgstr "Αναπαραγωγή με mpv"
+
+#: src/lib/input/keys.ts
+msgid "Play/Pause"
+msgstr "Αναπαραγωγή/Παύση"
+
+#: src/app/settings/page.tsx src/lib/hosts/shell/exo-stats.ts
+#: src/lib/hosts/shell/player.ts src/lib/playback/webgpu.ts
+msgid "Playback"
+msgstr "Αναπαραγωγή"
+
+#: src/app/item/_components/trailer.tsx
+#, fuzzy
+msgid "Playback controls"
+msgstr "Αναπαραγωγή"
+
+#: src/features/player/mini-player.tsx
+msgid "Playback failed"
+msgstr "Η αναπαραγωγή απέτυχε"
+
+#: src/app/player/page.tsx
+msgid "Playback failed: {failure}"
+msgstr "Η αναπαραγωγή απέτυχε: {failure}"
+
+#: src/app/history/page.tsx
+msgid "Played here"
+msgstr "Αναπαράχθηκε εδώ"
+
+#: src/app/settings/about.tsx src/app/settings/playback.tsx
+#: src/lib/input/actions.ts
+msgid "Player"
+msgstr "Πρόγραμμα αναπαραγωγής"
+
+#: src/app/settings/playback.tsx
+msgid "Player link"
+msgstr "Σύνδεσμος προγράμματος αναπαραγωγής"
+
+#: src/app/history/_components/sessions.tsx
+#: src/app/item/_components/trailer.tsx src/features/party/in-party.tsx
+#: src/features/player/chapters.tsx src/features/player/episodes.tsx
+#: src/features/playlists/playlists.tsx src/features/versions/version-list.tsx
+msgid "Playing"
+msgstr "Γίνεται αναπαραγωγή"
+
+#: src/app/player/page.tsx
+msgid "Playing in {launchedName}"
+msgstr "Αναπαραγωγή στο {launchedName}"
+
+#: src/features/versions/external-prompt.tsx
+msgid "Playing in your player"
+msgstr "Αναπαραγωγή στο πρόγραμμά σου"
+
+#: src/features/remote/remote-sheet.tsx
+msgid "Playing on {name}"
+msgstr "Αναπαραγωγή στη συσκευή {name}"
+
+#: src/app/settings/playback.tsx
+msgid "Playing on and the next and previous buttons pass over episodes marked as filler. You can still play one yourself."
+msgstr "Η συνεχής αναπαραγωγή και τα κουμπιά επόμενου και προηγούμενου παραλείπουν τα επεισόδια που έχουν επισημανθεί ως εκτός κύριας πλοκής. Μπορείς πάντα να τα αναπαράγεις χειροκίνητα."
+
+#: src/app/item/_components/actions.tsx src/features/player/options.tsx
+#: src/features/playlists/playlists.tsx
+msgid "Playlist"
+msgstr "Λίστα αναπαραγωγής"
+
+#: src/components/shell/layout.tsx src/features/playlists/playlists.tsx
+msgid "Playlists"
+msgstr "Λίστες αναπαραγωγής"
+
+#: src/features/party/not-in-party.tsx
+msgid "Plays <0>{title}</0> for everyone who joins."
+msgstr "Αναπαράγει το <0>{title}</0> για όσους συμμετέχουν."
+
+#: src/app/settings/playback.tsx
+msgid "Plays a little faster or slower to catch up with the party. Off, the video jumps instead."
+msgstr "Αναπαράγει λίγο πιο γρήγορα ή πιο αργά για συγχρονισμό με την ομαδική προβολή. Αν απενεργοποιηθεί, γίνεται άμεση μετακίνηση στο βίντεο."
+
+#: src/app/settings/playback.tsx
+msgid "Plays Dolby Vision where the screen shows it. Turn it off to play the HDR10 picture most of these videos also carry, if Dolby Vision looks dim or flickers. Videos with no HDR10 picture still play in Dolby Vision."
+msgstr "Αναπαράγει Dolby Vision όταν το υποστηρίζει η οθόνη. Αν η εικόνα Dolby Vision φαίνεται σκοτεινή ή τρεμοπαίζει, απενεργοποίησέ το για να χρησιμοποιείται η εικόνα HDR10 που περιέχουν επίσης τα περισσότερα από αυτά τα βίντεο. Όσα δεν έχουν εικόνα HDR10 συνεχίζουν να αναπαράγονται σε Dolby Vision."
+
+#: src/lib/input/actions.ts
+msgid "Plays faster for as long as the key is held, at the speed set in Playback settings."
+msgstr "Αναπαράγει πιο γρήγορα όσο κρατάς πατημένο το πλήκτρο, με την ταχύτητα που έχει οριστεί στις ρυθμίσεις αναπαραγωγής."
+
+#: src/app/settings/about.tsx
+msgid "Plays the video."
+msgstr "Αναπαράγει το βίντεο."
+
+#: src/app/settings/interface.tsx
+#, fuzzy
+msgid "Pops out a preview"
+msgstr "Παράλειψη προεπισκόπησης"
+
+#: src/features/remote/remote-sheet.tsx
+msgid "Position"
+msgstr "Θέση"
+
+#: src/app/settings/interface.tsx
+msgid "Poster size"
+msgstr "Μέγεθος αφίσας"
+
+#: src/app/settings/cache.tsx
+msgid "Posters, backdrops, logos and photos."
+msgstr "Αφίσες, εικόνες φόντου, λογότυπα και φωτογραφίες."
+
+#: src/app/settings/theme.tsx
+msgid "Presets"
+msgstr "Προεπιλογές"
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Press a key"
+msgstr "Πάτησε ένα πλήκτρο"
+
+#: src/lib/hosts/shell/android.ts
+msgid "Press Back again to leave"
+msgstr "Πάτησε ξανά «Πίσω» για έξοδο"
+
+#: src/app/item/_components/trailer.tsx
+msgid "Press Up for playback controls"
+msgstr ""
+
+#: src/app/settings/_components/version-settings.tsx
+#: src/app/settings/subtitles.tsx
+msgid "Preview"
+msgstr "Προεπισκόπηση"
+
+#: src/app/settings/playback.tsx
+msgctxt "Episode segments showing the next episode"
+msgid "Previews"
+msgstr "Προεπισκοπήσεις"
+
+#: src/features/player/controls.tsx src/features/remote/remote-sheet.tsx
+#: src/lib/i18n.ts
+msgid "Previous"
+msgstr "Προηγούμενο"
+
+#: src/app/player/page.tsx src/features/player/controls.tsx
+#: src/features/player/live.tsx src/lib/input/actions.ts
+msgid "Previous channel"
+msgstr "Προηγούμενο κανάλι"
+
+#: src/lib/input/actions.ts
+msgid "Previous chapter"
+msgstr "Προηγούμενο κεφάλαιο"
+
+#: src/features/player/controls.tsx src/lib/input/actions.ts
+msgid "Previous episode"
+msgstr "Προηγούμενο επεισόδιο"
+
+#: src/app/calendar/page.tsx
+msgid "Previous month"
+msgstr "Προηγούμενος μήνας"
+
+#: src/lib/input/keys.ts
+msgid "Previous track"
+msgstr "Προηγούμενο κομμάτι"
+
+#: src/app/trailer/page.tsx src/features/player/controls.tsx
+msgid "Previous trailer"
+msgstr "Προηγούμενο τρέιλερ"
+
+#: src/components/media/people.tsx
+msgid "Producer"
+msgstr "Παραγωγός"
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Puts every key back the way it came."
+msgstr "Επαναφέρει όλα τα πλήκτρα στην αρχική τους λειτουργία."
+
+#: src/features/party/in-party.tsx
+msgid "QR code"
+msgstr "Κωδικός QR"
+
+#: src/app/sign-in/page.tsx
+msgid "Quick Connect"
+msgstr "Γρήγορη σύνδεση"
+
+#: src/app/sign-in/page.tsx
+msgid "Quick Connect is unavailable: {message}"
+msgstr "Η Γρήγορη σύνδεση δεν είναι διαθέσιμη: {message}"
+
+#: src/app/settings/_components/version-settings.tsx
+#: src/features/versions/version-list.tsx
+msgid "Quick filters"
+msgstr "Γρήγορα φίλτρα"
+
+#: src/app/settings/interface.tsx
+msgid "Rail"
+msgstr "Πλευρική στήλη"
+
+#: src/app/settings/theme.tsx
+msgid "Rainforest"
+msgstr "Τροπικό δάσος"
+
+#: src/features/player/options.tsx src/lib/input/actions.ts
+msgid "Raise subtitles"
+msgstr "Ανύψωση υποτίτλων"
+
+#: src/app/settings/audio.tsx
+msgid "Raises the centre channel, where surround sound puts dialogue. Not for sound passed through."
+msgstr "Ενισχύει το κεντρικό κανάλι, όπου βρίσκονται οι διάλογοι στον περιβάλλοντα ήχο. Δεν εφαρμόζεται στον ήχο που μεταβιβάζεται απευθείας."
+
+#: src/app/item/_components/actions.tsx
+msgid "Random"
+msgstr "Τυχαία επιλογή"
+
+#: src/app/item/_components/actions.tsx src/components/media/item-menu.tsx
+#: src/components/media/random-pick.tsx
+msgid "Random episode"
+msgstr "Τυχαίο επεισόδιο"
+
+#: src/components/media/random-pick.tsx
+msgid "Random favourite"
+msgstr "Τυχαίο αγαπημένο"
+
+#: src/app/favourites/page.tsx
+msgid "Random pick"
+msgstr "Τυχαία επιλογή"
+
+#: src/app/item/_components/actions.tsx src/app/item/_components/rating.tsx
+msgid "Rate"
+msgstr "Βαθμολόγηση"
+
+#: src/app/item/_components/seasons.tsx
+msgid "Rate season"
+msgstr "Βαθμολόγηση σεζόν"
+
+#: src/components/media/scores.tsx
+msgid "Rating"
+msgstr "Βαθμολογία"
+
+#: src/features/party/chat.tsx
+msgid "React with {emoji}"
+msgstr "Αντίδραση με {emoji}"
+
+#: src/app/settings/_components/reaction-setting.tsx
+#: src/features/party/in-party.tsx
+msgid "Reactions"
+msgstr "Αντιδράσεις"
+
+#: src/app/settings/playback.tsx
+msgid "Reads and decodes the file itself and draws it on the graphics card, so it also plays formats this browser can't, such as HEVC, Dolby Vision, AC-3, E-AC-3, TrueHD and DTS. A version it can't play goes to this browser's own player."
+msgstr ""
+
+#: src/lib/format.ts
+msgid "Recap"
+msgstr "Ανακεφαλαίωση"
+
+#: src/app/settings/playback.tsx
+msgid "Recaps"
+msgstr "Ανακεφαλαιώσεις"
+
+#: src/features/live-tv/live-tv.ts
+msgid "Recent"
+msgstr "Πρόσφατα"
+
+#: src/app/search/page.tsx
+msgid "Recent searches"
+msgstr "Πρόσφατες αναζητήσεις"
+
+#: src/features/party/party-layer.tsx
+msgid "Reconnecting to the party…"
+msgstr "Γίνεται επανασύνδεση στην ομαδική προβολή…"
+
+#: src/components/shell/unreachable.tsx src/features/player/controls.tsx
+#: src/features/player/picture-in-picture.tsx
+msgid "Reconnecting…"
+msgstr "Γίνεται επανασύνδεση…"
+
+#: src/lib/i18n.ts
+msgid "Red"
+msgstr "Κόκκινο"
+
+#: src/app/item/_components/no-details.tsx src/components/media/no-catalogs.tsx
+msgid "Refresh"
+msgstr "Ανανέωση"
+
+#: src/lib/hosts/shell/player.ts
+msgid "refused"
+msgstr "απορρίφθηκε"
+
+#: src/features/party/not-in-party.tsx
+msgid "Relay"
+msgstr "Διακομιστής αναμετάδοσης"
+
+#: src/features/party/not-in-party.tsx
+msgid "Relay address"
+msgstr "Διεύθυνση διακομιστή αναμετάδοσης"
+
+#: src/app/item/_components/details.tsx
+msgid "Released"
+msgstr "Κυκλοφορία"
+
+#: src/app/settings/audio.tsx src/app/settings/subtitles.tsx
+msgid "Remember picks per show"
+msgstr "Απομνημόνευση επιλογών ανά σειρά"
+
+#: src/app/live-tv/_components/channel-details.tsx
+msgid "Remind me"
+msgstr "Υπενθύμισέ μου"
+
+#: src/app/live-tv/_components/guide.tsx
+msgid "Reminder"
+msgstr "Υπενθύμιση"
+
+#: src/app/live-tv/page.tsx
+msgid "Reminder removed"
+msgstr "Η υπενθύμιση αφαιρέθηκε"
+
+#: src/app/live-tv/_components/channel-details.tsx
+msgid "Reminder set"
+msgstr "Η υπενθύμιση ορίστηκε"
+
+#: src/app/search/page.tsx src/app/servers/page.tsx
+#: src/app/settings/_components/common.tsx
+#: src/app/settings/_components/version-settings.tsx
+msgid "Remove"
+msgstr "Αφαίρεση"
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Remove {key}"
+msgstr "Αφαίρεση του {key}"
+
+#: src/app/settings/_components/common.tsx src/features/party/in-party.tsx
+msgid "Remove {name}"
+msgstr "Αφαίρεση του {name}"
+
+#: src/app/servers/page.tsx
+msgid "Remove {targetName} from this device? You will need to add it and sign in again."
+msgstr "Να αφαιρεθεί το {targetName} από αυτή τη συσκευή; Θα χρειαστεί να το προσθέσεις και να συνδεθείς ξανά."
+
+#: src/app/search/page.tsx
+msgid "Remove {term}"
+msgstr "Αφαίρεση του {term}"
+
+#: src/app/item/_components/actions.tsx
+#: src/app/live-tv/_components/channel-details.tsx
+#: src/components/media/item-menu.tsx
+msgid "Remove favourite"
+msgstr "Αφαίρεση από τα αγαπημένα"
+
+#: src/components/media/item-menu.tsx
+msgid "Remove from continue watching"
+msgstr "Αφαίρεση από τη συνέχεια παρακολούθησης"
+
+#: src/app/history/page.tsx
+msgid "Remove from history"
+msgstr "Αφαίρεση από το ιστορικό"
+
+#: src/features/playlists/playlists.tsx
+msgid "Remove from playlist"
+msgstr "Αφαίρεση από τη λίστα αναπαραγωγής"
+
+#: src/app/downloads/page.tsx
+msgid "Remove from the list, keep the file"
+msgstr "Αφαίρεση από τη λίστα, διατήρηση του αρχείου"
+
+#: src/app/servers/page.tsx
+msgid "Remove server"
+msgstr "Αφαίρεση διακομιστή"
+
+#: src/app/history/page.tsx
+msgid "Removed from history"
+msgstr "Αφαιρέθηκε από το ιστορικό"
+
+#: src/features/playlists/playlists.tsx
+msgid "Rename"
+msgstr "Μετονομασία"
+
+#: src/features/playlists/playlists.tsx
+msgid "Repeat"
+msgstr "Επανάληψη"
+
+#: src/app/settings/apps.tsx
+msgid "Report a problem"
+msgstr "Αναφορά προβλήματος"
+
+#: src/components/shell/crash-report.tsx
+msgid "Report copied"
+msgstr "Η αναφορά αντιγράφηκε"
+
+#: src/lib/jellyfin/client.ts
+msgid "Request failed ({status})"
+msgstr "Το αίτημα απέτυχε ({status})"
+
+#: src/app/history/page.tsx src/app/settings/_components/reaction-setting.tsx
+#: src/features/player/options.tsx
+msgid "Reset"
+msgstr "Επαναφορά"
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Reset {label}"
+msgstr "Επαναφορά: {label}"
+
+#: src/app/history/page.tsx
+msgid "Reset {name}'s history"
+msgstr "Επαναφορά ιστορικού του {name}"
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Reset all"
+msgstr "Επαναφορά όλων"
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "Reset all shortcuts"
+msgstr "Επαναφορά όλων των συντομεύσεων"
+
+#: src/features/player/options.tsx
+msgid "Reset delay"
+msgstr "Επαναφορά καθυστέρησης"
+
+#: src/app/history/page.tsx
+msgid "Reset history"
+msgstr "Επαναφορά ιστορικού"
+
+#: src/app/settings/theme.tsx
+msgid "Reset theme"
+msgstr "Επαναφορά θέματος"
+
+#: src/app/settings/apps.tsx
+msgid "Restart"
+msgstr "Επανεκκίνηση"
+
+#: src/lib/hosts/shell/index.ts
+msgid "Restart now"
+msgstr "Επανεκκίνηση τώρα"
+
+#: src/app/settings/apps.tsx
+msgid "Restart to switch"
+msgstr "Επανεκκίνηση για αλλαγή"
+
+#: src/components/shell/window-controls.tsx
+msgid "Restore"
+msgstr "Επαναφορά παραθύρου"
+
+#: src/app/settings/cache.tsx
+msgid "Results of what you searched for."
+msgstr "Τα αποτελέσματα της αναζήτησής σου."
+
+#: src/app/downloads/page.tsx src/components/media/item-menu.tsx
+#: src/components/media/random-pick.tsx
+msgid "Resume"
+msgstr "Συνέχιση"
+
+#: src/app/item/_components/header.tsx
+msgid "Resume {code}"
+msgstr "Συνέχιση {code}"
+
+#: src/app/downloads/page.tsx
+msgid "Resume all"
+msgstr "Συνέχιση όλων"
+
+#: src/app/item/_components/header.tsx src/features/versions/version-list.tsx
+#: src/lib/playback/use-player.ts
+msgid "Resume from {resumeAt}"
+msgstr "Συνέχιση από {resumeAt}"
+
+#: src/features/player/options.tsx
+msgid "Retimed and synced automatically"
+msgstr "Προσαρμόστηκε ο χρονισμός και έγινε αυτόματος συγχρονισμός"
+
+#: src/lib/i18n.ts
+msgid "Retry"
+msgstr "Νέα προσπάθεια"
+
+#: src/features/remote/remote-sheet.tsx src/lib/input/keys.ts
+msgid "Rewind"
+msgstr "Γρήγορη επιστροφή"
+
+#: src/lib/input/actions.ts
+msgid "Right"
+msgstr "Δεξιά"
+
+#: src/app/settings/interface.tsx
+msgid "Rotates through featured titles"
+msgstr "Εναλλαγή προβεβλημένων τίτλων"
+
+#: src/components/media/scores.tsx
+msgid "Rotten Tomatoes audience"
+msgstr "Κοινό του Rotten Tomatoes"
+
+#: src/app/settings/interface.tsx
+msgid "Row"
+msgstr "Σειρά καρτών"
+
+#: src/app/settings/cache.tsx
+msgid "Rows, catalogs and the calendar."
+msgstr "Σειρές καρτών, κατάλογοι και ημερολόγιο."
+
+#: src/features/player/options.tsx
+msgid "Runs at a different speed to the video"
+msgstr "Έχει διαφορετική ταχύτητα από το βίντεο"
+
+#. A season and episode number, as in S01E04
+#: src/lib/format.ts
+msgid "S{s}E{e}"
+msgstr "Σ{s}Ε{e}"
+
+#: src/app/settings/subtitles.tsx
+msgid "Sans serif"
+msgstr "Χωρίς πατούρες"
+
+#: src/app/settings/_components/version-settings.tsx src/app/settings/apps.tsx
+#: src/features/playlists/playlists.tsx
+msgid "Save"
+msgstr "Αποθήκευση"
+
+#: src/app/settings/cache.tsx
+msgid "Save account and server"
+msgstr "Αποθήκευση λογαριασμού και διακομιστή"
+
+#: src/app/settings/cache.tsx
+msgid "Save activity"
+msgstr "Αποθήκευση δραστηριότητας"
+
+#: src/app/settings/cache.tsx
+msgid "Save artwork"
+msgstr "Αποθήκευση εικόνων"
+
+#: src/app/settings/cache.tsx
+msgid "Save home and libraries"
+msgstr "Αποθήκευση αρχικής και βιβλιοθηκών"
+
+#: src/components/shell/crash-report.tsx
+msgid "Save report"
+msgstr "Αποθήκευση αναφοράς"
+
+#: src/app/settings/cache.tsx
+msgid "Save searches"
+msgstr "Αποθήκευση αναζητήσεων"
+
+#: src/app/settings/downloads.tsx
+msgid "Save subtitles"
+msgstr "Αποθήκευση υποτίτλων"
+
+#: src/app/settings/cache.tsx
+msgid "Save title pages"
+msgstr "Αποθήκευση σελίδων τίτλων"
+
+#: src/app/settings/cache.tsx
+msgid "Save what you browse"
+msgstr "Αποθήκευση περιεχομένου περιήγησης"
+
+#: src/app/settings/apps.tsx
+msgid "Saved"
+msgstr "Αποθηκεύτηκε"
+
+#: src/app/downloads/page.tsx
+msgid "Saved to {folder}"
+msgstr "Αποθηκεύτηκε στο {folder}"
+
+#: src/app/settings/_components/common.tsx
+msgid "Saved to your account, so it follows you to every device."
+msgstr "Αποθηκεύεται στον λογαριασμό σου και σε ακολουθεί σε κάθε συσκευή."
+
+#: src/app/settings/_components/common.tsx
+msgid "Saved to your account, so your other devices and Jellyfin apps use it too."
+msgstr "Αποθηκεύεται στον λογαριασμό σου, ώστε να χρησιμοποιείται και από τις άλλες συσκευές σου και τις εφαρμογές Jellyfin."
+
+#: src/lib/playback/external-return.ts
+msgid "Saved your place at {at}"
+msgstr "Το σημείο διακοπής αποθηκεύτηκε στο {at}"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Saw"
+msgstr "Εμφανίστηκε"
+
+#: src/lib/input/actions.ts
+msgid "Saw its subtitle"
+msgstr "Εμφανίστηκε ο υπότιτλος"
+
+#: src/app/item/_components/trailer.tsx
+msgid "Scroll up for playback controls"
+msgstr ""
+
+#: src/lib/playback/controller.ts
+msgid "SDH"
+msgstr "SDH"
+
+#: src/app/settings/subtitles.tsx
+msgid "SDH, with sounds described"
+msgstr "SDH, με περιγραφή ήχων"
+
+#: src/app/discover/page.tsx src/app/search/page.tsx
+#: src/app/settings/_components/licenses.tsx
+#: src/app/settings/_components/version-settings.tsx src/app/settings/apps.tsx
+#: src/components/shell/layout.tsx src/lib/input/actions.ts
+msgid "Search"
+msgstr "Αναζήτηση"
+
+#: src/features/versions/version-list.tsx
+msgid "Search again"
+msgstr "Νέα αναζήτηση"
+
+#: src/app/search/page.tsx
+msgid "Search by voice"
+msgstr "Φωνητική αναζήτηση"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Search the lines"
+msgstr "Αναζήτηση στις ατάκες"
+
+#: src/app/settings/cache.tsx
+msgid "Searches"
+msgstr "Αναζητήσεις"
+
+#: src/lib/discord.ts
+msgid "Searching"
+msgstr "Γίνεται αναζήτηση"
+
+#: src/features/player/pause-screen.tsx
+msgid "Season {season}"
+msgstr "Σεζόν {season}"
+
+#: src/components/media/item-menu.tsx
+msgid "See the download"
+msgstr "Προβολή λήψης"
+
+#: src/features/player/seek-bar.tsx
+msgid "Seek"
+msgstr "Μετακίνηση"
+
+#: src/app/settings/playback.tsx
+msgid "Seek bar previews"
+msgstr "Προεπισκοπήσεις στη γραμμή αναπαραγωγής"
+
+#: src/app/history/page.tsx src/lib/i18n.ts src/lib/input/actions.ts
+msgid "Select"
+msgstr "Επιλογή"
+
+#: src/app/history/page.tsx
+msgid "Select all"
+msgstr "Επιλογή όλων"
+
+#: src/components/send-report.tsx src/features/party/chat.tsx
+msgid "Send"
+msgstr "Αποστολή"
+
+#: src/components/send-report.tsx
+msgid "Send a report"
+msgstr "Αποστολή αναφοράς"
+
+#: src/app/settings/apps.tsx src/components/shell/crash-report.tsx
+msgid "Send report"
+msgstr "Αποστολή αναφοράς"
+
+#: src/app/settings/about.tsx
+#, fuzzy
+msgid "Send usage statistics"
+msgstr "Στατιστικά"
+
+#: src/features/party/chat.tsx
+msgid "Sending…"
+msgstr "Γίνεται αποστολή…"
+
+#: src/app/settings/audio.tsx
+msgid "Sends Dolby and DTS audio as it is even when your TV or receiver does not say it decodes them, as some do without saying so."
+msgstr "Μεταβιβάζει τον ήχο Dolby και DTS αυτούσιο, ακόμη κι όταν η τηλεόραση ή ο ενισχυτής σου δεν δηλώνει ότι τον αποκωδικοποιεί, καθώς ορισμένες συσκευές το υποστηρίζουν χωρίς να το δηλώνουν."
+
+#: src/app/settings/audio.tsx
+msgid "Sends Dolby and DTS audio as it is when your TV or receiver says it decodes them, which keeps Atmos. Otherwise this app decodes it."
+msgstr "Μεταβιβάζει τον ήχο Dolby και DTS αυτούσιο όταν η τηλεόραση ή ο ενισχυτής σου δηλώνει ότι τον αποκωδικοποιεί, διατηρώντας το Atmos. Διαφορετικά, τον αποκωδικοποιεί η εφαρμογή."
+
+#: src/app/settings/audio.tsx
+msgid "Sends Dolby and DTS audio to your receiver as it is. Only turn this on if your receiver decodes them."
+msgstr "Μεταβιβάζει τον ήχο Dolby και DTS αυτούσιο στον ενισχυτή σου. Ενεργοποίησέ το μόνο αν ο ενισχυτής σου υποστηρίζει την αποκωδικοποίησή τους."
+
+#: src/features/party/chat.tsx
+msgid "Sends once the party is back"
+msgstr "Θα σταλεί μόλις αποκατασταθεί η σύνδεση με την ομαδική προβολή"
+
+#: src/app/settings/apps.tsx
+msgid "Sends this device's details and the app's recent log to the server, with a code to give whoever looks into it."
+msgstr "Στέλνει στον διακομιστή τα στοιχεία αυτής της συσκευής και το πρόσφατο αρχείο καταγραφής της εφαρμογής, με έναν κωδικό για το άτομο που θα διερευνήσει το πρόβλημα."
+
+#: src/app/settings/subtitles.tsx
+msgid "Serif"
+msgstr "Με πατούρες"
+
+#: src/app/settings/about.tsx src/app/settings/account.tsx
+msgid "Server"
+msgstr "Διακομιστής"
+
+#: src/app/servers/page.tsx
+msgid "Server address"
+msgstr "Διεύθυνση διακομιστή"
+
+#: src/lib/hosts/shell/player.ts
+msgid "server error"
+msgstr "σφάλμα διακομιστή"
+
+#: src/features/player/options.tsx
+msgid "Set by hand"
+msgstr "Χειροκίνητος ορισμός"
+
+#: src/app/settings/page.tsx src/components/shell/layout.tsx
+msgid "Settings"
+msgstr "Ρυθμίσεις"
+
+#: src/app/settings/playback.tsx
+msgid "Shader files (.wgsl) for the WebGPU engine, applied in name order to what plays. They stay in this browser. Heavy ones can make video stutter."
+msgstr ""
+
+#: src/app/settings/_components/common.tsx
+#, fuzzy
+msgid "Shaders"
+msgstr "Σκιά"
+
+#: src/app/settings/subtitles.tsx
+msgid "Shadow"
+msgstr "Σκιά"
+
+#: src/features/party/in-party.tsx
+msgid "Share the invite"
+msgstr "Κοινοποίηση πρόσκλησης"
+
+#: src/app/settings/playback.tsx
+msgid "Sharpens the lines and cleans up the compression in anime as it plays, most of all in older and lower-resolution shows. It applies to titles your catalogs mark as anime. With a keyboard, U in the player switches it for what's playing. Uses more power, and turns itself off for a video this device can't keep up with. HDR videos, and videos about as large as the screen, stay as they are."
+msgstr ""
+
+#: src/lib/input/keys.ts
+msgid "Shift"
+msgstr "Shift"
+
+#: src/app/settings/page.tsx
+msgid "Shortcuts"
+msgstr "Συντομεύσεις"
+
+#. A dot under the banner that brings this title up
+#: src/components/media/hero.tsx
+msgid "Show {name}"
+msgstr "Εμφάνιση του {name}"
+
+#: src/app/settings/playback.tsx
+msgid "Show a skip button"
+msgstr "Εμφάνιση κουμπιού παράλειψης"
+
+#: src/app/history/page.tsx
+msgid "Show episodes"
+msgstr "Εμφάνιση επεισοδίων"
+
+#: src/app/downloads/page.tsx
+msgid "Show in folder"
+msgstr "Εμφάνιση στον φάκελο"
+
+#: src/app/settings/playback.tsx
+msgid "Show messages over the video"
+msgstr "Εμφάνιση μηνυμάτων πάνω στο βίντεο"
+
+#: src/app/settings/playback.tsx
+msgid "Show reactions over the video"
+msgstr "Εμφάνιση αντιδράσεων πάνω στο βίντεο"
+
+#: src/app/settings/cache.tsx
+msgid "Show saved pages for up to"
+msgstr "Εμφάνιση αποθηκευμένων σελίδων για έως"
+
+#: src/features/player/options.tsx
+msgid "Show subtitles earlier"
+msgstr "Εμφάνιση υποτίτλων νωρίτερα"
+
+#: src/features/player/options.tsx
+msgid "Show subtitles later"
+msgstr "Εμφάνιση υποτίτλων αργότερα"
+
+#: src/app/settings/playback.tsx
+msgid "Show the controls on pause and skip"
+msgstr "Εμφάνιση στοιχείων ελέγχου σε παύση και μετακίνηση"
+
+#: src/app/settings/playback.tsx
+msgid "Show the prompt"
+msgstr "Εμφάνιση προτροπής"
+
+#: src/app/settings/playback.tsx
+msgid "Show the time"
+msgstr "Εμφάνιση ώρας"
+
+#: src/features/player/controls.tsx
+msgid "Show time left"
+msgstr "Εμφάνιση χρόνου που απομένει"
+
+#: src/features/player/controls.tsx
+msgid "Show time played"
+msgstr "Εμφάνιση χρόνου που πέρασε"
+
+#: src/components/shell/unreachable.tsx
+msgid "Showing saved pages"
+msgstr "Εμφανίζονται αποθηκευμένες σελίδες"
+
+#: src/app/settings/interface.tsx
+msgid "Shown"
+msgstr "Ορατά"
+
+#: src/app/discover/page.tsx src/app/favourites/page.tsx
+#: src/app/search/page.tsx src/components/media/kind-tabs.tsx
+#: src/components/media/random-pick.tsx src/lib/format.ts
+msgid "Shows"
+msgstr "Σειρές"
+
+#: src/app/settings/playback.tsx
+msgid "Shows a picture of the video where you point, drag or skip to on the seek bar. Each one reads a little of the file, so turn them off to save data."
+msgstr "Εμφανίζει μια εικόνα από το βίντεο στο σημείο όπου δείχνεις, σύρεις ή μετακινείσαι στη γραμμή αναπαραγωγής. Κάθε προεπισκόπηση διαβάζει ένα μικρό τμήμα του αρχείου, οπότε απενεργοποίησέ τες για εξοικονόμηση δεδομένων."
+
+#: src/app/settings/playback.tsx
+msgid "Shows HDR video in HDR on a screen that can show it, instead of converting it to SDR. Leave it off on a screen without HDR."
+msgstr ""
+
+#: src/app/settings/interface.tsx
+msgid "Shows next episodes in the continue watching row, after what you are partway through."
+msgstr "Εμφανίζει τα επόμενα επεισόδια στη σειρά καρτών «Συνέχεια παρακολούθησης», μετά από όσα έχεις ξεκινήσει."
+
+#: src/app/settings/interface.tsx
+msgid "Shows search results in one grid instead of a row each for movies and shows."
+msgstr "Εμφανίζει τα αποτελέσματα αναζήτησης σε ενιαίο πλέγμα, αντί για ξεχωριστές σειρές καρτών για ταινίες και σειρές."
+
+#: src/app/settings/subtitles.tsx
+msgid "Shows subtitles in your language unless the audio already is."
+msgstr "Εμφανίζει υπότιτλους στη γλώσσα σου, εκτός αν ο ήχος είναι ήδη σε αυτή."
+
+#: src/app/settings/playback.tsx
+msgid "Shows the time of day at the top of the player with the controls."
+msgstr "Εμφανίζει την τρέχουσα ώρα στο επάνω μέρος του προγράμματος αναπαραγωγής, μαζί με τα στοιχεία ελέγχου."
+
+#: src/features/playlists/playlists.tsx
+msgid "Shuffle"
+msgstr "Τυχαία σειρά"
+
+#: src/app/settings/interface.tsx
+msgid "Side rail"
+msgstr "Πλευρική στήλη"
+
+#: src/app/settings/interface.tsx
+msgid "Side rail runs down the side of the screen; Top tabs sit along the top of each page."
+msgstr "Η πλευρική στήλη εκτείνεται στο πλάι της οθόνης. Οι επάνω καρτέλες βρίσκονται στο επάνω μέρος κάθε σελίδας."
+
+#: src/app/settings/interface.tsx
+msgid "Sidebar"
+msgstr "Πλευρικό μενού"
+
+#: src/app/sign-in/page.tsx
+msgid "Sign in"
+msgstr "Σύνδεση"
+
+#: src/app/sign-in/page.tsx
+msgid "Sign in failed"
+msgstr "Η σύνδεση απέτυχε"
+
+#: src/app/servers/page.tsx src/app/settings/account.tsx
+msgid "Sign out"
+msgstr "Αποσύνδεση"
+
+#: src/app/servers/page.tsx
+msgid "Sign out of {targetName}?"
+msgstr "Να γίνει αποσύνδεση από το {targetName};"
+
+#: src/app/settings/account.tsx
+msgid "Sign out of this browser?"
+msgstr "Να γίνει αποσύνδεση από αυτό το πρόγραμμα περιήγησης;"
+
+#: src/app/settings/account.tsx
+msgid "Sign out of this server?"
+msgstr "Να γίνει αποσύνδεση από αυτόν τον διακομιστή;"
+
+#: src/app/servers/page.tsx
+msgid "Signed out"
+msgstr "Έγινε αποσύνδεση"
+
+#: src/app/settings/subtitles.tsx src/lib/playback/controller.ts
+msgid "Signs and songs"
+msgstr "Επιγραφές και τραγούδια"
+
+#: src/app/settings/subtitles.tsx src/features/player/options.tsx
+msgid "Size"
+msgstr "Μέγεθος"
+
+#: src/features/player/segments.ts
+msgid "Skip"
+msgstr "Παράλειψη"
+
+#: src/features/player/segments.ts
+msgid "Skip ad"
+msgstr "Παράλειψη διαφήμισης"
+
+#: src/app/settings/playback.tsx
+msgid "Skip automatically"
+msgstr "Αυτόματη παράλειψη"
+
+#: src/lib/input/actions.ts
+msgid "Skip back"
+msgstr "Μετακίνηση πίσω"
+
+#: src/app/settings/playback.tsx
+msgid "Skip by the file's chapters"
+msgstr "Μετακίνηση ανά κεφάλαιο του αρχείου"
+
+#: src/features/player/segments.ts
+msgid "Skip credits"
+msgstr "Παράλειψη τίτλων τέλους"
+
+#: src/app/settings/playback.tsx
+msgid "Skip filler episodes"
+msgstr "Παράλειψη επεισοδίων εκτός κύριας πλοκής"
+
+#: src/lib/input/actions.ts
+msgid "Skip forward"
+msgstr "Μετακίνηση μπροστά"
+
+#: src/features/player/segments.ts
+msgid "Skip intro"
+msgstr "Παράλειψη εισαγωγής"
+
+#: src/app/settings/playback.tsx
+msgid "Skip length"
+msgstr "Διάστημα μετακίνησης"
+
+#: src/features/player/segments.ts
+msgid "Skip preview"
+msgstr "Παράλειψη προεπισκόπησης"
+
+#: src/features/player/segments.ts
+msgid "Skip recap"
+msgstr "Παράλειψη ανακεφαλαίωσης"
+
+#: src/app/settings/playback.tsx
+msgid "Skip recap episodes"
+msgstr "Παράλειψη επεισοδίων ανακεφαλαίωσης"
+
+#: src/lib/input/actions.ts
+msgid "Skip the intro or credits"
+msgstr "Παράλειψη εισαγωγής ή τίτλων τέλους"
+
+#: src/features/player/segments.ts
+msgid "Skipped ad"
+msgstr "Η διαφήμιση παραλείφθηκε"
+
+#: src/features/player/segments.ts
+msgid "Skipped credits"
+msgstr "Οι τίτλοι τέλους παραλείφθηκαν"
+
+#: src/features/player/segments.ts
+msgid "Skipped intro"
+msgstr "Η εισαγωγή παραλείφθηκε"
+
+#: src/features/player/segments.ts
+msgid "Skipped preview"
+msgstr "Η προεπισκόπηση παραλείφθηκε"
+
+#: src/features/player/segments.ts
+msgid "Skipped recap"
+msgstr "Η ανακεφαλαίωση παραλείφθηκε"
+
+#: src/features/player/segments.ts
+msgid "Skipped segment"
+msgstr "Το τμήμα παραλείφθηκε"
+
+#: src/app/settings/playback.tsx
+msgid "Skipping"
+msgstr "Παραλείψεις"
+
+#: src/app/settings/_components/reaction-setting.tsx
+msgid "Slot {n}: {emoji}"
+msgstr "Θέση {n}: {emoji}"
+
+#: src/lib/input/actions.ts
+msgid "Slower"
+msgstr "Πιο αργά"
+
+#: src/app/settings/interface.tsx src/lib/subtitles/style.ts
+msgid "Small"
+msgstr "Μικρό"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Small labels on each version for what it has, from packs you link or badges you make."
+msgstr "Μικρές ετικέτες σε κάθε έκδοση για τα χαρακτηριστικά της, από πακέτα που συνδέεις ή ετικέτες που δημιουργείς."
+
+#: src/features/player/options.tsx src/lib/input/actions.ts
+msgid "Smaller subtitles"
+msgstr "Μικρότεροι υπότιτλοι"
+
+#: src/app/settings/interface.tsx
+msgid "Solid"
+msgstr "Αδιαφανές"
+
+#: src/lib/party/actions.ts src/lib/party/party.ts
+msgid "Someone"
+msgstr "Κάποιος"
+
+#: src/lib/party/party.ts
+msgid "something this device cannot read"
+msgstr "κάτι που δεν μπορεί να διαβάσει αυτή η συσκευή"
+
+#: src/features/party/in-party.tsx
+msgid "Something this device cannot read"
+msgstr "Κάτι που δεν μπορεί να διαβάσει αυτή η συσκευή"
+
+#: src/app/settings/audio.tsx src/app/settings/interface.tsx
+#: src/features/player/options.tsx
+msgid "Sound"
+msgstr "Ήχος"
+
+#: src/app/history/page.tsx
+msgid "Source"
+msgstr "Πηγή"
+
+#: src/app/settings/about.tsx
+msgid "Source code"
+msgstr "Πηγαίος κώδικας"
+
+#: src/lib/input/keys.ts
+msgid "Space"
+msgstr "Space"
+
+#: src/app/settings/cache.tsx
+msgid "Space to use"
+msgstr "Όριο χρήσης χώρου"
+
+#: src/features/player/pause-screen.tsx
+msgid "Specials"
+msgstr "Ειδικά επεισόδια"
+
+#: src/features/player/options.tsx
+msgid "Speed"
+msgstr "Ταχύτητα"
+
+#: src/features/player/keys.ts
+msgid "Speed {shown}×"
+msgstr "Ταχύτητα {shown}×"
+
+#: src/lib/input/actions.ts
+msgid "Speed up while held"
+msgstr "Επιτάχυνση με παρατεταμένο πάτημα"
+
+#: src/app/settings/interface.tsx
+msgid "Spoilers"
+msgstr "Αποκαλύψεις πλοκής"
+
+#: src/app/settings/apps.tsx
+msgid "Stable"
+msgstr "Σταθερή"
+
+#: src/features/party/not-in-party.tsx
+msgid "Start a party"
+msgstr "Έναρξη ομαδικής προβολής"
+
+#: src/app/settings/interface.tsx
+msgid "Start on"
+msgstr "Αρχική σελίδα κατά την εκκίνηση"
+
+#: src/features/remote/remote-sheet.tsx
+msgid "Starting…"
+msgstr "Γίνεται εκκίνηση…"
+
+#: src/app/settings/subtitles.tsx
+msgid "Starts without subtitles."
+msgstr "Ξεκινά χωρίς υπότιτλους."
+
+#: src/features/player/options.tsx src/lib/input/actions.ts
+msgid "Statistics"
+msgstr "Στατιστικά"
+
+#: src/app/history/page.tsx src/app/settings/apps.tsx
+msgid "Status"
+msgstr "Κατάσταση"
+
+#: src/app/settings/interface.tsx
+msgid "Stays as it is"
+msgstr ""
+
+#: src/app/settings/audio.tsx
+msgid "Stereo"
+msgstr "Στερεοφωνικός ήχος"
+
+#: src/features/remote/remote-sheet.tsx src/lib/input/actions.ts
+#: src/lib/input/keys.ts
+msgid "Stop"
+msgstr "Διακοπή"
+
+#: src/app/search/page.tsx
+msgid "Stop listening"
+msgstr "Διακοπή ακρόασης"
+
+#: src/app/settings/playback.tsx
+msgid "Stops playing"
+msgstr "Διακόπτει την αναπαραγωγή"
+
+#: src/app/player/page.tsx src/features/versions/version-list.tsx
+msgid "Stream link copied"
+msgstr "Ο σύνδεσμος ροής αντιγράφηκε"
+
+#: src/features/player/options.tsx
+msgid "Stretch"
+msgstr "Τέντωμα"
+
+#: src/app/item/_components/details.tsx
+msgid "Studios"
+msgstr "Στούντιο"
+
+#: src/app/settings/interface.tsx src/features/player/options.tsx
+msgid "Style"
+msgstr "Στυλ"
+
+#: src/app/settings/subtitles.tsx
+msgid "Styled subtitles, common in anime, keep their own fonts and colours unless this is on. Blu-ray and DVD subtitles always keep their look and size. Only in the desktop app."
+msgstr "Οι υπότιτλοι με μορφοποίηση, συνηθισμένοι στα anime, διατηρούν τις γραμματοσειρές και τα χρώματά τους εκτός αν ενεργοποιηθεί αυτή η επιλογή. Οι υπότιτλοι Blu-ray και DVD διατηρούν πάντα την εμφάνιση και το μέγεθός τους. Μόνο στην εφαρμογή υπολογιστή."
+
+#: src/app/settings/downloads.tsx
+msgid "Subtitle files go next to the video, named so players find them."
+msgstr "Τα αρχεία υποτίτλων αποθηκεύονται δίπλα στο βίντεο, με ονόματα που επιτρέπουν στα προγράμματα αναπαραγωγής να τα εντοπίζουν."
+
+#: src/features/player/keys.ts
+msgid "Subtitle height {height}%"
+msgstr "Ύψος υποτίτλων {height}%"
+
+#: src/app/settings/subtitles.tsx
+msgid "Subtitle languages"
+msgstr "Γλώσσες υποτίτλων"
+
+#: src/features/player/keys.ts
+msgid "Subtitle size: {label}"
+msgstr "Μέγεθος υποτίτλων: {label}"
+
+#: src/app/settings/subtitles.tsx
+msgid "Subtitle types"
+msgstr "Τύποι υποτίτλων"
+
+#: src/app/settings/page.tsx src/app/settings/subtitles.tsx
+#: src/features/player/options.tsx src/features/remote/remote-sheet.tsx
+msgid "Subtitles"
+msgstr "Υπότιτλοι"
+
+#: src/lib/subtitles/delay.ts
+msgid "Subtitles {amount}"
+msgstr "Υπότιτλοι {amount}"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Subtitles back in sync. Another line refines it."
+msgstr "Οι υπότιτλοι συγχρονίστηκαν ξανά. Με άλλη μία ατάκα μπορείς να βελτιώσεις τον συγχρονισμό."
+
+#: src/lib/input/actions.ts
+msgid "Subtitles earlier"
+msgstr "Υπότιτλοι νωρίτερα"
+
+#: src/lib/subtitles/delay.ts
+msgid "Subtitles in sync"
+msgstr "Οι υπότιτλοι είναι συγχρονισμένοι"
+
+#: src/lib/input/actions.ts
+msgid "Subtitles later"
+msgstr "Υπότιτλοι αργότερα"
+
+#: src/features/player/keys.ts
+msgid "Subtitles off"
+msgstr "Υπότιτλοι ανενεργοί"
+
+#: src/lib/input/actions.ts
+msgid "Subtitles on or off"
+msgstr "Ενεργοποίηση ή απενεργοποίηση υποτίτλων"
+
+#: src/lib/subtitles/delay.ts
+msgid "Subtitles retimed and synced: {amount}"
+msgstr "Προσαρμόστηκε ο χρονισμός και συγχρονίστηκαν οι υπότιτλοι: {amount}"
+
+#: src/lib/subtitles/delay.ts
+msgid "Subtitles retimed to the video's speed"
+msgstr "Ο χρονισμός των υποτίτλων προσαρμόστηκε στην ταχύτητα του βίντεο"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Subtitles set to {amount}. Another line refines it."
+msgstr "Οι υπότιτλοι ρυθμίστηκαν σε {amount}. Με άλλη μία ατάκα μπορείς να βελτιώσεις τον συγχρονισμό."
+
+#: src/lib/subtitles/delay.ts
+msgid "Subtitles synced: {amount}"
+msgstr "Οι υπότιτλοι συγχρονίστηκαν: {amount}"
+
+#: src/app/settings/subtitles.tsx
+msgid "Subtitles the version marks as default or forced, in your language when it has them."
+msgstr "Υπότιτλοι που η έκδοση ορίζει ως προεπιλεγμένους ή αναγκαστικούς, στη γλώσσα σου όταν τους διαθέτει."
+
+#: src/app/settings/subtitles.tsx
+msgid "Subtitles you pick or turn off while watching a show stay that way for its other episodes. Picking what the settings above would show forgets it."
+msgstr "Οι υπότιτλοι που επιλέγεις ή απενεργοποιείς όσο παρακολουθείς μια σειρά παραμένουν έτσι και στα άλλα επεισόδιά της. Αν επιλέξεις αυτό που θα εμφάνιζαν οι παραπάνω ρυθμίσεις, η προτίμηση διαγράφεται."
+
+#: src/features/player/keys.ts
+msgid "Subtitles: {label}"
+msgstr "Υπότιτλοι: {label}"
+
+#: src/app/settings/theme.tsx
+msgid "Sun"
+msgstr "Ήλιος"
+
+#: src/lib/i18n.ts
+msgid "Support AIOStreams"
+msgstr "Στήριξε το AIOStreams"
+
+#: src/app/settings/account.tsx
+msgid "Switch"
+msgstr "Εναλλαγή"
+
+#: src/app.tsx
+msgid "Switch server"
+msgstr "Αλλαγή διακομιστή"
+
+#: src/app/settings/account.tsx src/components/media/no-catalogs.tsx
+#: src/components/shell/layout.tsx
+msgid "Switch user"
+msgstr "Αλλαγή χρήστη"
+
+#: src/app/settings/playback.tsx
+msgid "Switches the TV to a refresh rate that suits each video, so motion plays smoothly, and back when you stop. The screen goes blank for a moment as it switches."
+msgstr "Αλλάζει τον ρυθμό ανανέωσης της τηλεόρασης ώστε να ταιριάζει σε κάθε βίντεο, για ομαλή κίνηση, και τον επαναφέρει όταν σταματάς. Η οθόνη σβήνει για λίγο κατά την αλλαγή."
+
+#: src/features/player/options.tsx
+msgid "Sync automatically"
+msgstr "Αυτόματος συγχρονισμός"
+
+#: src/features/player/subtitle-sync.tsx src/lib/input/actions.ts
+msgid "Sync by ear"
+msgstr "Συγχρονισμός με ακρόαση"
+
+#: src/features/player/options.tsx
+msgid "Sync by ear…"
+msgstr "Συγχρονισμός με ακρόαση…"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Sync to a line"
+msgstr "Συγχρονισμός με ατάκα"
+
+#: src/features/player/options.tsx
+msgid "Sync to a line…"
+msgstr "Συγχρονισμός με ατάκα…"
+
+#: src/features/player/options.tsx
+msgid "Synced automatically"
+msgstr "Έγινε αυτόματος συγχρονισμός"
+
+#: src/features/player/controls.tsx
+msgid "Syncing subtitles…"
+msgstr "Γίνεται συγχρονισμός υποτίτλων…"
+
+#: src/app/settings/apps.tsx
+msgid "System"
+msgstr "Σύστημα"
+
+#: src/app/settings/interface.tsx
+msgid "System ({system})"
+msgstr "Σύστημα ({system})"
+
+#: src/app/settings/audio.tsx
+msgid "System default"
+msgstr "Προεπιλογή συστήματος"
+
+#: src/lib/input/keys.ts
+msgid "Tab"
+msgstr "Tab"
+
+#: src/app/settings/interface.tsx
+msgid "Tab names"
+msgstr "Ονόματα καρτελών"
+
+#: src/app/history/page.tsx
+msgid "Table"
+msgstr "Πίνακας"
+
+#: src/features/player/lock.tsx
+msgid "Tap to unlock"
+msgstr "Πάτησε για ξεκλείδωμα"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Tap when you hear a line and when its subtitle shows, in either order."
+msgstr "Πάτησε όταν ακούσεις μια ατάκα και όταν εμφανιστεί ο υπότιτλός της, με όποια σειρά θέλεις."
+
+#: src/app/settings/_components/version-settings.tsx
+#: src/app/settings/subtitles.tsx
+msgid "Text"
+msgstr "Κείμενο"
+
+#: src/features/versions/version-badges.tsx
+msgid "That address answered {status}."
+msgstr "Αυτή η διεύθυνση επέστρεψε {status}."
+
+#: src/app/sign-in/page.tsx
+msgid "That did not match. Try again."
+msgstr "Δεν ταιριάζει. Δοκίμασε ξανά."
+
+#: src/lib/subtitles/files.ts
+msgid "That file is too big"
+msgstr "Αυτό το αρχείο είναι πολύ μεγάλο"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "That has no badges this app can read."
+msgstr "Δεν περιέχει ετικέτες που μπορεί να διαβάσει η εφαρμογή."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "That has no quick filters this app can read."
+msgstr "Δεν περιέχει γρήγορα φίλτρα που μπορεί να διαβάσει η εφαρμογή."
+
+#: src/lib/jellyfin/servers.ts
+msgid "That is not a valid address."
+msgstr "Αυτή η διεύθυνση δεν είναι έγκυρη."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "That is not a valid regular expression."
+msgstr "Αυτή η κανονική έκφραση δεν είναι έγκυρη."
+
+#: src/lib/party/party.ts
+msgid "That party has ended."
+msgstr "Αυτή η ομαδική προβολή έχει τελειώσει."
+
+#: src/lib/party/party.ts
+msgid "That party is full."
+msgstr "Αυτή η ομαδική προβολή είναι πλήρης."
+
+#: src/lib/party/party.ts
+msgid "That party is not letting anyone new in."
+msgstr "Αυτή η ομαδική προβολή δεν δέχεται νέες συμμετοχές."
+
+#: src/features/versions/version-list.tsx
+msgid "That pattern is not a valid regular expression."
+msgstr "Αυτό το μοτίβο δεν είναι έγκυρη κανονική έκφραση."
+
+#: src/lib/party/party.ts
+msgid "That relay doesn't let you in."
+msgstr "Αυτός ο διακομιστής αναμετάδοσης δεν σου επιτρέπει την πρόσβαση."
+
+#: src/lib/party/party.ts
+msgid "That relay is too busy for another party."
+msgstr "Αυτός ο διακομιστής αναμετάδοσης είναι πολύ απασχολημένος για άλλη ομαδική προβολή."
+
+#: src/lib/party/party.ts
+msgid "That relay runs a different version of watch parties."
+msgstr "Αυτός ο διακομιστής αναμετάδοσης χρησιμοποιεί διαφορετική έκδοση ομαδικών προβολών."
+
+#: src/features/remote/remote-target.tsx
+msgid "That title could not be opened"
+msgstr "Δεν ήταν δυνατό το άνοιγμα αυτού του τίτλου"
+
+#: src/app/settings/apps.tsx
+msgid "That you are searching, not what for."
+msgstr "Ότι κάνεις αναζήτηση, χωρίς να φαίνεται τι αναζητάς."
+
+#: src/app/settings/playback.tsx
+msgid "The {name} installed on this computer, in a window of its own with its own controls and configuration. This app still saves your place, marks what you watched and plays the next episode. Compared with the built-in player, you lose:<0><1>The controls, skip buttons and next episode card over the video. They stay in this window, which works as a remote.</1><2>This app's subtitle style, video fit, hardware decoding and audio output settings.</2></0>"
+msgstr "Το {name} που είναι εγκατεστημένο σε αυτόν τον υπολογιστή, σε ξεχωριστό παράθυρο με δικά του στοιχεία ελέγχου και διαμόρφωση. Αυτή η εφαρμογή συνεχίζει να αποθηκεύει το σημείο διακοπής, να σημειώνει όσα παρακολούθησες και να αναπαράγει το επόμενο επεισόδιο. Σε σχέση με το ενσωματωμένο πρόγραμμα αναπαραγωγής, δεν θα έχεις:<0><1>Τα στοιχεία ελέγχου, τα κουμπιά παράλειψης και την κάρτα επόμενου επεισοδίου πάνω στο βίντεο. Παραμένουν σε αυτό το παράθυρο, που λειτουργεί ως τηλεχειριστήριο.</1><2>Το στυλ υποτίτλων, την προσαρμογή βίντεο, την αποκωδικοποίηση μέσω υλικού και τις ρυθμίσεις εξόδου ήχου αυτής της εφαρμογής.</2></0>"
+
+#: src/lib/jellyfin/servers.ts
+msgid "The address must start with http:// or https://."
+msgstr "Η διεύθυνση πρέπει να αρχίζει με http:// ή https://."
+
+#: src/app/servers/page.tsx
+msgid "The address of the AIOStreams instance where you set up your addon. Other Jellyfin servers work too."
+msgstr "Η διεύθυνση της εγκατάστασης AIOStreams όπου ρύθμισες το πρόσθετό σου. Λειτουργούν και άλλοι διακομιστές Jellyfin."
+
+#: src/app/settings/about.tsx
+msgid "The API this app speaks."
+msgstr "Το API που χρησιμοποιεί αυτή η εφαρμογή."
+
+#: src/app.tsx
+msgid "The app cannot open that link"
+msgstr "Η εφαρμογή δεν μπορεί να ανοίξει αυτόν τον σύνδεσμο"
+
+#: src/components/shell/crash-report.tsx
+msgid "The app closed unexpectedly"
+msgstr "Η εφαρμογή έκλεισε απροσδόκητα"
+
+#: src/lib/hosts/shell/bridge.ts
+msgid "The app did not answer"
+msgstr "Η εφαρμογή δεν αποκρίθηκε"
+
+#: src/app/settings/downloads.tsx
+msgid "The app saves what you download and plays it without a connection."
+msgstr "Η εφαρμογή αποθηκεύει όσα κατεβάζεις και τα αναπαράγει χωρίς σύνδεση."
+
+#: src/app/settings/downloads.tsx
+msgid "The app's downloads"
+msgstr "Οι λήψεις της εφαρμογής"
+
+#: src/lib/hosts/native-shell.ts
+msgid "The app's own settings"
+msgstr "Οι ρυθμίσεις της ίδιας της εφαρμογής"
+
+#: src/lib/hosts/jellyfin-android.ts
+msgid "The app's player"
+msgstr "Το πρόγραμμα αναπαραγωγής της εφαρμογής"
+
+#: src/lib/hosts/jellyfin-android.ts
+msgid "The app's player and its options, such as starting videos in landscape."
+msgstr "Το πρόγραμμα αναπαραγωγής της εφαρμογής και οι επιλογές του, όπως η έναρξη βίντεο σε οριζόντιο προσανατολισμό."
+
+#: src/lib/party/party.ts
+msgid "The host removed you from the party."
+msgstr "Ο οικοδεσπότης σε αφαίρεσε από την ομαδική προβολή."
+
+#: src/app/settings/about.tsx
+msgid "The interface is built on its components."
+msgstr "Το περιβάλλον χρήστη βασίζεται στα στοιχεία του."
+
+#: src/app/settings/_components/licenses.tsx
+msgid "The licences couldn't be loaded."
+msgstr "Δεν ήταν δυνατή η φόρτωση των αδειών χρήσης."
+
+#: src/lib/hosts/shell/player.ts
+msgid "the link answered HTTP {status}"
+msgstr "ο σύνδεσμος επέστρεψε HTTP {status}"
+
+#: src/lib/hosts/shell/player.ts
+msgid "the link answered HTTP {status} ({meaning})"
+msgstr "ο σύνδεσμος επέστρεψε HTTP {status} ({meaning})"
+
+#: src/router.tsx
+msgid "The link may be old, or the page moved."
+msgstr "Ο σύνδεσμος μπορεί να είναι παλιός ή η σελίδα να έχει μετακινηθεί."
+
+#: src/lib/hosts/shell/player.ts
+msgid "the link returned something other than a video"
+msgstr "ο σύνδεσμος επέστρεψε περιεχόμενο που δεν είναι βίντεο"
+
+#. Follows "Playback failed:"
+#: src/lib/playback/use-player.ts
+msgid "the live stream stopped"
+msgstr "η ζωντανή μετάδοση διακόπηκε"
+
+#: src/app/settings/playback.tsx
+msgid "The mini player keeps the video going over the pages while you look around. Tap it to open the player again, or close it with its cross."
+msgstr "Το μικρό πρόγραμμα αναπαραγωγής συνεχίζει το βίντεο πάνω από τις σελίδες όσο περιηγείσαι. Πάτησέ το για να ανοίξεις ξανά το πρόγραμμα αναπαραγωγής ή κλείσ' το με το Χ."
+
+#: src/app/settings/apps.tsx
+msgid "The movie or show whose page is open."
+msgstr "Η ταινία ή η σειρά της οποίας η σελίδα είναι ανοιχτή."
+
+#: src/app/settings/apps.tsx
+msgid "The older way mpv draws, for Macs where the others fail. Some Dolby Vision videos show the wrong colours."
+msgstr "Ο παλαιότερος τρόπος απόδοσης του mpv, για Mac όπου οι άλλοι δεν λειτουργούν. Ορισμένα βίντεο Dolby Vision εμφανίζουν λανθασμένα χρώματα."
+
+#: src/app/settings/_components/licenses.tsx
+msgid "The open-source software in this app, and the licence of each."
+msgstr "Το λογισμικό ανοιχτού κώδικα αυτής της εφαρμογής και η άδεια χρήσης του καθενός."
+
+#: src/features/remote/remote-sheet.tsx
+msgid "The other device could not be reached"
+msgstr "Δεν ήταν δυνατή η επικοινωνία με την άλλη συσκευή"
+
+#: src/components/shell/crash-report.tsx
+msgid "The page restarted unexpectedly"
+msgstr "Η σελίδα επανεκκινήθηκε απροσδόκητα"
+
+#: src/app/settings/interface.tsx
+msgid "The page the app opens on. A link still opens what it points to."
+msgstr "Η σελίδα στην οποία ανοίγει η εφαρμογή. Οι σύνδεσμοι εξακολουθούν να ανοίγουν το περιεχόμενο στο οποίο παραπέμπουν."
+
+#: src/lib/party/party.ts
+msgid "The party ended after a long time with nothing playing."
+msgstr "Η ομαδική προβολή τελείωσε ύστερα από μεγάλο διάστημα χωρίς αναπαραγωγή."
+
+#: src/lib/party/party.ts
+msgid "The party ended."
+msgstr "Η ομαδική προβολή τελείωσε."
+
+#: src/features/party/not-in-party.tsx
+msgid "The party is full"
+msgstr "Η ομαδική προβολή είναι πλήρης"
+
+#: src/features/party/in-party.tsx
+msgid "The party is watching <0>{title}</0>"
+msgstr "Στην ομαδική προβολή παίζει το <0>{title}</0>"
+
+#: src/lib/hosts/shell/player.ts
+msgid "the player could not play this version"
+msgstr "το πρόγραμμα αναπαραγωγής δεν μπόρεσε να αναπαράγει αυτή την έκδοση"
+
+#: src/app/settings/subtitles.tsx
+msgid "The player's subtitle menu lists subtitles in your languages, ones without a language and the one on. The rest wait under More languages."
+msgstr "Το μενού υποτίτλων του προγράμματος αναπαραγωγής εμφανίζει υπότιτλους στις γλώσσες σου, όσους δεν έχουν δηλωμένη γλώσσα και τον ενεργό υπότιτλο. Οι υπόλοιποι βρίσκονται στις «Περισσότερες γλώσσες»."
+
+#: src/features/playlists/playlists.tsx
+msgid "The playlist goes; the titles in it stay."
+msgstr "Η λίστα διαγράφεται. Οι τίτλοι που περιέχει παραμένουν."
+
+#: src/lib/party/party.ts
+msgid "The relay could not read that."
+msgstr "Ο διακομιστής αναμετάδοσης δεν μπόρεσε να το διαβάσει."
+
+#: src/app/settings/downloads.tsx
+msgid "The rest wait their turn."
+msgstr "Οι υπόλοιπες περιμένουν τη σειρά τους."
+
+#: src/app/settings/playback.tsx
+msgid "The same for episodes marked as a recap."
+msgstr "Το ίδιο ισχύει για τα επεισόδια που έχουν επισημανθεί ως ανακεφαλαιώσεις."
+
+#. Follows "Playback failed:"
+#: src/lib/playback/use-player.ts
+msgid "the stream ended early"
+msgstr "η ροή τερματίστηκε πρόωρα"
+
+#: src/app/settings/apps.tsx
+msgid "The title, the episode and the time left."
+msgstr "Ο τίτλος, το επεισόδιο και ο χρόνος που απομένει."
+
+#: src/lib/hosts/tizen/player.ts
+msgid "the TV cannot play this format"
+msgstr "η τηλεόραση δεν μπορεί να αναπαράγει αυτή τη μορφή"
+
+#: src/lib/hosts/tizen/player.ts
+msgid "the TV could not load the stream"
+msgstr "η τηλεόραση δεν μπόρεσε να φορτώσει τη ροή"
+
+#: src/lib/hosts/tizen/player.ts
+msgid "the TV's player failed ({code})"
+msgstr "το πρόγραμμα αναπαραγωγής της τηλεόρασης απέτυχε ({code})"
+
+#: src/lib/playback/player-choice.ts
+msgid "the video app Android picks"
+msgstr "η εφαρμογή βίντεο που επιλέγει το Android"
+
+#: src/app/settings/apps.tsx
+msgid "The video output changes when the app opens again."
+msgstr "Η έξοδος βίντεο αλλάζει όταν ανοίξει ξανά η εφαρμογή."
+
+#: src/features/downloads/download-button.tsx
+msgid "The whole show"
+msgstr "Ολόκληρη η σειρά"
+
+#: src/app/settings/page.tsx src/app/settings/theme.tsx
+msgid "Theme"
+msgstr "Θέμα"
+
+#: src/features/versions/version-badges.tsx
+msgid "There are no badges this app can read at that address."
+msgstr "Δεν υπάρχουν ετικέτες που μπορεί να διαβάσει η εφαρμογή σε αυτή τη διεύθυνση."
+
+#: src/router.tsx
+msgid "There is nothing here"
+msgstr "Δεν υπάρχει τίποτα εδώ"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "These come before the packs' badges. Badges that share a group are alternatives: only the first that matches shows."
+msgstr "Αυτές προηγούνται των ετικετών των πακέτων. Οι ετικέτες που ανήκουν στην ίδια ομάδα είναι εναλλακτικές: εμφανίζεται μόνο η πρώτη που ταιριάζει."
+
+#: src/lib/subtitles/delay.ts
+msgid "These subtitles don't match the video's own"
+msgstr "Αυτοί οι υπότιτλοι δεν ταιριάζουν με τους ενσωματωμένους υπότιτλους του βίντεο"
+
+#: src/lib/subtitles/delay.ts
+msgid "These subtitles run at a different speed to the video"
+msgstr "Αυτοί οι υπότιτλοι έχουν διαφορετική ταχύτητα από το βίντεο"
+
+#: src/features/player/subtitle-sync.tsx
+msgid "These subtitles' lines could not be read."
+msgstr "Δεν ήταν δυνατή η ανάγνωση των ατακών αυτών των υποτίτλων."
+
+#: src/app/settings/subtitles.tsx
+msgid "Thick"
+msgstr "Παχύ"
+
+#: src/app/settings/subtitles.tsx
+msgid "Thin"
+msgstr "Λεπτό"
+
+#: src/app/settings/audio.tsx
+msgid "This app decodes Dolby and DTS audio itself, which loses Atmos."
+msgstr "Η εφαρμογή αποκωδικοποιεί μόνη της τον ήχο Dolby και DTS, με αποτέλεσμα να χάνεται το Atmos."
+
+#: src/app/settings/playback.tsx
+#, fuzzy
+msgid "This browser"
+msgstr "Αυτός ο διακομιστής"
+
+#. Follows "Playback failed:"
+#: src/lib/playback/video.ts
+msgid "this browser cannot play this version. Nothing is converted on the server, so try another version, an external player or the desktop app."
+msgstr "αυτό το πρόγραμμα περιήγησης δεν μπορεί να αναπαράγει αυτή την έκδοση. Δεν γίνεται μετατροπή στον διακομιστή, οπότε δοκίμασε άλλη έκδοση, εξωτερικό πρόγραμμα αναπαραγωγής ή την εφαρμογή υπολογιστή."
+
+#: src/lib/playback/shaders.ts
+#, fuzzy
+msgid "This browser keeps no files for this site."
+msgstr "Αυτός ο διακομιστής δεν διαθέτει λεπτομέρειες για το {id}."
+
+#: src/app/settings/playback.tsx
+msgid "This browser's own player, which plays the formats this browser supports."
+msgstr ""
+
+#: src/app/sign-in/page.tsx
+msgid "This code has expired."
+msgstr "Αυτός ο κωδικός έχει λήξει."
+
+#: src/lib/hosts/shell/index.ts
+msgid "This copy does not update itself."
+msgstr "Αυτό το αντίγραφο δεν ενημερώνεται αυτόματα."
+
+#: src/lib/party/follow.ts
+msgid "This device couldn't read what the party is playing."
+msgstr "Αυτή η συσκευή δεν μπόρεσε να διαβάσει τι αναπαράγεται στην ομαδική προβολή."
+
+#: src/lib/playback/shaders.ts
+msgid "This is a GLSL shader. Convert it to a .wgsl pass file first."
+msgstr ""
+
+#: src/app/settings/subtitles.tsx
+msgid "This is how subtitles will look."
+msgstr "Έτσι θα εμφανίζονται οι υπότιτλοι."
+
+#: src/components/shell/crash-report.tsx
+msgid "This is what the device recorded about it. Sending or saving the report helps get it fixed."
+msgstr "Αυτά κατέγραψε η συσκευή για το συμβάν. Η αποστολή ή η αποθήκευση της αναφοράς βοηθά στην επίλυσή του."
+
+#: src/lib/playback/shaders.ts
+msgid "This isn't a .wgsl pass file."
+msgstr ""
+
+#: src/lib/jellyfin/queries.ts
+msgid "This item was not found"
+msgstr "Αυτό το στοιχείο δεν βρέθηκε"
+
+#: src/features/downloads/download-button.tsx
+msgid "This season"
+msgstr "Αυτή η σεζόν"
+
+#: src/features/party/not-in-party.tsx
+msgid "This server"
+msgstr "Αυτός ο διακομιστής"
+
+#: src/app/history/page.tsx
+msgid "This server can't list what you've watched."
+msgstr "Αυτός ο διακομιστής δεν μπορεί να εμφανίσει όσα έχεις παρακολουθήσει."
+
+#: src/app/item/_components/no-details.tsx
+msgid "This server has no details for {id}."
+msgstr "Αυτός ο διακομιστής δεν διαθέτει λεπτομέρειες για το {id}."
+
+#: src/components/media/no-catalogs.tsx
+msgid "This server shares no movie or show catalogs with this account."
+msgstr "Αυτός ο διακομιστής δεν παρέχει καταλόγους ταινιών ή σειρών σε αυτόν τον λογαριασμό."
+
+#: src/app/settings/theme.tsx
+msgid "This server styles the app for everyone. Your own CSS applies on top of it."
+msgstr "Αυτός ο διακομιστής ορίζει την εμφάνιση της εφαρμογής για όλους. Το δικό σου CSS εφαρμόζεται επιπλέον."
+
+#: src/components/media/random-pick.tsx
+msgid "This show has no episodes to pick from yet."
+msgstr "Αυτή η σειρά δεν έχει ακόμη επεισόδια για επιλογή."
+
+#: src/app/trailer/page.tsx
+msgid "This trailer can't play in the app."
+msgstr "Αυτό το τρέιλερ δεν μπορεί να αναπαραχθεί στην εφαρμογή."
+
+#: src/app/trailer/page.tsx
+msgid "This trailer didn't load."
+msgstr "Αυτό το τρέιλερ δεν φορτώθηκε."
+
+#: src/app/trailer/page.tsx
+msgid "This trailer didn't play: {failure}"
+msgstr "Αυτό το τρέιλερ δεν αναπαράχθηκε: {failure}"
+
+#: src/app/trailer/page.tsx
+msgid "This trailer is gone."
+msgstr "Αυτό το τρέιλερ δεν είναι πλέον διαθέσιμο."
+
+#: src/app/sign-in/page.tsx
+msgid "This user has a PIN."
+msgstr "Αυτός ο χρήστης έχει PIN."
+
+#: src/app/player/page.tsx
+msgid "This version is no longer available."
+msgstr "Αυτή η έκδοση δεν είναι πλέον διαθέσιμη."
+
+#: src/app/player/page.tsx
+msgid "This video didn't load."
+msgstr "Αυτό το βίντεο δεν φορτώθηκε."
+
+#: src/app/settings/about.tsx
+msgid "This web app with a player of its own, which plays what a browser can't, on Windows, Mac and Linux."
+msgstr "Αυτή η web εφαρμογή με δικό της πρόγραμμα αναπαραγωγής, που παίζει όσα δεν μπορεί ένα πρόγραμμα περιήγησης, σε Windows, Mac και Linux."
+
+#: src/features/player/subtitle-sync.tsx
+msgid "Those were too far apart to be one line. Try another line."
+msgstr "Τα δύο πατήματα απείχαν πολύ για να αντιστοιχούν στην ίδια ατάκα. Δοκίμασε άλλη ατάκα."
+
+#: src/app/settings/cache.tsx
+msgid "Three days"
+msgstr "Τρεις ημέρες"
+
+#: src/app/settings/interface.tsx
+msgid "Time format"
+msgstr ""
+
+#: src/app/settings/interface.tsx
+msgid "Time on each title"
+msgstr "Χρόνος ανά τίτλο"
+
+#: src/features/player/options.tsx
+msgid "Timing"
+msgstr "Χρονισμός"
+
+#: src/app/history/page.tsx src/app/settings/interface.tsx
+msgid "Title"
+msgstr "Τίτλος"
+
+#: src/app/settings/apps.tsx src/app/settings/cache.tsx
+#: src/app/settings/interface.tsx
+msgid "Title pages"
+msgstr "Σελίδες τίτλων"
+
+#: src/app/settings/interface.tsx
+msgid "Titles, synopses and stream names stay in the language your addons send."
+msgstr "Οι τίτλοι, οι περιλήψεις και τα ονόματα ροών παραμένουν στη γλώσσα που στέλνουν τα πρόσθετά σου."
+
+#: src/app/calendar/page.tsx src/app/live-tv/page.tsx
+msgid "Today"
+msgstr "Σήμερα"
+
+#: src/app/live-tv/page.tsx
+msgid "Tomorrow"
+msgstr "Αύριο"
+
+#: src/lib/hosts/shell/player.ts
+msgid "too many requests"
+msgstr "πάρα πολλά αιτήματα"
+
+#: src/lib/party/party.ts
+msgid "Too many tries. Wait a moment and try again."
+msgstr "Πάρα πολλές προσπάθειες. Περίμενε λίγο και δοκίμασε ξανά."
+
+#: src/app/sign-in/page.tsx
+msgid "Too many tries. Wait a moment, then try again."
+msgstr "Πάρα πολλές προσπάθειες. Περίμενε λίγο και δοκίμασε ξανά."
+
+#: src/app/settings/interface.tsx
+msgid "Top bar"
+msgstr "Επάνω γραμμή"
+
+#: src/app/settings/interface.tsx
+msgid "Top tabs"
+msgstr "Επάνω καρτέλες"
+
+#: src/lib/playback/controller.ts
+msgid "Track {n}"
+msgstr "Κομμάτι {n}"
+
+#: src/lib/hosts/shell/player.ts
+msgid "Tracks"
+msgstr "Κομμάτια"
+
+#: src/app/item/_components/actions.tsx src/features/trailers/preview.tsx
+#: src/lib/playback/trailers.ts
+msgid "Trailer"
+msgstr "Τρέιλερ"
+
+#: src/app/item/_components/trailers.tsx src/app/settings/interface.tsx
+msgid "Trailers"
+msgstr "Τρέιλερ"
+
+#: src/app/settings/subtitles.tsx
+msgid "Tried in order for the subtitles the setting below shows."
+msgstr "Δοκιμάζονται με τη σειρά για τους υπότιτλους που εμφανίζει η παρακάτω ρύθμιση."
+
+#: src/app/settings/apps.tsx
+msgid "Troubleshooting"
+msgstr "Αντιμετώπιση προβλημάτων"
+
+#: src/app/downloads/page.tsx src/app/sign-in/page.tsx
+#: src/components/media/random-pick.tsx src/features/party/not-in-party.tsx
+#: src/features/versions/version-list.tsx src/lib/playback/use-player.ts
+msgid "Try again"
+msgstr "Δοκίμασε ξανά"
+
+#: src/lib/party/party.ts
+msgid "Try starting the party again."
+msgstr "Δοκίμασε να ξεκινήσεις ξανά την ομαδική προβολή."
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Try them"
+msgstr "Δοκιμή"
+
+#: src/app/settings/playback.tsx
+msgid "Tunneled playback"
+msgstr "Αναπαραγωγή μέσω διοχέτευσης (tunneling)"
+
+#: src/components/shell/usage-stats.tsx
+msgid "Turn off"
+msgstr ""
+
+#: src/app/settings/audio.tsx
+msgid "Turn other surround sound into Dolby Digital"
+msgstr "Μετατροπή άλλων μορφών περιβάλλοντος ήχου σε Dolby Digital"
+
+#: src/app/settings/cache.tsx
+msgid "Turning one off also clears it."
+msgstr "Η απενεργοποίηση μιας επιλογής διαγράφει και τα αποθηκευμένα στοιχεία της."
+
+#: src/lib/input/actions.ts
+msgid "Turns it on or off for what is playing."
+msgstr ""
+
+#: src/app/settings/cache.tsx
+msgid "Two weeks"
+msgstr "Δύο εβδομάδες"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Type a release name to see the badges it gets."
+msgstr "Πληκτρολόγησε το όνομα μιας κυκλοφορίας για να δεις τις ετικέτες που λαμβάνει."
+
+#: src/app/settings/subtitles.tsx
+msgid "Typewriter"
+msgstr "Γραφομηχανής"
+
+#: src/components/media/episodes.tsx src/lib/format.ts
+msgid "Unaired"
+msgstr "Δεν έχει προβληθεί ακόμη"
+
+#: src/app/settings/interface.tsx
+msgid "Under posters"
+msgstr "Κάτω από τις αφίσες"
+
+#: src/app/item/_components/actions.tsx
+msgid "Undrop show"
+msgstr "Αναίρεση εγκατάλειψης σειράς"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Unfinished"
+msgstr "Ημιτελής"
+
+#: src/lib/playback/controller.ts
+msgid "Unknown language"
+msgstr "Άγνωστη γλώσσα"
+
+#: src/features/player/picture-in-picture.tsx src/features/player/volume.tsx
+msgid "Unmute"
+msgstr "Άρση σίγασης"
+
+#: src/lib/i18n.ts
+msgid "Unnamed"
+msgstr "Χωρίς όνομα"
+
+#: src/app/discover/page.tsx
+msgid "Unwatched"
+msgstr "Δεν τα έχω δει"
+
+#: src/features/downloads/download-button.tsx
+msgid "Unwatched in {seasonName}"
+msgstr "Όσα δεν έχεις δει στη {seasonName}"
+
+#: src/features/downloads/download-button.tsx
+msgid "Unwatched in this season"
+msgstr "Όσα δεν έχεις δει σε αυτή τη σεζόν"
+
+#: src/lib/input/actions.ts
+msgid "Up"
+msgstr "Πάνω"
+
+#: src/features/player/next-episode.tsx
+msgid "Up next"
+msgstr "Αμέσως μετά"
+
+#: src/features/player/next-episode.tsx
+msgid "Up next: {upNext}"
+msgstr "Αμέσως μετά: {upNext}"
+
+#: src/app/settings/interface.tsx
+msgid "Up to {MAX_FEATURED}, mixed together. Left empty, your first movie and series catalogs are featured."
+msgstr "Έως {MAX_FEATURED}, σε ενιαία προβολή. Αν μείνει κενό, προβάλλονται οι πρώτοι κατάλογοί σου για ταινίες και σειρές."
+
+#: src/lib/hosts/shell/index.ts
+msgid "Up to date."
+msgstr "Είναι ενημερωμένο."
+
+#: src/app/home/page.tsx
+msgid "Upcoming"
+msgstr "Προσεχώς"
+
+#: src/components/shell/update-prompt.tsx
+msgid "Update ready"
+msgstr "Η ενημέρωση είναι έτοιμη"
+
+#: src/app/settings/apps.tsx
+msgid "Updates"
+msgstr "Ενημερώσεις"
+
+#: src/app/settings/page.tsx
+msgid "Updates, Discord, mpv and troubleshooting"
+msgstr "Ενημερώσεις, Discord, mpv και αντιμετώπιση προβλημάτων"
+
+#: src/app/settings/page.tsx
+msgid "Updates, mpv and troubleshooting"
+msgstr "Ενημερώσεις, mpv και αντιμετώπιση προβλημάτων"
+
+#: src/app/settings/page.tsx
+msgid "Updates, picture-in-picture, mpv and troubleshooting"
+msgstr "Ενημερώσεις, εικόνα μέσα σε εικόνα, mpv και αντιμετώπιση προβλημάτων"
+
+#: src/app/settings/about.tsx src/components/shell/usage-stats.tsx
+#, fuzzy
+msgid "Usage statistics"
+msgstr "Στατιστικά"
+
+#: src/app/sign-in/page.tsx
+msgid "Use Quick Connect, or the configuration’s password."
+msgstr "Χρησιμοποίησε τη Γρήγορη σύνδεση ή τον κωδικό πρόσβασης της διαμόρφωσης."
+
+#: src/app/sign-in/page.tsx
+msgid "Use the configuration’s password."
+msgstr "Χρησιμοποίησε τον κωδικό πρόσβασης της διαμόρφωσης."
+
+#: src/app/settings/theme.tsx
+msgid "Use this server's CSS"
+msgstr "Χρήση του CSS αυτού του διακομιστή"
+
+#: src/app/sign-in/page.tsx
+msgid "Use your configuration’s UUID or alias and its password."
+msgstr "Χρησιμοποίησε το UUID ή το ψευδώνυμο της διαμόρφωσής σου και τον κωδικό πρόσβασής της."
+
+#: src/app/sign-in/page.tsx
+msgid "Use your PIN, or the configuration’s password."
+msgstr "Χρησιμοποίησε το PIN σου ή τον κωδικό πρόσβασης της διαμόρφωσης."
+
+#: src/app/sign-in/page.tsx
+msgid "Use your PIN."
+msgstr "Χρησιμοποίησε το PIN σου."
+
+#: src/app/sign-in/page.tsx
+msgid "Use your user name and password."
+msgstr "Χρησιμοποίησε το όνομα χρήστη και τον κωδικό πρόσβασής σου."
+
+#: src/app/sign-in/page.tsx
+msgid "Use your user name and PIN, or the configuration’s UUID and its password."
+msgstr "Χρησιμοποίησε το όνομα χρήστη και το PIN σου ή το UUID της διαμόρφωσης και τον κωδικό πρόσβασής της."
+
+#: src/app/settings/playback.tsx
+msgid "Used when an episode has no credits marked."
+msgstr "Χρησιμοποιείται όταν δεν έχουν επισημανθεί τίτλοι τέλους σε ένα επεισόδιο."
+
+#: src/app/history/page.tsx
+msgid "User"
+msgstr "Χρήστης"
+
+#: src/app/sign-in/page.tsx
+msgid "User name"
+msgstr "Όνομα χρήστη"
+
+#: src/app/sign-in/page.tsx
+msgid "User or UUID"
+msgstr "Χρήστης ή UUID"
+
+#: src/app/sign-in/page.tsx
+msgid "UUID or alias"
+msgstr "UUID ή ψευδώνυμο"
+
+#: src/lib/downloads/index.ts
+msgid "Version"
+msgstr "Έκδοση"
+
+#: src/lib/hosts/shell/index.ts
+msgid "Version {version} installs on the next start."
+msgstr "Η έκδοση {version} θα εγκατασταθεί στην επόμενη εκκίνηση."
+
+#: src/lib/hosts/shell/index.ts
+msgid "Version {version} is ready to install."
+msgstr "Η έκδοση {version} είναι έτοιμη για εγκατάσταση."
+
+#: src/app/settings/downloads.tsx
+msgid "Version searches at once"
+msgstr "Ταυτόχρονες αναζητήσεις εκδόσεων"
+
+#: src/app/settings/playback.tsx src/features/player/options.tsx
+#: src/features/versions/version-picker.tsx
+msgid "Versions"
+msgstr "Εκδόσεις"
+
+#: src/app/settings/page.tsx
+msgid "Versions and links"
+msgstr "Εκδόσεις και σύνδεσμοι"
+
+#: src/app/settings/apps.tsx
+msgid "Versions and the recent log, to paste into a bug report."
+msgstr "Εκδόσεις και πρόσφατο αρχείο καταγραφής, για επικόλληση σε αναφορά σφάλματος."
+
+#: src/app/settings/downloads.tsx
+msgid "Versions are found for this many episodes at a time when a season or show is added."
+msgstr "Γίνεται ταυτόχρονη αναζήτηση εκδόσεων για τόσα επεισόδια όταν προστίθεται μια σεζόν ή σειρά."
+
+#: src/app/settings/playback.tsx
+msgid "Versions play in the app, with its controls and playback settings. Choose another player to open them in it instead."
+msgstr "Οι εκδόσεις αναπαράγονται στην εφαρμογή, με τα στοιχεία ελέγχου και τις ρυθμίσεις αναπαραγωγής της. Επίλεξε άλλο πρόγραμμα αναπαραγωγής για να ανοίγουν σε εκείνο."
+
+#: src/app/settings/playback.tsx
+msgid "Versions play in this browser. Choose another player to open them in it instead."
+msgstr "Οι εκδόσεις αναπαράγονται σε αυτό το πρόγραμμα περιήγησης. Επίλεξε άλλο πρόγραμμα αναπαραγωγής για να ανοίγουν σε εκείνο."
+
+#: src/app/settings/playback.tsx
+msgid "Video"
+msgstr "Βίντεο"
+
+#: src/app/settings/apps.tsx
+msgid "Video output"
+msgstr "Έξοδος βίντεο"
+
+#: src/app/settings/_components/licenses.tsx
+msgid "View"
+msgstr "Προβολή"
+
+#: src/app/settings/_components/licenses.tsx src/app/settings/about.tsx
+msgid "Visit"
+msgstr "Επίσκεψη"
+
+#: src/lib/hosts/shell/android.ts
+msgid "Voice search failed"
+msgstr "Η φωνητική αναζήτηση απέτυχε"
+
+#: src/features/player/volume.tsx
+msgid "Volume"
+msgstr "Ένταση"
+
+#: src/features/player/gestures.ts src/features/player/keys.ts
+msgid "Volume {percent}%"
+msgstr "Ένταση {percent}%"
+
+#: src/lib/input/actions.ts
+msgid "Volume down"
+msgstr "Μείωση έντασης"
+
+#: src/lib/input/keys.ts
+msgid "Volume down key"
+msgstr "Πλήκτρο μείωσης έντασης"
+
+#: src/app/settings/playback.tsx
+msgid "Volume step"
+msgstr "Βήμα έντασης"
+
+#: src/lib/input/actions.ts
+msgid "Volume up"
+msgstr "Αύξηση έντασης"
+
+#: src/lib/input/keys.ts
+msgid "Volume up key"
+msgstr "Πλήκτρο αύξησης έντασης"
+
+#: src/app/downloads/page.tsx
+msgid "Waiting"
+msgstr "Σε αναμονή"
+
+#: src/app/downloads/page.tsx
+msgid "Waiting · {of}"
+msgstr "Σε αναμονή · {of}"
+
+#: src/features/party/party-layer.tsx
+msgid "Waiting for {names}"
+msgstr "Αναμονή για: {names}"
+
+#: src/app/sign-in/page.tsx
+msgid "Waiting for approval…"
+msgstr "Αναμονή έγκρισης…"
+
+#: src/app/live-tv/_components/channel-details.tsx
+#: src/features/live-tv/live-reminders.tsx
+msgid "Watch"
+msgstr "Παρακολούθηση"
+
+#: src/features/party/in-party.tsx
+msgid "Watch along"
+msgstr "Παρακολούθηση μαζί"
+
+#: src/app/settings/account.tsx
+msgid "Watch as someone else on this configuration. A user with a PIN needs it again after switching away."
+msgstr "Παρακολούθησε ως άλλος χρήστης αυτής της διαμόρφωσης. Αν ένας χρήστης έχει PIN, θα ζητηθεί ξανά όταν επιστρέψεις σε αυτόν."
+
+#: src/app/settings/playback.tsx
+msgid "Watch parties"
+msgstr "Ομαδικές προβολές"
+
+#: src/app/item/_components/actions.tsx src/components/shell/layout.tsx
+#: src/features/party/party-sheet.tsx src/features/player/options.tsx
+msgid "Watch party"
+msgstr "Ομαδική προβολή"
+
+#: src/app/item/_components/actions.tsx src/components/shell/layout.tsx
+#: src/features/party/in-party.tsx src/features/party/party-sheet.tsx
+#: src/features/player/options.tsx
+msgid "Watch together"
+msgstr "Δείτε μαζί"
+
+#: src/app/history/page.tsx src/app/item/_components/actions.tsx
+msgid "Watched"
+msgstr "Τα έχω δει"
+
+#: src/app/history/page.tsx
+msgid "Watched ×{playCount}"
+msgstr "Το έχεις δει ×{playCount}"
+
+#: src/app/history/page.tsx
+msgid "Watched marks and resume points are removed from this server. Favourites stay. Titles a tracker still lists come back when it next syncs."
+msgstr "Οι σημάνσεις προβολής και τα σημεία συνέχισης αφαιρούνται από αυτόν τον διακομιστή. Τα αγαπημένα παραμένουν. Οι τίτλοι που εξακολουθεί να καταγράφει κάποια υπηρεσία παρακολούθησης επανέρχονται στον επόμενο συγχρονισμό της."
+
+#: src/app/settings/page.tsx src/features/party/in-party.tsx
+msgid "Watching"
+msgstr "Παρακολούθηση"
+
+#: src/features/party/in-party.tsx
+msgid "Watching ({watching})"
+msgstr "Παρακολουθούν ({watching})"
+
+#: src/features/party/not-in-party.tsx
+msgid "Watching {name}"
+msgstr "Προβάλλεται: {name}"
+
+#: src/features/party/not-in-party.tsx
+msgid "Watching {name}, {at} in"
+msgstr "Προβάλλεται: {name}, στο {at}"
+
+#: src/app/settings/about.tsx
+msgid "Web app"
+msgstr "Web εφαρμογή"
+
+#: src/components/send-report.tsx
+msgid "What happened"
+msgstr "Τι συνέβη"
+
+#: src/features/party/in-party.tsx
+msgid "What others send shows over the video for a few seconds. It always stays in the chat."
+msgstr "Όσα στέλνουν οι άλλοι εμφανίζονται πάνω στο βίντεο για λίγα δευτερόλεπτα. Παραμένουν πάντα στη συνομιλία."
+
+#: src/app/settings/apps.tsx
+msgid "What the app did each day, kept for a week."
+msgstr "Οι ενέργειες της εφαρμογής ανά ημέρα, αποθηκευμένες για μία εβδομάδα."
+
+#: src/app/settings/interface.tsx
+msgid "What the navigation sits on over the page: the app's own colour, or glass that shows the page through it. Liquid glass also bends what's behind its edges, which costs more on a slow device."
+msgstr "Το φόντο της πλοήγησης πάνω από τη σελίδα: το χρώμα της εφαρμογής ή γυαλί μέσα από το οποίο φαίνεται η σελίδα. Το ρευστό γυαλί παραμορφώνει επίσης ό,τι βρίσκεται πίσω από τις άκρες του, κάτι που επιβαρύνει περισσότερο μια αργή συσκευή."
+
+#: src/features/party/chat.tsx
+msgid "What the others say shows here."
+msgstr "Όσα λένε οι άλλοι εμφανίζονται εδώ."
+
+#: src/app/settings/playback.tsx
+msgid "What the people you watch with say shows for a few seconds. It always stays in the party's chat."
+msgstr "Όσα λένε τα άτομα με τα οποία παρακολουθείς εμφανίζονται για λίγα δευτερόλεπτα. Παραμένουν πάντα στη συνομιλία της ομαδικής προβολής."
+
+#: src/app/settings/cache.tsx
+msgid "What to save"
+msgstr "Τι θα αποθηκεύεται"
+
+#: src/app/settings/_components/reaction-setting.tsx
+msgid "What you can send from a party's chat."
+msgstr "Τι μπορείς να στείλεις από τη συνομιλία μιας ομαδικής προβολής."
+
+#: src/app/settings/apps.tsx
+msgid "What your Discord profile shows. Kept on this device."
+msgstr "Τι εμφανίζει το προφίλ σου στο Discord. Αποθηκεύεται σε αυτή τη συσκευή."
+
+#: src/app/settings/audio.tsx
+msgid "What your speakers or receiver take. Surround sound with more is mixed down, with its dialogue kept in."
+msgstr "Τι υποστηρίζουν τα ηχεία ή ο ενισχυτής σου. Ο περιβάλλων ήχος με περισσότερα κανάλια μετατρέπεται σε λιγότερα, διατηρώντας τους διαλόγους."
+
+#: src/app/settings/apps.tsx
+msgid "What's playing"
+msgstr "Τι παίζει"
+
+#: src/lib/input/keys.ts
+msgid "Wheel down"
+msgstr "Ροδέλα κάτω"
+
+#: src/lib/input/keys.ts
+msgid "Wheel up"
+msgstr "Ροδέλα πάνω"
+
+#: src/app/history/page.tsx
+msgid "When"
+msgstr "Πότε"
+
+#: src/app/settings/audio.tsx
+msgid "When a version has more than one kind of audio track, the first of these it has plays."
+msgstr "Όταν μια έκδοση διαθέτει περισσότερους από έναν τύπους κομματιού ήχου, αναπαράγεται ο πρώτος διαθέσιμος από αυτή τη λίστα."
+
+#: src/app/settings/subtitles.tsx
+msgid "When a version has more than one subtitle in your language, the first of these it has shows. Commentary comes last."
+msgstr "Όταν μια έκδοση διαθέτει περισσότερους από έναν υπότιτλους στη γλώσσα σου, εμφανίζεται ο πρώτος διαθέσιμος από αυτή τη λίστα. Ο σχολιασμός έρχεται τελευταίος."
+
+#: src/app/settings/subtitles.tsx
+msgid "When the audio is not in my language"
+msgstr "Όταν ο ήχος δεν είναι στη γλώσσα μου"
+
+#: src/app/settings/playback.tsx
+msgid "When the credits start"
+msgstr "Όταν ξεκινούν οι τίτλοι τέλους"
+
+#: src/app/settings/playback.tsx
+msgid "When the credits start, if they run to the end; otherwise a set time before the end."
+msgstr "Όταν ξεκινούν οι τίτλοι τέλους, αν φτάνουν μέχρι το τέλος. Διαφορετικά, καθορισμένο χρονικό διάστημα πριν από το τέλος."
+
+#: src/app/settings/audio.tsx
+msgid "When the TV or receiver decodes it"
+msgstr "Όταν τον αποκωδικοποιεί η τηλεόραση ή ο ενισχυτής"
+
+#: src/app/settings/playback.tsx
+msgid "Where a file names its intro, credits, recap or preview chapters, skipping uses them instead of the server's times, since they fit that exact file. The rest still come from the server."
+msgstr "Όταν ένα αρχείο έχει ονομασμένα κεφάλαια για εισαγωγή, τίτλους τέλους, ανακεφαλαίωση ή προεπισκόπηση, η παράλειψη χρησιμοποιεί αυτά αντί για τους χρόνους του διακομιστή, καθώς αντιστοιχούν στο συγκεκριμένο αρχείο. Τα υπόλοιπα συνεχίζουν να προέρχονται από τον διακομιστή."
+
+#: src/app/settings/about.tsx
+msgid "Where the app is made, and where to report a problem."
+msgstr "Πού αναπτύσσεται η εφαρμογή και πού μπορείς να αναφέρεις ένα πρόβλημα."
+
+#: src/app/settings/interface.tsx
+msgid "Where the navigation goes when the screen is wide enough for a sidebar, such as a tablet held sideways."
+msgstr "Πού εμφανίζεται η πλοήγηση όταν η οθόνη είναι αρκετά πλατιά για πλευρικό μενού, όπως σε tablet με οριζόντιο προσανατολισμό."
+
+#: src/app/settings/interface.tsx
+msgid "Where the navigation goes when the window is wide enough for a sidebar."
+msgstr "Πού εμφανίζεται η πλοήγηση όταν το παράθυρο είναι αρκετά πλατύ για πλευρικό μενού."
+
+#: src/app/settings/page.tsx
+msgid "Where they go and how many run at once"
+msgstr "Πού αποθηκεύονται και πόσες εκτελούνται ταυτόχρονα"
+
+#: src/app/settings/interface.tsx
+msgid "Whether the bar at the bottom, and tabs along the top, name each page."
+msgstr "Αν η κάτω γραμμή και οι επάνω καρτέλες εμφανίζουν το όνομα κάθε σελίδας."
+
+#: src/app/settings/interface.tsx
+msgid "Whether the rail names each page only while you're in it, or all the time."
+msgstr "Αν η πλευρική στήλη εμφανίζει το όνομα κάθε σελίδας μόνο όταν βρίσκεσαι σε αυτή ή συνεχώς."
+
+#: src/app/settings/interface.tsx
+msgid "Whether the rail names each page under its icon."
+msgstr "Αν η πλευρική στήλη εμφανίζει το όνομα κάθε σελίδας κάτω από το εικονίδιό της."
+
+#: src/app/settings/interface.tsx
+msgid "Whether the tabs name each page beside its icon."
+msgstr "Αν οι καρτέλες εμφανίζουν το όνομα κάθε σελίδας δίπλα στο εικονίδιό της."
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "While a channel plays. On a TV, up and down change channel too, and the number keys pick one by its number."
+msgstr "Κατά την αναπαραγωγή καναλιού. Στην τηλεόραση, τα πλήκτρα πάνω και κάτω αλλάζουν επίσης κανάλι, ενώ τα αριθμητικά πλήκτρα επιλέγουν κανάλι με βάση τον αριθμό του."
+
+#: src/app/settings/_components/shortcut-settings.tsx
+msgid "While syncing subtitles by ear."
+msgstr "Κατά τον συγχρονισμό υποτίτλων με ακρόαση."
+
+#: src/app/settings/interface.tsx
+msgid "While the hero rotates. Under a mouse a card always pops out, so the cards beside it stay put."
+msgstr ""
+
+#: src/app/settings/interface.tsx
+msgid "While you're in it"
+msgstr "Όσο βρίσκεσαι σε αυτή"
+
+#: src/lib/i18n.ts
+msgid "White"
+msgstr "Λευκό"
+
+#: src/app/settings/page.tsx
+msgid "Who you are signed in as"
+msgstr "Ο χρήστης με τον οποίο έχεις συνδεθεί"
+
+#: src/app/settings/cache.tsx
+msgid "Who you are signed in as and the server’s details, which opening without a connection needs."
+msgstr "Ο χρήστης με τον οποίο έχεις συνδεθεί και τα στοιχεία του διακομιστή, που απαιτούνται για άνοιγμα χωρίς σύνδεση."
+
+#: src/app/settings/account.tsx
+msgid "Who's watching"
+msgstr "Ποιος παρακολουθεί"
+
+#: src/app/sign-in/page.tsx
+msgid "Who's watching?"
+msgstr "Ποιος παρακολουθεί;"
+
+#: src/app/settings/subtitles.tsx
+msgid "Width"
+msgstr "Πλάτος"
+
+#: src/lib/input/keys.ts
+msgid "Win"
+msgstr "Win"
+
+#: src/features/party/not-in-party.tsx
+msgid "With {names}"
+msgstr "Με {names}"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Words or /pattern/"
+msgstr "Λέξεις ή /μοτίβο/"
+
+#: src/components/media/people.tsx
+msgid "Writer"
+msgstr "Σεναριογράφος"
+
+#: src/app/settings/interface.tsx
+msgid "Year"
+msgstr "Έτος"
+
+#: src/lib/i18n.ts
+msgid "Yellow"
+msgstr "Κίτρινο"
+
+#: src/app/live-tv/page.tsx
+msgid "Yesterday"
+msgstr "Χθες"
+
+#: src/components/shell/nav/account.tsx
+#: src/components/shell/nav/corner-menu.tsx
+#: src/components/shell/nav/mobile-nav.tsx
+#: src/components/shell/nav/touch-rail.tsx src/components/shell/nav/tv-rail.tsx
+msgid "You"
+msgstr "Εσύ"
+
+#: src/components/shell/usage-stats.tsx
+msgid "You can change this later in Settings, under About."
+msgstr ""
+
+#: src/lib/party/party.ts
+msgid "You left the party."
+msgstr "Αποχώρησες από την ομαδική προβολή."
+
+#: src/app/live-tv/page.tsx
+msgid "You'll be reminded at {time}"
+msgstr "Θα λάβεις υπενθύμιση στις {time}"
+
+#: src/app/settings/playback.tsx
+msgid "Your {name}"
+msgstr "Το {name} σου"
+
+#: src/app/settings/_components/version-settings.tsx
+msgid "Your badges"
+msgstr "Οι ετικέτες σου"
+
+#: src/lib/playback/player-choice.ts
+msgid "Your own {name}"
+msgstr "Το δικό σου {name}"
+
+#: src/lib/playback/player-choice.ts
+msgid "your player"
+msgstr "το πρόγραμμά σου αναπαραγωγής"
+
+#: src/lib/party/follow.ts
+msgid "Your player can't follow a watch party. Pick the app's player in settings to watch along."
+msgstr "Το πρόγραμμά σου αναπαραγωγής δεν μπορεί να ακολουθήσει μια ομαδική προβολή. Επίλεξε το πρόγραμμα αναπαραγωγής της εφαρμογής στις ρυθμίσεις για να παρακολουθήσετε μαζί."
+
+#: src/features/versions/external-prompt.tsx
+msgid "Your player does not report back, so mark it as watched once you finish."
+msgstr "Το πρόγραμμά σου αναπαραγωγής δεν ενημερώνει την εφαρμογή, οπότε σημείωσε ότι το έχεις δει όταν τελειώσεις."
+
+#: src/features/party/not-in-party.tsx
+msgid "Your player plays in another app, which can't follow a party. Choose the app's own player in settings to watch along."
+msgstr "Το πρόγραμμά σου αναπαραγωγής λειτουργεί σε άλλη εφαρμογή, που δεν μπορεί να ακολουθήσει μια ομαδική προβολή. Επίλεξε το πρόγραμμα αναπαραγωγής αυτής της εφαρμογής στις ρυθμίσεις για να παρακολουθήσετε μαζί."
+
+#: src/app/item/_components/rating.tsx
+msgid "Your rating"
+msgstr "Η βαθμολογία σου"
+
+#: src/app/settings/cache.tsx
+msgid "Your watch history and totals."
+msgstr "Το ιστορικό παρακολούθησης και τα συνολικά στατιστικά σου."

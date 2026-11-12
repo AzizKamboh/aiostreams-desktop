@@ -1,0 +1,3673 @@
+import React from 'react';
+import { Button } from '@aiostreams/ui/button';
+import { TextInput } from '@aiostreams/ui/text-input';
+import { applyMigrations, useUserData } from '@/context/userData';
+import {
+  createUserConfig,
+  deleteUserConfig,
+  changePassword,
+  createConfigSession,
+  approveJellyfinQuickConnect,
+  getJellyfinQuickConnectPending,
+  type QuickConnectPending,
+  CreateUserResponse,
+} from '@/lib/api';
+import { JellyfinApiKeys } from './jellyfin-api-keys';
+import { JellyfinPersonas } from './jellyfin-personas';
+import { JellyfinTrackers } from './jellyfin-trackers';
+import { PageWrapper } from '@/components/shared/page-wrapper';
+import { Alert } from '@aiostreams/ui/alert';
+import { SettingsCard } from '../shared/settings-card';
+import { toast } from 'sonner';
+import {
+  Code2,
+  CopyIcon,
+  KeyRound,
+  Monitor,
+  MonitorPlay,
+  Layers,
+  LibraryBig,
+  Settings2,
+  DownloadIcon,
+  PlusIcon,
+  Rss,
+  SearchIcon,
+  Smartphone,
+  UploadIcon,
+  Users,
+} from 'lucide-react';
+import { LuSquareCheck, LuSquareMinus, LuWand } from 'react-icons/lu';
+import { AnimatePresence, motion } from 'motion/react';
+import { Checkbox, CheckboxGroup } from '@aiostreams/ui/checkbox';
+import { IconButton } from '@aiostreams/ui/button';
+import { useStatus } from '@/context/status';
+import { BiCopy } from 'react-icons/bi';
+import { copyToClipboard } from '@aiostreams/ui/utils/clipboard';
+import { PageControls } from '../shared/page-controls';
+import { useDisclosure } from '@aiostreams/ui/hooks/disclosure';
+import { Modal } from '@aiostreams/ui/modal';
+import { MenuTabs } from '../shared/menu-tabs';
+import { Select } from '@aiostreams/ui/select';
+import { Switch } from '@aiostreams/ui/switch';
+import { NumberInput } from '@aiostreams/ui/number-input';
+import { TemplateExportModal } from '../shared/templates/export-modal';
+import { ConfigTemplatesModal } from '../shared/templates';
+import { PasswordInput } from '@aiostreams/ui/password-input';
+import { useMenu } from '@/context/menu';
+import { variantSelectionFromLocation } from '@/lib/manifest-url';
+import {
+  ConfirmationDialog,
+  useConfirmationDialog,
+} from '@aiostreams/ui/shared/confirmation-dialog';
+import { UserData, VariantSelectorLocation } from '@aiostreams/core';
+import { sanitiseTemplateConfig } from '../../../../core/src/utils/template-sanitise';
+import { useSave } from '@/context/save';
+import { FiExternalLink } from 'react-icons/fi';
+import { ProfileCard } from './profile-card';
+import { LinkedAccountsSection } from './linked-accounts';
+import { LinkOfferModal, linkOfferDismissed } from './link-offer-modal';
+import { VariantPills } from '@/components/shared/variant-pills';
+import { useSession } from '@/context/session';
+import { useQuery } from '@tanstack/react-query';
+import { configProfilesQuery, linkedAccountsQuery } from '@/lib/queries';
+
+// Reusable modal option button component
+interface ModalOptionButtonProps {
+  onClick: () => void;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}
+
+function ModalOptionButton({
+  onClick,
+  icon,
+  title,
+  description,
+}: ModalOptionButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="group relative flex flex-col items-center gap-4 rounded-xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/50 to-gray-800/30 p-6 text-center transition-all hover:border-brand-400 hover:from-brand-400/10 hover:to-brand-400/5 focus:outline-none focus-visible:ring-1 focus-visible:ring-brand-400"
+    >
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-lg transition-transform group-hover:scale-110">
+        {icon}
+      </div>
+      <div>
+        <h3 className="text-lg font-bold text-white">{title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-gray-400">
+          {description}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+interface AppCardProps {
+  /** Brand logo image. Omit and pass `icon` for a generic (non-brand) entry. */
+  logoSrc?: string;
+  /** Generic icon shown when there is no `logoSrc` (e.g. API/indexer entries). */
+  icon?: React.ReactNode;
+  name: string;
+  description: string;
+  onClick: () => void;
+  unofficial?: boolean;
+  beta?: boolean;
+  author?: string;
+  disabled?: boolean;
+  disabledReason?: string;
+}
+
+function AppCard({
+  logoSrc,
+  icon,
+  name,
+  description,
+  onClick,
+  unofficial,
+  beta,
+  author,
+  disabled,
+  disabledReason,
+}: AppCardProps) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`group relative flex items-center gap-3 rounded-xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/50 to-gray-800/30 p-3 text-left transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-brand-400 ${
+        disabled
+          ? 'cursor-not-allowed opacity-60'
+          : 'hover:border-brand-400 hover:from-brand-400/10 hover:to-brand-400/5'
+      }`}
+    >
+      <div className="flex-shrink-0 h-8 w-8 rounded-lg overflow-hidden flex items-center justify-center text-brand-400">
+        {logoSrc ? (
+          <img
+            src={logoSrc}
+            alt={name}
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          icon
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-sm font-medium text-white">{name}</span>
+          {beta && (
+            <span className="rounded-full border border-amber-400/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+              Beta
+            </span>
+          )}
+          {unofficial && (
+            <span className="rounded-full border border-gray-600 bg-gray-800/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-300">
+              Unofficial
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-gray-400 mt-0.5">{description}</p>
+        {author && (
+          <p className="text-[11px] text-gray-500 mt-0.5">
+            Integration author: {author}
+          </p>
+        )}
+        {disabledReason && (
+          <p className="text-[11px] text-amber-300 mt-1">{disabledReason}</p>
+        )}
+      </div>
+    </button>
+  );
+}
+
+interface CreateConfigCardProps {
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  passwordRequirements: string[];
+  newPassword: string;
+  confirmNewPassword: string;
+  onNewPasswordChange: (value: string) => void;
+  onConfirmNewPasswordChange: (value: string) => void;
+  staySignedIn: boolean | null;
+  onStaySignedInChange: (value: boolean) => void;
+  createLoading: boolean;
+}
+
+function CreateConfigCard({
+  onSubmit,
+  passwordRequirements,
+  newPassword,
+  confirmNewPassword,
+  onNewPasswordChange,
+  onConfirmNewPasswordChange,
+  staySignedIn,
+  onStaySignedInChange,
+  createLoading,
+}: CreateConfigCardProps) {
+  return (
+    <SettingsCard
+      title="Create Configuration"
+      description="Set up your personalised addon configuration"
+    >
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div>
+          {passwordRequirements.length > 0 && newPassword?.length > 0 && (
+            <Alert
+              intent="alert"
+              title="Password Requirements"
+              description={
+                <ul className="list-disc list-inside">
+                  {passwordRequirements.map((requirement) => (
+                    <li key={requirement}>{requirement}</li>
+                  ))}
+                </ul>
+              }
+            />
+          )}
+          <PasswordInput
+            label="Password"
+            id="password"
+            name="new-password"
+            value={newPassword}
+            onValueChange={onNewPasswordChange}
+            placeholder="Enter a password to protect your configuration"
+            required
+            autoComplete="new-password"
+          />
+          <div className="pt-2">
+            <PasswordInput
+              label="Confirm Password"
+              id="confirm-password"
+              name="confirm-new-password"
+              value={confirmNewPassword}
+              onValueChange={onConfirmNewPasswordChange}
+              placeholder="Re-enter your password"
+              required
+              autoComplete="new-password"
+            />
+          </div>
+          <p className="text-sm text-[--muted] mt-1">
+            This is the password you will use to access and update your
+            configuration later. You can change your password later using the
+            Change Password option, but please remember your current password as
+            it is required to make changes.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <Button intent="white" type="submit" loading={createLoading} rounded>
+            Create
+          </Button>
+          {staySignedIn !== null && (
+            <Checkbox
+              label="Remember me"
+              fieldClass="flex w-auto gap-2"
+              value={staySignedIn}
+              onValueChange={(v) => onStaySignedInChange(v === true)}
+            />
+          )}
+        </div>
+      </form>
+    </SettingsCard>
+  );
+}
+
+type ManifestNotice = 'always' | 'significant' | 'never';
+type PushBehaviour = 'ask' | 'auto' | 'never';
+
+interface SavePreferencesModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  showChanges: boolean;
+  onShowChangesChange: (value: boolean) => void;
+  manifestNotice: ManifestNotice;
+  onManifestNoticeChange: (value: ManifestNotice) => void;
+  pushBehaviour: PushBehaviour;
+  onPushBehaviourChange: (value: PushBehaviour) => void;
+  /**
+   * Hides the push preference when there is nowhere to push to, unless it has
+   * been set to something, which must stay reachable to be undone.
+   */
+  hasLinkedAccounts: boolean;
+}
+
+/**
+ * The notice's own switches can only ever turn things off, and once off the
+ * notice never appears again to turn them back on. This is where they are
+ * reachable from.
+ */
+function SavePreferencesModal({
+  open,
+  onOpenChange,
+  showChanges,
+  onShowChangesChange,
+  manifestNotice,
+  onManifestNoticeChange,
+  pushBehaviour,
+  onPushBehaviourChange,
+  hasLinkedAccounts,
+}: SavePreferencesModalProps) {
+  return (
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Save preferences"
+      description="These apply wherever you open this configuration. Remember to save."
+      contentClass="max-w-lg"
+    >
+      <div className="min-w-0 space-y-4">
+        <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+          <div className="flex-1 pr-3">
+            <div className="text-sm font-medium text-white">
+              Show changes before saving
+            </div>
+            <div className="text-xs text-gray-400 mt-1">
+              Review a diff of what you changed before it is written
+            </div>
+          </div>
+          <Switch
+            id="show-changes"
+            value={showChanges}
+            onValueChange={onShowChangesChange}
+          />
+        </div>
+        <Select
+          label="Manifest change notices"
+          help="Some clients (e.g. Stremio) cache your manifest, so a change can need a reinstall. This is when you get told."
+          value={manifestNotice}
+          onValueChange={(value) =>
+            onManifestNoticeChange(value as ManifestNotice)
+          }
+          options={[
+            { value: 'always', label: 'On every change' },
+            { value: 'significant', label: 'Only significant changes' },
+            { value: 'never', label: 'Never' },
+          ]}
+        />
+        {hasLinkedAccounts && (
+          <Select
+            label="Push to linked accounts"
+            help="What happens when a saved change means your linked accounts need the update."
+            value={pushBehaviour}
+            onValueChange={(value) =>
+              onPushBehaviourChange(value as PushBehaviour)
+            }
+            options={[
+              { value: 'ask', label: 'Ask each time' },
+              { value: 'auto', label: 'Push automatically' },
+              { value: 'never', label: 'Never push' },
+            ]}
+          />
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+interface SaveConfigCardProps {
+  uuid: string;
+  onCopyUuid: () => void;
+  onSave: (e: React.FormEvent<HTMLFormElement>) => void;
+  saveLoading: boolean;
+  onOpenPreferences: () => void;
+}
+
+function SaveConfigCard({
+  uuid,
+  onCopyUuid,
+  onSave,
+  saveLoading,
+  onOpenPreferences,
+}: SaveConfigCardProps) {
+  return (
+    <SettingsCard
+      title="Save Configuration"
+      description="Save your configuration to your account by clicking Save below."
+    >
+      <div className="flex items-start gap-1">
+        <Alert
+          intent="info"
+          isClosable={false}
+          description={
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-md text-[--primary]">
+                  Your UUID: <span className="font-bold">{uuid}</span>
+                </span>
+                <BiCopy
+                  className="min-h-5 min-w-5 cursor-pointer"
+                  onClick={onCopyUuid}
+                />
+              </div>
+              <p className="text-sm text-[--muted]">
+                Save your UUID and password - you'll need them to update your
+                configuration later
+              </p>
+            </div>
+          }
+          className="flex-1"
+        />
+      </div>
+      <form onSubmit={onSave}>
+        <div className="flex items-center justify-between gap-4 mt-4">
+          <Button type="submit" intent="white" loading={saveLoading} rounded>
+            Save
+          </Button>
+          <Button
+            type="button"
+            intent="gray-outline"
+            size="sm"
+            rounded
+            leftIcon={<Settings2 className="h-4 w-4" />}
+            onClick={onOpenPreferences}
+          >
+            Preferences
+          </Button>
+        </div>
+      </form>
+    </SettingsCard>
+  );
+}
+
+const COMPATIBLE_CLIENTS: {
+  name: string;
+  logoSrc: string;
+  url: string;
+  imgClassName?: string;
+}[] = [
+  {
+    name: 'Nuvio',
+    logoSrc: 'https://nuvio.tv/assets/Logo_1080x1080.png',
+    url: 'https://nuvio.tv/',
+  },
+  {
+    name: 'RealStream',
+    logoSrc: 'https://rstream.app/logo-realstream.png',
+    url: 'https://rstream.app/',
+    imgClassName: 'scale-150',
+  },
+  {
+    name: 'Aurora',
+    logoSrc: 'https://auroramediacenter.com/logo.png',
+    url: 'https://auroramediacenter.com/',
+    imgClassName: 'scale-150',
+  },
+  {
+    name: 'Fusion',
+    logoSrc: 'https://fusionapp.dev/FUSN_dark-iOS.png',
+    url: 'https://fusionapp.dev/',
+  },
+  {
+    name: 'Omni',
+    logoSrc: 'https://omni.stkc.win/favicon.ico',
+    url: 'https://omni.stkc.win/',
+  },
+];
+
+function CompatibleClientLogos() {
+  return (
+    <div className="flex flex-wrap items-center gap-2 pt-1.5 ml-1">
+      {COMPATIBLE_CLIENTS.map((client) => (
+        <a
+          key={client.name}
+          href={client.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={client.name}
+          aria-label={`${client.name} (opens in a new tab)`}
+          className="flex-shrink-0 h-7 w-7 rounded-md overflow-hidden transition-transform hover:scale-110 focus:outline-none focus-visible:ring-1 focus-visible:ring-brand-400"
+        >
+          <img
+            src={client.logoSrc}
+            alt={client.name}
+            className={`h-full w-full object-contain ${client.imgClassName ?? ''}`}
+          />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+interface VariantSelectorProps {
+  variants: NonNullable<UserData['variants']>;
+  selected: string[];
+  onChange: (selected: string[]) => void;
+  location: VariantSelectorLocation;
+  onLocationChange: (location: VariantSelectorLocation) => void;
+}
+
+function VariantSelector({
+  variants,
+  selected,
+  onChange,
+  location,
+  onLocationChange,
+}: VariantSelectorProps) {
+  return (
+    <div className="w-full rounded-xl border border-gray-700 bg-gray-800/30 p-5 shadow-inner">
+      <h3 className="text-lg font-semibold text-white">Variant</h3>
+      <p className="text-sm text-[--muted] mt-1">
+        The links below install the selected variant. Each one appears as a
+        separate addon in your client; pick more than one to combine them.
+      </p>
+      <VariantPills
+        className="mt-4"
+        variants={variants}
+        value={selected}
+        onChange={onChange}
+      />
+      {selected.length > 0 && (
+        <div className="mt-5 pt-4 border-t border-gray-700/50 max-w-md">
+          <Select
+            label="Selector location"
+            help={
+              location === 'path'
+                ? 'In the path, as /v/id. Survives clients that rebuild request URLs from the base and would drop a query string.'
+                : 'In the query string, as ?v=id. Some clients drop it after the manifest.'
+            }
+            value={location}
+            onValueChange={(value) =>
+              onLocationChange(value as VariantSelectorLocation)
+            }
+            options={[
+              { value: 'path', label: 'Path segment (/v/)' },
+              { value: 'query', label: 'Query parameter (?v=)' },
+            ]}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function JellyfinPrimerFact({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3 p-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-400/10 text-brand-400">
+        {icon}
+      </div>
+      <div className="min-w-0 space-y-1">
+        <p className="text-sm font-medium text-white">{title}</p>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** What an app will show, before the user connects one. */
+function JellyfinPrimer({
+  maxLibraries,
+  maxCatalogItems,
+  maxVersions,
+  maxAppVersions,
+}: {
+  maxLibraries: number;
+  maxCatalogItems: number;
+  maxVersions: number;
+  maxAppVersions: number;
+}) {
+  const limitNumber = (n: number) => (
+    <span className="font-medium tabular-nums text-gray-300">{n}</span>
+  );
+  return (
+    <div className="grid grid-cols-1 divide-y divide-gray-800 rounded-md border border-gray-800 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+      <JellyfinPrimerFact
+        icon={<LibraryBig className="h-4 w-4" />}
+        title="Catalogs become libraries"
+      >
+        <p className="text-xs text-gray-400">
+          In the order from the Catalogs page.
+        </p>
+        {(maxLibraries > 0 || maxCatalogItems > 0) && (
+          <p className="text-xs text-gray-500">
+            {maxLibraries > 0 ? (
+              <>
+                This instance shows your first {limitNumber(maxLibraries)}
+                {maxCatalogItems > 0 && (
+                  <>, up to {limitNumber(maxCatalogItems)} titles each</>
+                )}
+                .
+              </>
+            ) : (
+              <>
+                This instance lists up to {limitNumber(maxCatalogItems)} titles
+                in each.
+              </>
+            )}
+          </p>
+        )}
+      </JellyfinPrimerFact>
+      <JellyfinPrimerFact
+        icon={<Layers className="h-4 w-4" />}
+        title="Streams become versions"
+      >
+        <p className="text-xs text-gray-400">
+          Opening or playing a title searches your addons, as in Stremio.
+        </p>
+        <p className="text-xs text-gray-500">
+          In your sort order: up to {limitNumber(maxVersions)} per title in
+          Jellyfin apps, and up to {limitNumber(maxAppVersions)} in the
+          AIOStreams app. Played directly; nothing is transcoded.
+        </p>
+      </JellyfinPrimerFact>
+    </div>
+  );
+}
+
+type ServerTab = 'connect' | 'users';
+
+function AppFact({
+  icon,
+  children,
+}: {
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex items-start gap-2.5">
+      <span className="mt-0.5 shrink-0 text-brand-400">{icon}</span>
+      <span className="text-sm text-gray-400">{children}</span>
+    </li>
+  );
+}
+
+function AppBlock({
+  webAppUrl,
+  desktopLink,
+  onOpenServer,
+  disabled,
+  disabledReason,
+}: {
+  webAppUrl: string;
+  desktopLink: string;
+  onOpenServer: (tab: ServerTab) => void;
+  disabled?: boolean;
+  disabledReason?: string;
+}) {
+  const download = useDesktopDownload();
+  const android = /Android/.test(navigator.userAgent);
+  const own = download.os ? 'desktop' : android ? 'android' : null;
+  const open = (url: string) => () => window.open(url, '_blank', 'noopener');
+  return (
+    <div className="w-full rounded-xl border border-gray-700 bg-gray-800/30 p-5 shadow-inner">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 lg:items-center">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center p-2 shadow-sm">
+              <img
+                src="/logo.png"
+                alt="AIOStreams"
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                AIOStreams app
+              </h3>
+              <p className="text-sm text-gray-400">
+                Browse your catalogs and play them in your browser, or in the
+                app on your computer, phone or TV. No server to host.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Button
+              onClick={() => window.open(webAppUrl, '_blank', 'noopener')}
+              intent="primary"
+              className="w-full shadow-md sm:col-span-2"
+              leftIcon={<MonitorPlay className="h-4 w-4" />}
+              disabled={disabled}
+            >
+              Open in browser
+            </Button>
+            {own && (
+              <Button
+                onClick={() => window.open(desktopLink)}
+                intent="gray-outline"
+                className="w-full"
+                leftIcon={
+                  own === 'desktop' ? (
+                    <Monitor className="h-4 w-4" />
+                  ) : (
+                    <Smartphone className="h-4 w-4" />
+                  )
+                }
+                disabled={disabled}
+              >
+                {own === 'desktop' ? 'Open in desktop app' : 'Open in app'}
+              </Button>
+            )}
+            {own && (
+              <Button
+                onClick={open(
+                  own === 'desktop' ? download.url : ANDROID_DOWNLOAD_URL
+                )}
+                intent="gray-outline"
+                className="w-full"
+                leftIcon={<DownloadIcon className="h-4 w-4" />}
+                disabled={disabled}
+              >
+                {own === 'desktop' ? download.label : 'Download for Android'}
+              </Button>
+            )}
+          </div>
+          {disabledReason && (
+            <p className="text-xs text-amber-300">{disabledReason}</p>
+          )}
+        </div>
+
+        <div className="space-y-3 lg:border-l lg:border-gray-700/50 lg:pl-8">
+          <ul className="space-y-2">
+            <AppFact icon={<LibraryBig className="h-4 w-4" />}>
+              Your catalogs become libraries and your streams become versions,
+              sorted and named as in Stremio. Debrid and Usenet streams play;
+              P2P torrents don&apos;t.
+            </AppFact>
+            <AppFact icon={<Users className="h-4 w-4" />}>
+              A profile for everyone in your household, with progress kept
+              across devices.
+            </AppFact>
+            <AppFact icon={<Monitor className="h-4 w-4" />}>
+              The apps play what a browser can&apos;t, and on computers and
+              phones download to watch offline.
+            </AppFact>
+          </ul>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Button
+              size="sm"
+              intent="gray-outline"
+              rounded
+              className="w-full sm:w-auto"
+              leftIcon={<Users className="h-4 w-4" />}
+              onClick={() => onOpenServer('users')}
+              disabled={disabled}
+            >
+              Users, trackers and playback
+            </Button>
+            <Button
+              size="sm"
+              intent="gray-outline"
+              rounded
+              className="w-full sm:w-auto"
+              leftIcon={<KeyRound className="h-4 w-4" />}
+              onClick={() => onOpenServer('connect')}
+              disabled={disabled}
+            >
+              Sign-in addresses
+            </Button>
+          </div>
+        </div>
+      </div>
+      <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-gray-700/50 pt-4">
+        <span className="mr-1 text-xs text-gray-500">Also on</span>
+        {APP_PLATFORMS.filter((p) => p.id !== own).map((p) => (
+          <Button
+            key={p.id}
+            size="sm"
+            intent="gray-outline"
+            rounded
+            onClick={open(p.url)}
+            disabled={disabled}
+          >
+            {p.label}
+          </Button>
+        ))}
+        <Button
+          size="sm"
+          intent="gray-outline"
+          rounded
+          onClick={open(`${DOCS_APPS_URL}#get-the-app`)}
+          disabled={disabled}
+        >
+          All apps
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface InstallCardProps {
+  encodedManifest: string;
+  manifestUrl: string;
+  usingAlias: boolean;
+  webAppUrl: string;
+  desktopLink: string;
+  onCopyManifestUrl: () => void;
+  onOpenChillio: () => void;
+  onOpenSeanime: () => void;
+  onOpenJellyfin: (tab: ServerTab) => void;
+  onOpenAniyomi: () => void;
+  onOpenNabIndexer: () => void;
+  onOpenSearchApi: () => void;
+  disableSeanimeCard?: boolean;
+  seanimeDisabledReason?: string;
+  disableJellyfinCard?: boolean;
+  jellyfinDisabledReason?: string;
+  disableNabIndexerCard?: boolean;
+  nabIndexerDisabledReason?: string;
+  disableSearchApiCard?: boolean;
+  searchApiDisabledReason?: string;
+  variantSelector?: React.ReactNode;
+}
+
+function InstallCard({
+  encodedManifest,
+  manifestUrl,
+  usingAlias,
+  webAppUrl,
+  desktopLink,
+  variantSelector,
+  onCopyManifestUrl,
+  onOpenChillio,
+  onOpenSeanime,
+  onOpenJellyfin,
+  onOpenAniyomi,
+  onOpenNabIndexer,
+  onOpenSearchApi,
+  disableSeanimeCard,
+  seanimeDisabledReason,
+  disableJellyfinCard,
+  jellyfinDisabledReason,
+  disableNabIndexerCard,
+  nabIndexerDisabledReason,
+  disableSearchApiCard,
+  searchApiDisabledReason,
+}: InstallCardProps) {
+  return (
+    <SettingsCard
+      title="Installation Options"
+      description="Install your addon using your preferred method. If a reinstall is necessary, a pop-up will tell you — otherwise, you do not need to reinstall."
+    >
+      <div className="flex flex-col gap-6">
+        {variantSelector}
+        <div className="w-full rounded-xl border border-gray-700 bg-gray-800/30 p-5 shadow-inner">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 lg:items-center">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center p-2 shadow-sm">
+                  <img
+                    src="https://raw.githubusercontent.com/Stremio/stremio-brand/refs/heads/master/logos/PNG/stremio-logo-800px.png"
+                    alt="Stremio"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Stremio</h3>
+                  <p className="text-sm text-gray-400">
+                    Install to Stremio or other Stremio addon compatible clients
+                    using the Manifest URL.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  onClick={() =>
+                    window.open(
+                      manifestUrl.replace(/^https?:\/\//, 'stremio://')
+                    )
+                  }
+                  intent="primary"
+                  className="w-full shadow-md"
+                >
+                  Install to Stremio
+                </Button>
+                <Button
+                  onClick={() =>
+                    window.open(
+                      `https://web.stremio.com/#/addons?addon=${encodedManifest}`
+                    )
+                  }
+                  intent="gray-outline"
+                  className="w-full"
+                >
+                  Install to Stremio Web
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 lg:border-l lg:border-gray-700/50 lg:pl-8">
+              <label className="text-xs font-medium text-gray-400 ml-1">
+                {usingAlias ? 'Manifest URL (alias)' : 'Direct Manifest URL'}
+              </label>
+              <div className="flex items-center gap-2">
+                <TextInput
+                  type="text"
+                  readOnly
+                  value={manifestUrl}
+                  className="flex-1 font-mono text-sm bg-black/20"
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  onClick={onCopyManifestUrl}
+                  intent="primary"
+                  className="shrink-0 px-3"
+                  aria-label="Copy install link"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 ml-1">
+                Install manually to Stremio or any Stremio addon compatible
+                client.
+                {usingAlias &&
+                  ' Your profile alias stands in for the UUID and password; the long URL still works.'}
+              </p>
+              <CompatibleClientLogos />
+            </div>
+          </div>
+        </div>
+
+        <AppBlock
+          webAppUrl={webAppUrl}
+          desktopLink={desktopLink}
+          onOpenServer={onOpenJellyfin}
+          disabled={disableJellyfinCard}
+          disabledReason={jellyfinDisabledReason}
+        />
+
+        <LinkedAccountsSection manifestUrl={manifestUrl} />
+
+        {/* Other apps — playback clients you install the addon into */}
+        <div>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <div className="h-px bg-gray-700 flex-1"></div>
+            Other apps
+            <div className="h-px bg-gray-700 flex-1"></div>
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <AppCard
+              logoSrc="https://seanime.app/seanime-logo.png"
+              name="Seanime"
+              description="Anime-focused client"
+              onClick={onOpenSeanime}
+              disabled={disableSeanimeCard}
+              disabledReason={seanimeDisabledReason}
+            />
+            <AppCard
+              logoSrc="https://raw.githubusercontent.com/jellyfin/jellyfin-ux/refs/heads/master/logos/PNG-4x/jellyfin-icon--color-on-dark.png"
+              name="Jellyfin apps"
+              description="Use your configuration in any Jellyfin app"
+              beta
+              onClick={() => onOpenJellyfin('connect')}
+              disabled={disableJellyfinCard}
+              disabledReason={jellyfinDisabledReason}
+            />
+            <AppCard
+              logoSrc="https://link.chillio.app/app-icon.png"
+              name="Chillio"
+              description="Via ChillLink protocol"
+              onClick={onOpenChillio}
+            />
+            <AppCard
+              logoSrc="https://aniyomi.org/img/logo-128px.png"
+              name="Aniyomi / Animiru"
+              description="Extension-based integration"
+              unofficial
+              author="worldInColors"
+              onClick={onOpenAniyomi}
+            />
+          </div>
+        </div>
+
+        {/* Programmatic / API access — endpoints other tools consume */}
+        <div>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <div className="h-px bg-gray-700 flex-1"></div>
+            Programmatic / API access
+            <div className="h-px bg-gray-700 flex-1"></div>
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <AppCard
+              icon={<Rss className="h-5 w-5" />}
+              name="Newznab / Torznab"
+              description="Indexer for Prowlarr, NZBHydra & *Arr apps"
+              onClick={onOpenNabIndexer}
+              disabled={disableNabIndexerCard}
+              disabledReason={nabIndexerDisabledReason}
+            />
+            <AppCard
+              icon={<Code2 className="h-5 w-5" />}
+              name="Search API"
+              description="JSON stream search endpoint"
+              onClick={onOpenSearchApi}
+              disabled={disableSearchApiCard}
+              disabledReason={searchApiDisabledReason}
+            />
+          </div>
+        </div>
+      </div>
+    </SettingsCard>
+  );
+}
+
+interface BackupCardProps {
+  onExportOpen: () => void;
+  onImportOpen: () => void;
+  onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  importFileRef: React.RefObject<HTMLInputElement | null>;
+}
+
+function BackupCard({
+  onExportOpen,
+  onImportOpen,
+  onImport,
+  importFileRef,
+}: BackupCardProps) {
+  return (
+    <SettingsCard
+      title="Backups"
+      description="Export your settings or restore from a backup file"
+    >
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={onExportOpen} leftIcon={<UploadIcon />} intent="gray">
+          Export
+        </Button>
+        <input
+          type="file"
+          accept=".json"
+          className="hidden"
+          id="import-file"
+          onChange={onImport}
+          ref={importFileRef}
+        />
+        <Button
+          onClick={onImportOpen}
+          leftIcon={<DownloadIcon />}
+          intent="gray"
+        >
+          Import
+        </Button>
+      </div>
+    </SettingsCard>
+  );
+}
+
+interface DangerZoneCardProps {
+  hasUser: boolean;
+  onChangePasswordOpen: () => void;
+  onDeleteUserOpen: () => void;
+  onResetOpen: () => void;
+}
+
+function DangerZoneCard({
+  hasUser,
+  onChangePasswordOpen,
+  onDeleteUserOpen,
+  onResetOpen,
+}: DangerZoneCardProps) {
+  return (
+    <SettingsCard
+      title="Danger Zone"
+      description="Perform potentially destructive actions that cannot be undone"
+      className="lg:bg-red-700/70 border-red-500/20"
+      titleClassName="group-hover/settings-card:from-red-500/10 group-hover/settings-card:to-red-700/20"
+    >
+      <div className="flex flex-wrap items-center gap-3">
+        {hasUser && (
+          <>
+            <Button intent="alert" rounded onClick={onChangePasswordOpen}>
+              Change Password
+            </Button>
+            <Button intent="alert" rounded onClick={onDeleteUserOpen}>
+              Delete User
+            </Button>
+          </>
+        )}
+        <Button intent="alert" rounded onClick={onResetOpen}>
+          Reset Configuration
+        </Button>
+      </div>
+    </SettingsCard>
+  );
+}
+
+// ---- Stremio Catalog Custom Source modal --------------------------------
+
+type ManifestExtra = { name: string; isRequired?: boolean };
+type ManifestCatalog = {
+  id: string;
+  type: string;
+  name: string;
+  extra?: ManifestExtra[];
+};
+type FetchedManifest = {
+  name: string;
+  logo?: string;
+  catalogs: ManifestCatalog[];
+};
+
+type CatalogEntry = {
+  id: string;
+  type: string;
+  name: string;
+  hasSearch: boolean;
+  searchRequired: boolean;
+  displayName: string;
+  selected: boolean;
+};
+
+interface StremioCustomSourceModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  baseUrl: string;
+  initialManifestUrl: string;
+}
+
+const DEFAULT_NAME_TEMPLATE = '{catalog.name} - {catalog.type}';
+
+/** The desktop app's stable release, whose notes link each download. */
+const DESKTOP_DOWNLOAD_URL =
+  'https://github.com/Viren070/AIOStreams/releases/tag/desktop';
+const DESKTOP_ASSET_URL =
+  'https://github.com/Viren070/AIOStreams/releases/download/desktop/aiostreams-desktop-';
+const DOCS_APPS_URL = 'https://aiostreams.org/apps';
+const ANDROID_DOWNLOAD_URL =
+  'https://github.com/Viren070/AIOStreams/releases/download/android/aiostreams-android-arm64-v8a.apk';
+
+/** Where each device gets the app; the visitor's own has its buttons instead. */
+const APP_PLATFORMS = [
+  {
+    id: 'desktop',
+    label: 'Windows, Mac & Linux',
+    url: `${DOCS_APPS_URL}/desktop#download`,
+  },
+  { id: 'android', label: 'Android', url: `${DOCS_APPS_URL}/android#download` },
+  {
+    id: 'android-tv',
+    label: 'Android TV & Fire TV',
+    url: `${DOCS_APPS_URL}/android#on-a-tv`,
+  },
+  { id: 'lg', label: 'LG TV', url: `${DOCS_APPS_URL}/smart-tv#lg-tvs` },
+  {
+    id: 'samsung',
+    label: 'Samsung TV',
+    url: `${DOCS_APPS_URL}/smart-tv#samsung-tvs`,
+  },
+] as const;
+
+interface DesktopDownload {
+  label: string;
+  url: string;
+  /** Unset where the desktop app doesn't run, such as on a phone. */
+  os?: DesktopOs;
+}
+
+type UADataNavigator = Navigator & {
+  userAgentData?: {
+    platform?: string;
+    getHighEntropyValues?: (
+      hints: string[]
+    ) => Promise<{ architecture?: string }>;
+  };
+};
+
+type DesktopOs = 'windows' | 'mac' | 'linux';
+type DesktopArch = 'arm64' | 'x64';
+
+function desktopOs(): DesktopOs | undefined {
+  const hint = (navigator as UADataNavigator).userAgentData?.platform;
+  if (hint) {
+    if (/^windows$/i.test(hint)) return 'windows';
+    if (/^macos$/i.test(hint)) return 'mac';
+    if (/^linux$/i.test(hint)) return 'linux';
+    return undefined;
+  }
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod|Android/.test(ua)) return undefined;
+  // iPads ask for desktop sites as a Mac.
+  if (/Macintosh/.test(ua)) {
+    return navigator.maxTouchPoints > 1 ? undefined : 'mac';
+  }
+  if (/Windows/.test(ua)) return 'windows';
+  if (/Linux/.test(ua)) return 'linux';
+  return undefined;
+}
+
+function desktopDownload(
+  os: DesktopOs | undefined,
+  arch: DesktopArch | undefined
+): DesktopDownload {
+  switch (os) {
+    case 'windows':
+      return {
+        label: 'Download for Windows',
+        url: `${DESKTOP_ASSET_URL}win-${arch ?? 'x64'}.exe`,
+      };
+    // Only Chromium reports a Mac's chip; elsewhere the release page asks.
+    case 'mac':
+      return {
+        label: 'Download for Mac',
+        url: arch
+          ? `${DESKTOP_ASSET_URL}osx-${arch}.pkg`
+          : DESKTOP_DOWNLOAD_URL,
+      };
+    case 'linux':
+      return {
+        label: 'Download for Linux',
+        url: `${DESKTOP_ASSET_URL}linux-${arch ?? 'x64'}.flatpak`,
+      };
+    default:
+      return { label: 'Download desktop app', url: DESKTOP_DOWNLOAD_URL };
+  }
+}
+
+function useDesktopDownload(): DesktopDownload {
+  const [arch, setArch] = React.useState<DesktopArch | undefined>(() =>
+    /aarch64|arm64/i.test(navigator.userAgent) ? 'arm64' : undefined
+  );
+  React.useEffect(() => {
+    (navigator as UADataNavigator).userAgentData
+      ?.getHighEntropyValues?.(['architecture'])
+      .then(({ architecture }) => {
+        if (architecture === 'arm') setArch('arm64');
+        else if (architecture === 'x86') setArch('x64');
+      })
+      .catch(() => {});
+  }, []);
+  const os = desktopOs();
+  return { ...desktopDownload(os, arch), os };
+}
+
+const VARIANT_LOCATION_STORAGE_KEY = 'aiostreams:install:variant-location';
+
+const STREMIO_CUSTOM_SOURCE_STORAGE_KEYS = {
+  manifestUrl: 'aiostreams:seanime:stremio-custom-source:manifest-url',
+  nameTemplate: 'aiostreams:seanime:stremio-custom-source:name-template',
+  catalogSelections:
+    'aiostreams:seanime:stremio-custom-source:catalog-selections',
+} as const;
+
+type PersistedCatalogSelection = {
+  selected: boolean;
+  displayName: string;
+};
+
+const toTitleCase = (value: string): string =>
+  value
+    .split(' ')
+    .map((word) => word.toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+const templateStringModifiers: Record<string, (value: string) => string> = {
+  title: toTitleCase,
+  upper: (value) => value.toUpperCase(),
+  lower: (value) => value.toLowerCase(),
+  length: (value) => value.length.toString(),
+};
+
+const getCatalogSelectionKey = (catalog: { id: string; type: string }) =>
+  `${catalog.type}::${catalog.id}`;
+
+const safeGetLocalStorageItem = (key: string): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const safeSetLocalStorageItem = (key: string, value: string) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // noop
+  }
+};
+
+const safeRemoveLocalStorageItem = (key: string) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // noop
+  }
+};
+
+const getPersistedCatalogSelections = (): Record<
+  string,
+  PersistedCatalogSelection
+> => {
+  const raw = safeGetLocalStorageItem(
+    STREMIO_CUSTOM_SOURCE_STORAGE_KEYS.catalogSelections
+  );
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+function applyNameTemplate(
+  template: string,
+  ctx: { addonName: string; catalogName: string; catalogType: string }
+): string {
+  const valueContext: Record<string, Record<string, string>> = {
+    addon: {
+      name: ctx.addonName,
+    },
+    catalog: {
+      name: ctx.catalogName,
+      type: ctx.catalogType,
+    },
+  };
+
+  return template.replace(
+    /\{([a-z]+)\.([a-z]+)((?:::[^{}:\s]+)*)\}/gi,
+    (match, namespace, key, modifierPart) => {
+      const rawValue = valueContext[namespace]?.[key];
+
+      if (typeof rawValue !== 'string') return match;
+
+      const modifiers =
+        typeof modifierPart === 'string' && modifierPart.length > 0
+          ? modifierPart
+              .split('::')
+              .map((mod) => mod.trim().toLowerCase())
+              .filter(Boolean)
+          : [];
+
+      return modifiers.reduce((result, mod) => {
+        const modifier = templateStringModifiers[mod];
+        return modifier ? modifier(result) : result;
+      }, rawValue);
+    }
+  );
+}
+
+function StremioCustomSourceModal({
+  open,
+  onOpenChange,
+  baseUrl,
+  initialManifestUrl,
+}: StremioCustomSourceModalProps) {
+  const [step, setStep] = React.useState<'url' | 'catalogs' | 'import'>('url');
+  const [manifestUrl, setManifestUrl] = React.useState(initialManifestUrl);
+  const [manifest, setManifest] = React.useState<FetchedManifest | null>(null);
+  const [catalogs, setCatalogs] = React.useState<CatalogEntry[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [importJson, setImportJson] = React.useState('');
+  const [nameTemplate, setNameTemplate] = React.useState(DEFAULT_NAME_TEMPLATE);
+
+  React.useEffect(() => {
+    if (!open) {
+      setStep('url');
+      setManifest(null);
+      setCatalogs([]);
+      setError(null);
+      setImportJson('');
+      return;
+    }
+
+    const storedTemplate = safeGetLocalStorageItem(
+      STREMIO_CUSTOM_SOURCE_STORAGE_KEYS.nameTemplate
+    );
+    const storedManifestUrl = safeGetLocalStorageItem(
+      STREMIO_CUSTOM_SOURCE_STORAGE_KEYS.manifestUrl
+    );
+
+    if (storedManifestUrl === initialManifestUrl) {
+      safeRemoveLocalStorageItem(
+        STREMIO_CUSTOM_SOURCE_STORAGE_KEYS.manifestUrl
+      );
+    }
+
+    setManifestUrl(
+      storedManifestUrl && storedManifestUrl !== initialManifestUrl
+        ? storedManifestUrl
+        : initialManifestUrl
+    );
+    setNameTemplate(storedTemplate || DEFAULT_NAME_TEMPLATE);
+  }, [open, initialManifestUrl]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    safeSetLocalStorageItem(
+      STREMIO_CUSTOM_SOURCE_STORAGE_KEYS.nameTemplate,
+      nameTemplate
+    );
+  }, [nameTemplate, open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const nextManifestUrl = manifestUrl.trim();
+    if (!nextManifestUrl || nextManifestUrl === initialManifestUrl) {
+      safeRemoveLocalStorageItem(
+        STREMIO_CUSTOM_SOURCE_STORAGE_KEYS.manifestUrl
+      );
+      return;
+    }
+    safeSetLocalStorageItem(
+      STREMIO_CUSTOM_SOURCE_STORAGE_KEYS.manifestUrl,
+      nextManifestUrl
+    );
+  }, [manifestUrl, initialManifestUrl, open]);
+
+  React.useEffect(() => {
+    if (!open || catalogs.length === 0) return;
+
+    const persistedSelections = catalogs.reduce<
+      Record<string, PersistedCatalogSelection>
+    >((acc, catalog) => {
+      acc[getCatalogSelectionKey(catalog)] = {
+        selected: catalog.selected,
+        displayName: catalog.displayName,
+      };
+      return acc;
+    }, {});
+
+    safeSetLocalStorageItem(
+      STREMIO_CUSTOM_SOURCE_STORAGE_KEYS.catalogSelections,
+      JSON.stringify(persistedSelections)
+    );
+  }, [catalogs, open]);
+
+  const fetchManifest = async () => {
+    const url = manifestUrl.trim();
+    if (!url) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      const data: FetchedManifest = await res.json();
+      if (!Array.isArray(data.catalogs) || data.catalogs.length === 0) {
+        setError('This manifest has no catalogs.');
+        return;
+      }
+      setManifest(data);
+      const persistedSelections = getPersistedCatalogSelections();
+      setCatalogs(
+        data.catalogs.map((cat) => {
+          const searchExtra = cat.extra?.find((e) => e.name === 'search');
+          const persistedCatalog =
+            persistedSelections[getCatalogSelectionKey(cat)];
+          const defaultDisplayName = applyNameTemplate(nameTemplate, {
+            addonName: data.name,
+            catalogName: cat.name,
+            catalogType: cat.type,
+          });
+          // preselect if
+          //  - previously selected, or
+          //  - does not have a non-search required extra. (non search extras cannot be provided via seanime)
+          const preselected =
+            persistedCatalog?.selected ??
+            cat.extra?.find(
+              (e) => e.name !== 'search' && e.isRequired === true
+            ) === undefined;
+
+          return {
+            id: cat.id,
+            type: cat.type,
+            name: cat.name,
+            hasSearch: !!searchExtra,
+            searchRequired: searchExtra?.isRequired === true,
+            displayName: persistedCatalog?.displayName || defaultDisplayName,
+            selected: preselected,
+          };
+        })
+      );
+      setStep('catalogs');
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to fetch manifest. Check the URL and try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const buildExtensionUrl = (catalog: CatalogEntry) => {
+    const logo = manifest?.logo?.startsWith('http')
+      ? manifest.logo
+      : 'https://raw.githubusercontent.com/Stremio/stremio-brand/refs/heads/master/logos/PNG/stremio-logo-800px.png';
+    const catalogData = {
+      id: catalog.id,
+      type: catalog.type,
+      name: catalog.displayName,
+      addonManifestUrl: manifestUrl.trim(),
+      addonLogo: logo,
+    };
+    const encoded = btoa(
+      unescape(encodeURIComponent(JSON.stringify(catalogData)))
+    )
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+    return `${baseUrl}/seanime/extensions/${encoded}/stremio-custom-source.json`;
+  };
+
+  const selectedCount = catalogs.filter((c) => c.selected).length;
+  const allSelected = catalogs.length > 0 && catalogs.every((c) => c.selected);
+  const selectAllState: boolean | 'indeterminate' =
+    selectedCount === 0 ? false : allSelected ? true : 'indeterminate';
+
+  const handleContinue = () => {
+    const selected = catalogs.filter((c) => c.selected);
+    if (!selected.length) {
+      setError('Select at least one catalog.');
+      return;
+    }
+    setError(null);
+    setImportJson(JSON.stringify({ urls: selected.map(buildExtensionUrl) }));
+    setStep('import');
+  };
+
+  const toggleAll = () => {
+    setCatalogs((prev) => prev.map((c) => ({ ...c, selected: !allSelected })));
+  };
+
+  const applyTemplateToSelected = () => {
+    if (!manifest) return;
+    setCatalogs((prev) =>
+      prev.map((c) =>
+        c.selected
+          ? {
+              ...c,
+              displayName: applyNameTemplate(nameTemplate, {
+                addonName: manifest.name,
+                catalogName: c.name,
+                catalogType: c.type,
+              }),
+            }
+          : c
+      )
+    );
+    toast.success(
+      `Renamed ${selectedCount} catalog${selectedCount !== 1 ? 's' : ''}`
+    );
+  };
+
+  const stepDescriptions: Record<typeof step, string> = {
+    url: 'Enter a Stremio addon manifest URL to browse its catalogs.',
+    catalogs: manifest
+      ? `${catalogs.length} catalog${catalogs.length !== 1 ? 's' : ''} from ${manifest.name}. Pick the ones to expose as Seanime custom sources.`
+      : '',
+    import:
+      'Paste this URL list in Seanime under Extensions → Add Extensions → Import from repository → Import all.',
+  };
+
+  const transition = {
+    initial: { opacity: 0, x: 12 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -12 },
+    transition: { duration: 0.18, ease: 'easeOut' as const },
+  };
+
+  return (
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Stremio Custom Source"
+      description={stepDescriptions[step]}
+      contentClass="max-w-2xl"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {step === 'url' && (
+          <motion.div key="url" {...transition} className="space-y-4">
+            <div className="flex gap-2">
+              <TextInput
+                value={manifestUrl}
+                onValueChange={setManifestUrl}
+                placeholder="https://…/manifest.json"
+                className="flex-1 font-mono text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') fetchManifest();
+                }}
+              />
+              <Button
+                intent="white"
+                rounded
+                onClick={fetchManifest}
+                loading={loading}
+                className="shrink-0"
+              >
+                Continue
+              </Button>
+            </div>
+            {error && (
+              <Alert intent="alert" description={error} isClosable={false} />
+            )}
+          </motion.div>
+        )}
+
+        {step === 'catalogs' && (
+          <motion.div key="catalogs" {...transition} className="space-y-4">
+            {manifest && (
+              <div className="flex items-center gap-3 pb-3 border-b border-gray-700/50">
+                {manifest.logo && (
+                  <img
+                    src={manifest.logo}
+                    alt={manifest.name}
+                    className="h-8 w-8 rounded object-contain bg-gray-900 p-1"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-100 truncate">
+                    {manifest.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {selectedCount} of {catalogs.length} selected
+                  </p>
+                </div>
+                <IconButton
+                  size="sm"
+                  rounded
+                  intent={allSelected ? 'primary' : 'primary-subtle'}
+                  icon={
+                    allSelected ? (
+                      <LuSquareMinus className="w-4 h-4" />
+                    ) : (
+                      <LuSquareCheck className="w-4 h-4" />
+                    )
+                  }
+                  onClick={toggleAll}
+                  title={allSelected ? 'Deselect all' : 'Select all'}
+                />
+              </div>
+            )}
+
+            <div className="flex flex-col gap-1 max-h-80 overflow-y-auto -mx-1 px-1">
+              {catalogs.map((cat, idx) => (
+                <div
+                  key={`${cat.type}-${cat.id}`}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
+                    cat.selected
+                      ? 'bg-[--brand]/5 hover:bg-[--brand]/10'
+                      : 'hover:bg-gray-800/40'
+                  }`}
+                >
+                  <div className="flex-shrink-0">
+                    <Checkbox
+                      id={`cat-${idx}`}
+                      size="sm"
+                      value={cat.selected}
+                      onValueChange={(val) =>
+                        setCatalogs((prev) =>
+                          prev.map((c, i) =>
+                            i === idx ? { ...c, selected: val === true } : c
+                          )
+                        )
+                      }
+                    />
+                  </div>
+                  <div
+                    className="flex-shrink-0 w-36 cursor-pointer"
+                    onClick={() =>
+                      setCatalogs((prev) =>
+                        prev.map((c, i) =>
+                          i === idx ? { ...c, selected: !c.selected } : c
+                        )
+                      )
+                    }
+                  >
+                    <p className="text-sm font-medium text-gray-100 truncate">
+                      {cat.name}
+                    </p>
+                    <div className="flex items-center gap-1 mt-0.5 text-[11px] text-gray-500">
+                      <span className="capitalize">{cat.type}</span>
+                      {cat.hasSearch && (
+                        <>
+                          <span className="text-gray-700">·</span>
+                          <span
+                            className={`flex items-center gap-0.5 ${
+                              cat.searchRequired
+                                ? 'text-amber-400/80'
+                                : 'text-gray-500'
+                            }`}
+                          >
+                            <SearchIcon className="h-2.5 w-2.5" />
+                            {cat.searchRequired ? 'search only' : 'searchable'}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <TextInput
+                      value={cat.displayName}
+                      onValueChange={(val) =>
+                        setCatalogs((prev) =>
+                          prev.map((c, i) =>
+                            i === idx ? { ...c, displayName: val } : c
+                          )
+                        )
+                      }
+                      className="w-full text-xs"
+                      placeholder="Display name in Seanime"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <AnimatePresence initial={false}>
+              {selectedCount > 0 && (
+                <motion.div
+                  key="rename-bar"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="rounded-lg border border-gray-700/60 bg-gray-800/30 p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <TextInput
+                        value={nameTemplate}
+                        onValueChange={setNameTemplate}
+                        placeholder={DEFAULT_NAME_TEMPLATE}
+                        className="flex-1 font-mono text-xs"
+                        leftIcon={<LuWand className="w-3.5 h-3.5" />}
+                      />
+                      <Button
+                        intent="primary-subtle"
+                        size="sm"
+                        onClick={applyTemplateToSelected}
+                        className="shrink-0"
+                      >
+                        Apply to {selectedCount}
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-gray-500">
+                      Variables:{' '}
+                      <code className="text-gray-400">{'{addon.name}'}</code>,{' '}
+                      <code className="text-gray-400">{'{catalog.name}'}</code>,{' '}
+                      <code className="text-gray-400">{'{catalog.type}'}</code>
+                      {' · '}Modifiers:{' '}
+                      <code className="text-gray-400">
+                        {'{catalog.type::title}'}
+                      </code>
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {error && (
+              <Alert intent="alert" description={error} isClosable={false} />
+            )}
+
+            <div className="flex justify-between pt-2">
+              <Button
+                intent="gray-outline"
+                rounded
+                onClick={() => {
+                  setStep('url');
+                  setError(null);
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                intent="white"
+                rounded
+                onClick={handleContinue}
+                disabled={selectedCount === 0}
+              >
+                Continue with {selectedCount} catalog
+                {selectedCount !== 1 ? 's' : ''}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 'import' && (
+          <motion.div key="import" {...transition} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-400 ml-1">
+                URL list JSON
+              </label>
+              <div className="flex items-center gap-2">
+                <TextInput
+                  type="text"
+                  readOnly
+                  value={importJson}
+                  className="flex-1 font-mono text-sm bg-black/20"
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  onClick={() =>
+                    copyToClipboard(importJson, {
+                      onSuccess: () => toast.success('Copied to clipboard'),
+                      onError: () => toast.error('Failed to copy'),
+                    })
+                  }
+                  intent="primary"
+                  className="shrink-0 px-3"
+                  aria-label="Copy URL list"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex justify-between pt-2">
+              <Button
+                intent="gray-outline"
+                rounded
+                onClick={() => {
+                  setStep('catalogs');
+                  setError(null);
+                }}
+              >
+                Back
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Modal>
+  );
+}
+
+export function SaveInstallMenu() {
+  return (
+    <>
+      <PageWrapper className="space-y-4 p-4 sm:p-8">
+        <Content />
+      </PageWrapper>
+    </>
+  );
+}
+
+function Content() {
+  const {
+    userData,
+    setUserData,
+    uuid,
+    setUuid,
+    password,
+    setPassword,
+    encryptedPassword,
+    setEncryptedPassword,
+  } = useUserData();
+  const { data: linkedAccounts } = useQuery(
+    linkedAccountsQuery(uuid ? { uuid, password } : null)
+  );
+  const preferencesModal = useDisclosure(false);
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = React.useState('');
+  const [staySignedIn, setStaySignedIn] = React.useState(true);
+  const [createLoading, setCreateLoading] = React.useState(false);
+  // Set only by a successful create, so the offer is never shown to an
+  // existing configuration.
+  const [linkOfferFor, setLinkOfferFor] = React.useState<{
+    uuid: string;
+    password: string;
+  } | null>(null);
+  const [passwordRequirements, setPasswordRequirements] = React.useState<
+    string[]
+  >([]);
+  const { status } = useStatus();
+  const sessionsEnabled = status?.settings.configSessionsEnabled !== false;
+  const { user: sessionUser } = useSession();
+  const { data: profileData } = useQuery({
+    ...configProfilesQuery,
+    enabled: Boolean(sessionUser),
+  });
+  const profileAlias =
+    profileData?.profiles.find((p) => p.uuid === uuid)?.alias ?? null;
+  const baseUrl = status?.settings?.baseUrl || window.location.origin;
+  const hasStatus = !!status;
+  const searchApiDisabled = status?.settings?.searchApiDisabled ?? false;
+  const nabApiDisabled = status?.settings?.nabApiDisabled ?? false;
+  const jellyfin = status?.settings?.jellyfin;
+  const jellyfinEnabled = jellyfin?.enabled ?? false;
+  const jellyfinVersionCap = jellyfin?.maxVersions ?? 25;
+  const jellyfinAppVersionCap = jellyfin?.maxAppVersions ?? 500;
+  const jellyfinSegmentsAvailable = jellyfin?.segments.enabled ?? false;
+  const jellyfinSegmentProviders = jellyfin?.segments.providers ?? [];
+  const jellyfinPmdbKey =
+    jellyfinSegmentProviders.find((p) => p.id === 'pmdb')?.key ?? null;
+  // `user` leaves the switch to the configuration; the others force it.
+  const jellyfinResolveForced =
+    jellyfin?.resolveOnOpen && jellyfin.resolveOnOpen !== 'user'
+      ? jellyfin.resolveOnOpen === 'always'
+      : null;
+  const jellyfinPlayWait =
+    userData.proxy?.enabled ||
+    userData.services?.some(
+      (s) => s.enabled && (s.id === 'aiostreams' || s.id === 'torbox')
+    )
+      ? jellyfin?.playWait
+      : undefined;
+  const seanimeExtensionVersion =
+    status?.settings?.seanimeExtensionVersion ?? null;
+  const isSeanimeVersionUnavailable =
+    hasStatus && !searchApiDisabled && !seanimeExtensionVersion;
+  const disableSeanimeCard = searchApiDisabled || isSeanimeVersionUnavailable;
+  const seanimeDisabledReason = searchApiDisabled
+    ? 'Requires Search API (disabled on this instance)'
+    : isSeanimeVersionUnavailable
+      ? 'Unavailable on this instance. Please ask your instance hoster.'
+      : undefined;
+  const importFileRef = React.useRef<HTMLInputElement>(null);
+  const deleteUserModal = useDisclosure(false);
+  const [confirmDeletionPassword, setConfirmDeletionPassword] =
+    React.useState('');
+  const { setSelectedMenu, firstMenu } = useMenu();
+  const templateExportModal = useDisclosure(false);
+  const templatesModal = useDisclosure(false);
+  const exportMenuModal = useDisclosure(false);
+  const importMenuModal = useDisclosure(false);
+  const [filterCredentialsInExport, setFilterCredentialsInExport] =
+    React.useState(true);
+
+  const selectionFromUrl = React.useMemo(
+    () =>
+      typeof window === 'undefined'
+        ? null
+        : variantSelectionFromLocation(
+            window.location.pathname,
+            window.location.search
+          ),
+    []
+  );
+  const [selectedVariants, setSelectedVariants] = React.useState<string[]>(
+    selectionFromUrl?.ids ?? []
+  );
+  const [variantLocation, setVariantLocation] =
+    React.useState<VariantSelectorLocation>(() =>
+      selectionFromUrl
+        ? selectionFromUrl.location
+        : safeGetLocalStorageItem(VARIANT_LOCATION_STORAGE_KEY) === 'query'
+          ? 'query'
+          : 'path'
+    );
+  React.useEffect(() => {
+    safeSetLocalStorageItem(VARIANT_LOCATION_STORAGE_KEY, variantLocation);
+  }, [variantLocation]);
+  const chillLinkModal = useDisclosure(false);
+  const seanimeModal = useDisclosure(false);
+  const stremioCustomSourceModal = useDisclosure(false);
+  const jellyfinModal = useDisclosure(false);
+  const jellyfinApiKeysModal = useDisclosure(false);
+  const [jellyfinTab, setJellyfinTab] = React.useState('connect');
+  const [quickConnectCode, setQuickConnectCode] = React.useState('');
+  const [quickConnectPending, setQuickConnectPending] =
+    React.useState<QuickConnectPending | null>(null);
+  const [quickConnectLookupError, setQuickConnectLookupError] = React.useState<
+    string | null
+  >(null);
+  const [lookingUpQuickConnect, setLookingUpQuickConnect] =
+    React.useState(false);
+  const [quickConnectPersona, setQuickConnectPersona] = React.useState('');
+  const [quickConnectPin, setQuickConnectPin] = React.useState('');
+  const [approvingQuickConnect, setApprovingQuickConnect] =
+    React.useState(false);
+  const aniyomiModal = useDisclosure(false);
+  const nabIndexerModal = useDisclosure(false);
+  const searchApiModal = useDisclosure(false);
+  const { handleSave: handleSaveContext, loading: saveLoading } = useSave();
+  const confirmResetProps = useConfirmationDialog({
+    title: 'Confirm Reset',
+    description: `Are you sure you want to reset your configuration? This will clear all your settings${uuid ? ` but keep your user account` : ''}. This action cannot be undone.`,
+    actionText: 'Reset',
+    actionIntent: 'alert',
+    onConfirm: () => {
+      setUserData(null);
+      setSelectedMenu(firstMenu);
+      toast.success('Configuration reset successfully');
+    },
+  });
+  const confirmDelete = useConfirmationDialog({
+    title: 'Confirm Deletion',
+    description:
+      'Are you sure you want to delete your configuration? This will permanently remove all your data. This action cannot be undone.',
+    actionText: 'Delete',
+    actionIntent: 'alert',
+    onConfirm: () => {
+      setCreateLoading(true);
+      handleDelete();
+    },
+  });
+  React.useEffect(() => {
+    const requirements: string[] = [];
+
+    // already created a config
+    if (uuid) {
+      setPasswordRequirements([]);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      requirements.push('Password must be at least 6 characters long');
+    }
+
+    if (confirmNewPassword.length > 0 && newPassword !== confirmNewPassword) {
+      requirements.push('Passwords do not match');
+    }
+
+    setPasswordRequirements(requirements);
+  }, [newPassword, confirmNewPassword, uuid, password]);
+
+  const handleCreate = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
+    if (passwordRequirements.length > 0) {
+      toast.error('Password requirements not met');
+      return;
+    }
+    setCreateLoading(true);
+    try {
+      const result = await createUserConfig(userData, newPassword);
+      toast.success(
+        'Configuration created successfully, your UUID and password are below'
+      );
+      setUuid(result.uuid);
+      setEncryptedPassword((result as CreateUserResponse).encryptedPassword);
+      setPassword(newPassword);
+      if (sessionsEnabled) {
+        void createConfigSession(result.uuid, newPassword, staySignedIn).catch(
+          () => {}
+        );
+      }
+      if (!linkOfferDismissed()) {
+        setLinkOfferFor({ uuid: result.uuid, password: newPassword });
+      }
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to create configuration'
+      );
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target?.result as string);
+        if (parsed.metadata) {
+          toast.error(
+            'The imported file is a template, please use the template import option instead.'
+          );
+          return;
+        }
+        delete parsed.uuid;
+        delete parsed.trusted;
+        setUserData((prev) => ({
+          ...prev,
+          ...applyMigrations(parsed),
+        }));
+        toast.success('Configuration imported successfully');
+      } catch (err) {
+        toast.error('Failed to import configuration: Invalid JSON file');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const filterCredentials = (data: UserData): UserData =>
+    sanitiseTemplateConfig(
+      data,
+      (type: string) =>
+        status?.settings.presets.find((p) => p.ID === type)?.OPTIONS
+    );
+
+  const handleExport = () => {
+    try {
+      const exportData = filterCredentialsInExport
+        ? filterCredentials(userData)
+        : structuredClone(userData);
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      // format date as YYYY-MM-DD.HH-MM-SS
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const formattedDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+      a.download = `aiostreams-config-${formattedDate}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Configuration exported successfully');
+      exportMenuModal.close();
+    } catch (err) {
+      toast.error('Failed to export configuration');
+    }
+  };
+  const uuidRegex =
+    /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+  // An alias stands in for the uuid and password, so prefer it when there is one.
+  const aliasForInstall = !uuid
+    ? null
+    : uuidRegex.test(uuid)
+      ? (profileAlias ?? null)
+      : uuid;
+  const enabledVariants = (userData.variants ?? []).filter(
+    (variant) => variant.enabled !== false
+  );
+  const activeVariants = selectedVariants.filter((id) =>
+    enabledVariants.some((variant) => variant.id === id)
+  );
+  const variantIds = activeVariants.map(encodeURIComponent).join(',');
+  const variantPath =
+    activeVariants.length && variantLocation === 'path'
+      ? `/v/${variantIds}`
+      : '';
+  const variantQuery =
+    activeVariants.length && variantLocation === 'query'
+      ? `?v=${variantIds}`
+      : '';
+
+  const manifestUrl = !uuid
+    ? ''
+    : aliasForInstall
+      ? `${baseUrl}/stremio/u/${aliasForInstall}${variantPath}/manifest.json${variantQuery}`
+      : `${baseUrl}/stremio/${uuid}/${encryptedPassword}${variantPath}/manifest.json${variantQuery}`;
+  const chillLinkUrl = uuid
+    ? `${baseUrl}/chilllink/${uuid}/${encryptedPassword}${variantPath}${variantQuery}`
+    : '';
+  const encodedManifest = encodeURIComponent(manifestUrl);
+
+  const hasSeanimePersonalUrl =
+    !!uuid && !!encryptedPassword && uuidRegex.test(uuid);
+
+  const seanimePluginUrl = hasSeanimePersonalUrl
+    ? `${baseUrl}/seanime/${uuid}/${encryptedPassword}${variantPath}/extensions/aiostreams-plugin.json${variantQuery}`
+    : `${baseUrl}/seanime/extensions/aiostreams-plugin.json`;
+  const seanimeProviderUrl = hasSeanimePersonalUrl
+    ? `${baseUrl}/seanime/${uuid}/${encryptedPassword}${variantPath}/extensions/aiostreams-torrent-provider.json${variantQuery}`
+    : `${baseUrl}/seanime/extensions/aiostreams-torrent-provider.json`;
+  const copyManifestUrl = async () => {
+    await copyToClipboard(manifestUrl, {
+      onSuccess: () => toast.success('Manifest URL copied to clipboard'),
+      onError: () => toast.error('Failed to copy manifest URL'),
+    });
+  };
+
+  const copyChillLinkUrl = async () => {
+    await copyToClipboard(chillLinkUrl, {
+      onSuccess: () => toast.success('ChillLink URL copied to clipboard'),
+      onError: () => toast.error('Failed to copy ChillLink URL'),
+    });
+  };
+
+  const copySeanimePluginUrl = async () => {
+    await copyToClipboard(seanimePluginUrl, {
+      onSuccess: () => toast.success('Plugin URL copied to clipboard'),
+      onError: () => toast.error('Failed to copy URL'),
+    });
+  };
+
+  const copySeanimeProviderUrl = async () => {
+    await copyToClipboard(seanimeProviderUrl, {
+      onSuccess: () =>
+        toast.success('Torrent provider URL copied to clipboard'),
+      onError: () => toast.error('Failed to copy URL'),
+    });
+  };
+
+  const jellyfinServerUrl = `${baseUrl}/jellyfin`;
+  const jellyfinUsername = profileAlias ?? uuid ?? '';
+  const copyJellyfinServerUrl = async () => {
+    await copyToClipboard(jellyfinServerUrl, {
+      onSuccess: () => toast.success('Server address copied to clipboard'),
+      onError: () => toast.error('Failed to copy address'),
+    });
+  };
+  const copyJellyfinUsername = async () => {
+    await copyToClipboard(jellyfinUsername, {
+      onSuccess: () => toast.success('Username copied to clipboard'),
+      onError: () => toast.error('Failed to copy username'),
+    });
+  };
+  const jellyfinPersonas = userData.jellyfin?.personas ?? [];
+  const jellyfinAccountName =
+    userData.jellyfin?.primary?.name || userData.addonName || 'Primary user';
+  const quickConnectPersonaName = quickConnectPersona
+    ? (jellyfinPersonas.find((p) => p.id === quickConnectPersona)?.name ??
+      quickConnectPersona)
+    : null;
+  const quickConnectLocked = quickConnectPersona
+    ? !!jellyfinPersonas.find((p) => p.id === quickConnectPersona)?.lock
+    : !!userData.jellyfin?.primary?.lock;
+  // An alias makes it short enough to type on a TV.
+  const jellyfinPickerUrl = aliasForInstall
+    ? `${baseUrl}/jellyfin/u/${aliasForInstall}`
+    : uuid && encryptedPassword
+      ? `${baseUrl}/jellyfin/${uuid}/${encryptedPassword}`
+      : '';
+  const jellyfinWebAppUrl = `${jellyfinPickerUrl || jellyfinServerUrl}/web/`;
+  const jellyfinDesktopLink = `aiostreams://server?url=${encodeURIComponent(jellyfinPickerUrl || jellyfinServerUrl)}`;
+  const copyJellyfinPickerUrl = async () => {
+    await copyToClipboard(jellyfinPickerUrl, {
+      onSuccess: () => toast.success('Server address copied to clipboard'),
+      onError: () => toast.error('Failed to copy address'),
+    });
+  };
+
+  // The device is shown before the code is bound: codes are one shared
+  // six-digit space, so a mistyped digit would approve a stranger's device.
+  React.useEffect(() => {
+    setQuickConnectPending(null);
+    setQuickConnectLookupError(null);
+    if (!uuid || quickConnectCode.length !== 6) {
+      setLookingUpQuickConnect(false);
+      return;
+    }
+    let cancelled = false;
+    setLookingUpQuickConnect(true);
+    const timer = setTimeout(() => {
+      getJellyfinQuickConnectPending(
+        { uuid, password: password || null },
+        quickConnectCode
+      )
+        .then((result) => {
+          if (!cancelled) setQuickConnectPending(result);
+        })
+        .catch((error) => {
+          if (!cancelled)
+            setQuickConnectLookupError(
+              error instanceof Error
+                ? error.message
+                : 'No device is waiting on this code'
+            );
+        })
+        .finally(() => {
+          if (!cancelled) setLookingUpQuickConnect(false);
+        });
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [quickConnectCode, uuid, password]);
+
+  const quickConnectRequestedAgo = (iso: string) => {
+    const seconds = Math.max(
+      0,
+      Math.round((Date.now() - Date.parse(iso)) / 1000)
+    );
+    if (seconds < 5) return 'just now';
+    if (seconds < 120) return `${seconds}s ago`;
+    return `${Math.round(seconds / 60)}m ago`;
+  };
+
+  const cancelQuickConnect = () => {
+    setQuickConnectCode('');
+    setQuickConnectPending(null);
+    setQuickConnectPersona('');
+    setQuickConnectPin('');
+  };
+
+  const approveQuickConnect = async () => {
+    if (!uuid || quickConnectCode.length !== 6) return;
+    setApprovingQuickConnect(true);
+    try {
+      const result = await approveJellyfinQuickConnect(
+        { uuid, password: password || null },
+        quickConnectCode,
+        quickConnectPersona || undefined,
+        quickConnectLocked ? quickConnectPin : undefined
+      );
+      toast.success(
+        result.device?.app
+          ? `Signed in ${result.device.app} on ${result.device.name}${
+              quickConnectPersonaName ? ` as ${quickConnectPersonaName}` : ''
+            }`
+          : 'Quick Connect approved'
+      );
+      cancelQuickConnect();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to approve the code'
+      );
+    } finally {
+      setApprovingQuickConnect(false);
+    }
+  };
+
+  const newznabUrl = `${baseUrl}/api/v1/newznab/api`;
+  const torznabUrl = `${baseUrl}/api/v1/torznab/api`;
+  const nabApiKey =
+    uuid && encryptedPassword ? btoa(`${uuid}:${encryptedPassword}`) : '';
+  const searchApiUrl = `${baseUrl}/api/v1/search`;
+
+  const copyNewznabUrl = async () => {
+    await copyToClipboard(newznabUrl, {
+      onSuccess: () => toast.success('Newznab URL copied to clipboard'),
+      onError: () => toast.error('Failed to copy URL'),
+    });
+  };
+  const copyTorznabUrl = async () => {
+    await copyToClipboard(torznabUrl, {
+      onSuccess: () => toast.success('Torznab URL copied to clipboard'),
+      onError: () => toast.error('Failed to copy URL'),
+    });
+  };
+  const copyNabApiKey = async () => {
+    await copyToClipboard(nabApiKey, {
+      onSuccess: () => toast.success('API key copied to clipboard'),
+      onError: () => toast.error('Failed to copy API key'),
+    });
+  };
+  const copySearchApiUrl = async () => {
+    await copyToClipboard(searchApiUrl, {
+      onSuccess: () => toast.success('Search API URL copied to clipboard'),
+      onError: () => toast.error('Failed to copy URL'),
+    });
+  };
+
+  const handleDelete = async () => {
+    try {
+      if (!uuid) {
+        toast.error('No UUID found');
+        return;
+      }
+
+      await deleteUserConfig(uuid, confirmDeletionPassword);
+
+      // Only clear data after successful deletion
+      toast.success('Configuration deleted successfully');
+      setUuid(null);
+      setEncryptedPassword(null);
+      setPassword(null);
+      setUserData(null);
+      setSelectedMenu(firstMenu);
+      deleteUserModal.close();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to delete configuration'
+      );
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const changePasswordModal = useDisclosure(false);
+  const [changePasswordLoading, setChangePasswordLoading] =
+    React.useState(false);
+  const [changePasswordData, setChangePasswordData] = React.useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: '',
+  });
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uuid) {
+      toast.error('No UUID found');
+      return;
+    }
+    if (changePasswordData.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters long');
+      return;
+    }
+    if (
+      changePasswordData.newPassword !== changePasswordData.confirmNewPassword
+    ) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (changePasswordData.newPassword === changePasswordData.currentPassword) {
+      toast.error('New password cannot be the same as current password');
+      return;
+    }
+    setChangePasswordLoading(true);
+    try {
+      const result = await changePassword(
+        uuid,
+        changePasswordData.currentPassword,
+        changePasswordData.newPassword
+      );
+
+      toast.success(
+        'Password changed successfully. Please reinstall AIOStreams.'
+      );
+      setPassword(changePasswordData.newPassword);
+      setEncryptedPassword(result.encryptedPassword);
+      changePasswordModal.close();
+      setChangePasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: '',
+      });
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to change password'
+      );
+    } finally {
+      setChangePasswordLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="flex items-center w-full">
+        <div>
+          <h2>Install Addon</h2>
+          <p className="text-[--muted]">
+            Configure and install your personalized addon
+          </p>
+        </div>
+        <div className="hidden lg:block lg:ml-auto">
+          <PageControls />
+        </div>
+      </div>
+
+      <div className="space-y-4 mt-6">
+        {!uuid ? (
+          <CreateConfigCard
+            onSubmit={handleCreate}
+            passwordRequirements={passwordRequirements}
+            newPassword={newPassword}
+            confirmNewPassword={confirmNewPassword}
+            onNewPasswordChange={setNewPassword}
+            onConfirmNewPasswordChange={setConfirmNewPassword}
+            staySignedIn={sessionsEnabled ? staySignedIn : null}
+            onStaySignedInChange={setStaySignedIn}
+            createLoading={createLoading}
+          />
+        ) : (
+          <>
+            <SaveConfigCard
+              uuid={uuid}
+              onCopyUuid={() =>
+                copyToClipboard(uuid, {
+                  onSuccess: () => toast.success('UUID copied to clipboard'),
+                  onError: () => toast.error('Failed to copy UUID'),
+                })
+              }
+              onSave={(e) => {
+                e.preventDefault();
+                handleSaveContext();
+              }}
+              saveLoading={saveLoading}
+              onOpenPreferences={preferencesModal.open}
+            />
+
+            <InstallCard
+              encodedManifest={encodedManifest}
+              manifestUrl={manifestUrl}
+              usingAlias={!!aliasForInstall}
+              webAppUrl={jellyfinWebAppUrl}
+              desktopLink={jellyfinDesktopLink}
+              variantSelector={
+                enabledVariants.length > 0 ? (
+                  <VariantSelector
+                    variants={enabledVariants}
+                    selected={activeVariants}
+                    onChange={setSelectedVariants}
+                    location={variantLocation}
+                    onLocationChange={setVariantLocation}
+                  />
+                ) : undefined
+              }
+              onCopyManifestUrl={copyManifestUrl}
+              onOpenChillio={chillLinkModal.open}
+              onOpenSeanime={seanimeModal.open}
+              onOpenJellyfin={(tab) => {
+                setJellyfinTab(tab);
+                jellyfinModal.open();
+              }}
+              onOpenAniyomi={aniyomiModal.open}
+              onOpenNabIndexer={nabIndexerModal.open}
+              onOpenSearchApi={searchApiModal.open}
+              disableSeanimeCard={disableSeanimeCard}
+              seanimeDisabledReason={seanimeDisabledReason}
+              disableJellyfinCard={!jellyfinEnabled}
+              jellyfinDisabledReason={
+                jellyfinEnabled ? undefined : 'Disabled on this instance'
+              }
+              disableNabIndexerCard={nabApiDisabled}
+              nabIndexerDisabledReason={
+                nabApiDisabled
+                  ? 'Newznab/Torznab API (disabled on this instance)'
+                  : undefined
+              }
+              disableSearchApiCard={searchApiDisabled}
+              searchApiDisabledReason={
+                searchApiDisabled
+                  ? 'Search API (disabled on this instance)'
+                  : undefined
+              }
+            />
+
+            <ProfileCard />
+          </>
+        )}
+
+        <BackupCard
+          onExportOpen={exportMenuModal.open}
+          onImportOpen={importMenuModal.open}
+          onImport={handleImport}
+          importFileRef={importFileRef}
+        />
+
+        <DangerZoneCard
+          hasUser={!!uuid}
+          onChangePasswordOpen={changePasswordModal.open}
+          onDeleteUserOpen={deleteUserModal.open}
+          onResetOpen={confirmResetProps.open}
+        />
+
+        <Modal
+          open={changePasswordModal.isOpen}
+          onOpenChange={(open) => {
+            if (changePasswordLoading) return;
+            changePasswordModal.toggle();
+            if (!open) {
+              setChangePasswordData({
+                currentPassword: '',
+                newPassword: '',
+                confirmNewPassword: '',
+              });
+            }
+          }}
+          title="Change Password"
+          description={
+            <Alert
+              intent="warning"
+              description="Changing your password will invalidate ALL existing installations. You will need to re-install AIOStreams after this change."
+            />
+          }
+        >
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            {/* invisible but not display:none, so password managers pair the
+                new password with the UUID and update the right entry */}
+            <input
+              type="text"
+              name="username"
+              autoComplete="username"
+              value={uuid ?? ''}
+              readOnly
+              aria-hidden="true"
+              tabIndex={-1}
+              className="sr-only"
+            />
+            <PasswordInput
+              id="change-current-password"
+              label="Current Password"
+              name="current-password"
+              autoComplete="current-password"
+              value={changePasswordData.currentPassword}
+              required
+              placeholder="Enter your current password"
+              onValueChange={(value) =>
+                setChangePasswordData((prev) => ({
+                  ...prev,
+                  currentPassword: value,
+                }))
+              }
+            />
+            <PasswordInput
+              id="change-new-password"
+              label="New Password"
+              name="new-password"
+              autoComplete="new-password"
+              value={changePasswordData.newPassword}
+              required
+              placeholder="Enter your new password"
+              onValueChange={(value) =>
+                setChangePasswordData((prev) => ({
+                  ...prev,
+                  newPassword: value,
+                }))
+              }
+            />
+            <PasswordInput
+              id="change-confirm-new-password"
+              label="Confirm New Password"
+              name="confirm-new-password"
+              autoComplete="new-password"
+              value={changePasswordData.confirmNewPassword}
+              required
+              placeholder="Re-enter your new password"
+              onValueChange={(value) =>
+                setChangePasswordData((prev) => ({
+                  ...prev,
+                  confirmNewPassword: value,
+                }))
+              }
+            />
+            <div className="pt-2 flex justify-end gap-3">
+              <Button
+                type="button"
+                intent="gray-outline"
+                onClick={() => {
+                  if (!changePasswordLoading) changePasswordModal.close();
+                }}
+                disabled={changePasswordLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                intent="alert"
+                loading={changePasswordLoading}
+              >
+                Change Password
+              </Button>
+            </div>
+          </form>
+        </Modal>
+
+        <Modal
+          open={deleteUserModal.isOpen}
+          onOpenChange={deleteUserModal.toggle}
+          title="Delete Configuration"
+          description={
+            <Alert
+              intent="warning"
+              description="Please enter your password to confirm deletion of your user and all associated data. This action cannot be undone."
+            />
+          }
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!confirmDeletionPassword) {
+                toast.error('Please enter your password');
+                return;
+              }
+              confirmDelete.open();
+            }}
+          >
+            <div className="space-y-4">
+              <PasswordInput
+                label="Password"
+                id="delete-confirm-password"
+                name="password"
+                value={confirmDeletionPassword}
+                required
+                placeholder="Enter your password to confirm deletion"
+                onValueChange={(value) => setConfirmDeletionPassword(value)}
+              />
+              <div className="pt-2">
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  <Button
+                    type="button"
+                    intent="gray-outline"
+                    onClick={deleteUserModal.close}
+                    className="w-full"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    intent="alert"
+                    loading={createLoading}
+                    className="w-full"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </Modal>
+        {/* ChillLink modal */}
+        <Modal
+          open={chillLinkModal.isOpen}
+          onOpenChange={chillLinkModal.toggle}
+          title="Install in Chillio"
+          description="Add your AIOStreams addon via the ChillLink protocol"
+        >
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <TextInput
+                type="text"
+                readOnly
+                value={chillLinkUrl}
+                className="flex-1"
+                onClick={(e) => e.currentTarget.select()}
+              />
+              <Button
+                onClick={copyChillLinkUrl}
+                intent="primary"
+                className="shrink-0 px-3"
+                aria-label="Copy ChillLink URL"
+              >
+                <CopyIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Seanime modal */}
+        <Modal
+          open={seanimeModal.isOpen}
+          onOpenChange={seanimeModal.toggle}
+          title="Install in Seanime"
+          description="Stream AIOStreams content directly within Seanime"
+        >
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="text-gray-400">
+                Seanime integration is in{' '}
+                <span className="font-medium text-amber-300">beta</span>
+              </span>
+              <span className="text-gray-400">
+                Extension version:{' '}
+                <span className="font-medium text-gray-200">
+                  {seanimeExtensionVersion
+                    ? `v${seanimeExtensionVersion}`
+                    : 'Unavailable'}
+                </span>
+              </span>
+            </div>
+
+            <p className="text-xs text-gray-400">
+              In Seanime, go to{' '}
+              <span className="text-gray-200">
+                Extensions → Add Extensions → Install from URL
+              </span>
+              . Install one of the two extensions below.
+            </p>
+
+            {/* Plugin option */}
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm font-medium text-white">
+                  AIOStreams Plugin{' '}
+                  <span className="text-xs text-gray-500 font-normal">
+                    — recommended for most
+                  </span>
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Adds a dedicated results panel and tab to Seanime. Works with
+                  any URL or P2P based stream.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <TextInput
+                  type="text"
+                  readOnly
+                  value={seanimePluginUrl}
+                  className="flex-1"
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  onClick={copySeanimePluginUrl}
+                  intent="primary"
+                  className="shrink-0 px-3"
+                  aria-label="Copy plugin URL"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </div>
+              {!hasSeanimePersonalUrl && (
+                <p className="text-xs text-gray-500">
+                  After installing, open the extension settings and enter your
+                  Manifest URL.
+                </p>
+              )}
+            </div>
+
+            <div className="border-t border-gray-700/60" />
+
+            {/* Torrent provider option */}
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm font-medium text-white">
+                  AIOStreams Torrent Provider
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  For native torrent integration. Only use this if you want a
+                  simpler extension and/or want Seanime to handle debrid.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <TextInput
+                  type="text"
+                  readOnly
+                  value={seanimeProviderUrl}
+                  className="flex-1"
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  onClick={copySeanimeProviderUrl}
+                  intent="primary"
+                  className="shrink-0 px-3"
+                  aria-label="Copy torrent provider URL"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </div>
+              {!hasSeanimePersonalUrl && (
+                <p className="text-xs text-gray-500">
+                  After installing, open the extension settings and enter your
+                  Manifest URL.
+                </p>
+              )}
+            </div>
+
+            <div className="border-t border-gray-700/60" />
+
+            {/* Stremio Custom Source */}
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm font-medium text-white">
+                  Stremio Custom Source
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Expose any Stremio addon catalog as a Seanime custom source to
+                  browse its library directly inside Seanime.
+                </p>
+              </div>
+              <Button
+                intent="white"
+                rounded
+                className="w-full"
+                onClick={stremioCustomSourceModal.open}
+              >
+                Configure
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        <StremioCustomSourceModal
+          open={stremioCustomSourceModal.isOpen}
+          onOpenChange={stremioCustomSourceModal.toggle}
+          baseUrl={baseUrl}
+          initialManifestUrl={manifestUrl}
+        />
+
+        {/* Newznab / Torznab indexer modal */}
+        <Modal
+          open={nabIndexerModal.isOpen}
+          onOpenChange={nabIndexerModal.toggle}
+          title="Newznab / Torznab Indexer"
+          description="Use AIOStreams as a newznab/torznab indexer in Prowlarr, Sonarr or Radarr"
+        >
+          <div className="flex flex-col gap-5">
+            <p className="text-xs text-gray-400">
+              Add a <span className="text-gray-200">Generic Newznab</span>{' '}
+              (usenet) or <span className="text-gray-200">Generic Torznab</span>{' '}
+              (torrent) indexer. Only ID and season/episode searches are
+              supported — free-text searches return no results.
+            </p>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-white">Newznab URL</p>
+              <div className="flex items-center gap-2">
+                <TextInput
+                  type="text"
+                  readOnly
+                  value={newznabUrl}
+                  className="flex-1 font-mono text-sm"
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  onClick={copyNewznabUrl}
+                  intent="primary"
+                  className="shrink-0 px-3"
+                  aria-label="Copy Newznab URL"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-white">Torznab URL</p>
+              <div className="flex items-center gap-2">
+                <TextInput
+                  type="text"
+                  readOnly
+                  value={torznabUrl}
+                  className="flex-1 font-mono text-sm"
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  onClick={copyTorznabUrl}
+                  intent="primary"
+                  className="shrink-0 px-3"
+                  aria-label="Copy Torznab URL"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-white">API Key</p>
+              <div className="flex items-center gap-2">
+                <TextInput
+                  type="text"
+                  readOnly
+                  value={nabApiKey}
+                  className="flex-1 font-mono text-sm"
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  onClick={copyNabApiKey}
+                  intent="primary"
+                  className="shrink-0 px-3"
+                  aria-label="Copy API key"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500">
+                Paste this into the indexer's API Key field.
+              </p>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Search API modal */}
+        <Modal
+          open={searchApiModal.isOpen}
+          onOpenChange={searchApiModal.toggle}
+          title="Search API"
+          description="Query your stream pipeline as JSON"
+        >
+          <div className="flex flex-col gap-5">
+            <p className="text-xs text-gray-400">
+              <span className="font-mono text-gray-200">
+                GET {searchApiUrl}
+              </span>{' '}
+              with query params <span className="text-gray-200">type</span> and{' '}
+              <span className="text-gray-200">id</span>, authenticated with an{' '}
+              <span className="text-gray-200">
+                Authorization: Basic base64(uuid:password)
+              </span>{' '}
+              header.
+            </p>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-white">Endpoint</p>
+              <div className="flex items-center gap-2">
+                <TextInput
+                  type="text"
+                  readOnly
+                  value={searchApiUrl}
+                  className="flex-1 font-mono text-sm"
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  onClick={copySearchApiUrl}
+                  intent="primary"
+                  className="shrink-0 px-3"
+                  aria-label="Copy Search API URL"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          open={jellyfinModal.isOpen}
+          onOpenChange={jellyfinModal.toggle}
+          title="Media server"
+          description="Your configuration as a server for the AIOStreams app and Jellyfin apps, such as Swiftfin, Findroid, Streamyfin, Android TV, Kodi and Infuse."
+          contentClass="max-w-2xl w-full"
+        >
+          <MenuTabs
+            activeTab={jellyfinTab}
+            onTabChange={setJellyfinTab}
+            defaultMobileOpen="connect"
+            animated={false}
+            tabs={[
+              {
+                value: 'connect',
+                label: 'Connect',
+                content: (
+                  <div className="space-y-5">
+                    <JellyfinPrimer
+                      maxLibraries={jellyfin?.maxLibraries ?? 0}
+                      maxCatalogItems={jellyfin?.maxCatalogItems ?? 0}
+                      maxVersions={Math.min(
+                        userData.jellyfin?.maxVersions ?? jellyfinVersionCap,
+                        jellyfinVersionCap
+                      )}
+                      maxAppVersions={jellyfinAppVersionCap}
+                    />
+
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-white">
+                        Server address
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <TextInput
+                          type="text"
+                          readOnly
+                          value={jellyfinServerUrl}
+                          className="flex-1 font-mono text-sm"
+                          onClick={(e) => e.currentTarget.select()}
+                        />
+                        <Button
+                          onClick={copyJellyfinServerUrl}
+                          intent="primary"
+                          className="shrink-0 px-3"
+                          aria-label="Copy server address"
+                        >
+                          <CopyIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Add this as a server in the desktop app or any Jellyfin
+                        app.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-white">Username</p>
+                      <div className="flex items-center gap-2">
+                        <TextInput
+                          type="text"
+                          readOnly
+                          value={jellyfinUsername}
+                          className="flex-1 font-mono text-sm"
+                          onClick={(e) => e.currentTarget.select()}
+                        />
+                        <Button
+                          onClick={copyJellyfinUsername}
+                          intent="primary"
+                          className="shrink-0 px-3"
+                          aria-label="Copy username"
+                        >
+                          <CopyIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        The password is your configuration password.
+                        {jellyfinPersonas.length > 0 &&
+                          ' Add /<user> to sign in as a user.'}
+                        {(jellyfinPersonas.some((p) => p.lock) ||
+                          !!userData.jellyfin?.primary?.lock) &&
+                          ' For a user with a PIN, add /<PIN> to the password.'}
+                      </p>
+                    </div>
+
+                    {jellyfinPickerUrl && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-white">
+                          Address with a sign-in picker
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <TextInput
+                            type="text"
+                            readOnly
+                            value={jellyfinPickerUrl}
+                            className="flex-1 font-mono text-sm"
+                            onClick={(e) => e.currentTarget.select()}
+                          />
+                          <Button
+                            onClick={copyJellyfinPickerUrl}
+                            intent="primary"
+                            className="shrink-0 px-3"
+                            aria-label="Copy server address with user picker"
+                          >
+                            <CopyIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Lists this configuration&apos;s users at sign-in, so
+                          there is no UUID to type.{' '}
+                          {jellyfin?.pinSignIn
+                            ? 'A user with a PIN of 6 or more digits signs in here with that PIN alone; everyone else still needs your password.'
+                            : 'Signing in still needs your password.'}{' '}
+                          It holds the same secret as your install links, so
+                          keep it within your household.
+                          {aliasForInstall
+                            ? ' Your alias stands in for the UUID and password; the long address still works.'
+                            : sessionUser
+                              ? ' A share alias in your profile makes it short enough to type on a TV.'
+                              : ''}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-white">
+                        Quick Connect
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        For TVs: choose Quick Connect on the client and enter
+                        its code here.
+                      </p>
+                      <TextInput
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="123456"
+                        maxLength={6}
+                        value={quickConnectCode}
+                        onValueChange={(v) =>
+                          setQuickConnectCode(v.replace(/\D/g, '').slice(0, 6))
+                        }
+                        className="font-mono text-sm"
+                      />
+                      {quickConnectCode.length === 6 &&
+                        !quickConnectPending && (
+                          <p className="text-xs text-gray-500">
+                            {lookingUpQuickConnect
+                              ? 'Looking up the code...'
+                              : (quickConnectLookupError ??
+                                'No device is waiting on this code.')}
+                          </p>
+                        )}
+                      {quickConnectPending && (
+                        <div className="space-y-3 rounded-md border border-gray-800 p-3">
+                          <div>
+                            <p className="text-sm text-white">
+                              {quickConnectPending.device.app} on{' '}
+                              {quickConnectPending.device.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Version {quickConnectPending.device.version},
+                              asked{' '}
+                              {quickConnectRequestedAgo(
+                                quickConnectPending.requestedAt
+                              )}
+                              .
+                            </p>
+                          </div>
+                          {jellyfinPersonas.length > 0 && (
+                            <Select
+                              label="Sign in as"
+                              value={quickConnectPersona || '__account__'}
+                              onValueChange={(value) => {
+                                setQuickConnectPersona(
+                                  value === '__account__' ? '' : value
+                                );
+                                setQuickConnectPin('');
+                              }}
+                              options={[
+                                {
+                                  label: jellyfinAccountName,
+                                  value: '__account__',
+                                },
+                                ...jellyfinPersonas.map((p) => ({
+                                  label: p.name,
+                                  value: p.id,
+                                })),
+                              ]}
+                            />
+                          )}
+                          {quickConnectLocked && (
+                            <TextInput
+                              label="PIN"
+                              type="password"
+                              inputMode="numeric"
+                              autoComplete="off"
+                              help="This user has a PIN."
+                              value={quickConnectPin}
+                              onValueChange={(value) =>
+                                setQuickConnectPin(
+                                  value.replace(/\D/g, '').slice(0, 12)
+                                )
+                              }
+                            />
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Button
+                              onClick={approveQuickConnect}
+                              intent="primary"
+                              disabled={
+                                approvingQuickConnect ||
+                                (quickConnectLocked &&
+                                  quickConnectPin.length < 4)
+                              }
+                              loading={approvingQuickConnect}
+                            >
+                              Approve
+                              {quickConnectPersonaName
+                                ? ` as ${quickConnectPersonaName}`
+                                : ''}
+                            </Button>
+                            <Button
+                              intent="primary-subtle"
+                              onClick={cancelQuickConnect}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-medium text-white">
+                          Web app
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Browse, see what is playing and manage watch history
+                          in your browser.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        intent="gray-outline"
+                        rounded
+                        className="w-full shrink-0 sm:w-auto"
+                        leftIcon={<MonitorPlay className="h-4 w-4" />}
+                        onClick={() =>
+                          window.open(jellyfinWebAppUrl, '_blank', 'noopener')
+                        }
+                      >
+                        Open
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-medium text-white">
+                          Desktop app
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          The app for Windows, Mac and Linux, with a player that
+                          plays what a browser can&apos;t. Sign in with one of
+                          the addresses above.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        intent="gray-outline"
+                        rounded
+                        className="w-full shrink-0 sm:w-auto"
+                        leftIcon={<DownloadIcon className="h-4 w-4" />}
+                        onClick={() =>
+                          window.open(
+                            DESKTOP_DOWNLOAD_URL,
+                            '_blank',
+                            'noopener'
+                          )
+                        }
+                      >
+                        Download
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-medium text-white">
+                          API keys
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Let other tools use this server&apos;s API without
+                          your password.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        intent="gray-outline"
+                        rounded
+                        className="w-full shrink-0 sm:w-auto"
+                        leftIcon={<KeyRound className="h-4 w-4" />}
+                        onClick={jellyfinApiKeysModal.open}
+                      >
+                        Manage
+                        {userData.jellyfin?.apiKeys?.length
+                          ? ` (${userData.jellyfin.apiKeys.length})`
+                          : ''}
+                      </Button>
+                      <Modal
+                        open={jellyfinApiKeysModal.isOpen}
+                        onOpenChange={jellyfinApiKeysModal.toggle}
+                        title="API keys"
+                      >
+                        <JellyfinApiKeys serverUrl={jellyfinServerUrl} />
+                      </Modal>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                value: 'users',
+                label: 'Users',
+                content: <JellyfinPersonas />,
+              },
+              {
+                value: 'trackers',
+                label: 'Trackers',
+                content: <JellyfinTrackers />,
+              },
+              {
+                value: 'playback',
+                label: 'Playback',
+                content: (
+                  <div className="space-y-5">
+                    <Switch
+                      label="Resolve streams when an item opens"
+                      help={
+                        jellyfinResolveForced === null
+                          ? "Fills the client's version list before you press play."
+                          : 'Set by this instance.'
+                      }
+                      moreHelp={
+                        jellyfinResolveForced === null
+                          ? 'Off, streams are fetched when playback starts or an app asks for the version list: lighter, but the list shows a placeholder until then.'
+                          : undefined
+                      }
+                      side="right"
+                      disabled={jellyfinResolveForced !== null}
+                      value={
+                        jellyfinResolveForced ??
+                        userData.jellyfin?.resolveOnOpen ??
+                        true
+                      }
+                      defaultValue={true}
+                      onValueChange={(value) =>
+                        setUserData((prev) => ({
+                          ...prev,
+                          jellyfin: { ...prev.jellyfin, resolveOnOpen: value },
+                        }))
+                      }
+                    />
+                    <NumberInput
+                      label="Versions per item"
+                      help={`Up to ${jellyfinVersionCap} on this instance.`}
+                      moreHelp={`For Jellyfin apps. The AIOStreams app lists up to ${jellyfinAppVersionCap} whatever this is set to; Filters → Result Limits caps those. Version names come from your formatter.`}
+                      min={1}
+                      max={jellyfinVersionCap}
+                      value={Math.min(
+                        userData.jellyfin?.maxVersions ?? jellyfinVersionCap,
+                        jellyfinVersionCap
+                      )}
+                      onValueChange={(value) =>
+                        setUserData((prev) => ({
+                          ...prev,
+                          jellyfin: {
+                            ...prev.jellyfin,
+                            maxVersions:
+                              value === undefined ? undefined : value,
+                          },
+                        }))
+                      }
+                    />
+                    {jellyfinPlayWait !== undefined && (
+                      <NumberInput
+                        label="Wait for tracks on play"
+                        help={`Seconds. ${jellyfinPlayWait} by default on this instance.`}
+                        moreHelp="When you play a version whose tracks aren't known yet, the server reads them first, so the player lists every audio and subtitle track on the first play. It only reads versions where that can't add an IP to a debrid account: the built-in usenet service, debrid services that allow it, and anything played through a proxy. If reading takes longer than this, the tracks show from the next play. 0 starts at once. Some apps give up after about 20 seconds, so stay below that. A variant can set this per app."
+                        min={0}
+                        max={30}
+                        value={userData.jellyfin?.playWait ?? jellyfinPlayWait}
+                        onValueChange={(value) =>
+                          setUserData((prev) => ({
+                            ...prev,
+                            jellyfin: { ...prev.jellyfin, playWait: value },
+                          }))
+                        }
+                      />
+                    )}
+                    <Switch
+                      label="Mark unaired episodes"
+                      help="Clients show upcoming episodes as unaired and won't offer to play them."
+                      moreHelp="Some clients hide them altogether. When this is off, clients list them as normal episodes, and the AIOStreams app still marks them and asks before playing one."
+                      side="right"
+                      value={userData.jellyfin?.markUnaired ?? false}
+                      defaultValue={false}
+                      onValueChange={(value) =>
+                        setUserData((prev) => ({
+                          ...prev,
+                          jellyfin: { ...prev.jellyfin, markUnaired: value },
+                        }))
+                      }
+                    />
+                    {jellyfinSegmentsAvailable && (
+                      <div className="space-y-3 border-t border-gray-800 pt-4">
+                        <Switch
+                          label="Skip intro and credits"
+                          help="Offers your client markers so it can show a skip button."
+                          moreHelp="Timestamps come from community databases and are submitted against one release of an episode, so on a differently cut copy a marker can be a few seconds out. Whether your client skips automatically or asks first is a setting inside that client, not here."
+                          side="right"
+                          value={userData.jellyfin?.segments ?? true}
+                          defaultValue={true}
+                          onValueChange={(value) =>
+                            setUserData((prev) => ({
+                              ...prev,
+                              jellyfin: { ...prev.jellyfin, segments: value },
+                            }))
+                          }
+                        />
+                        {(userData.jellyfin?.segments ?? true) && (
+                          <CheckboxGroup
+                            label="Markers to offer"
+                            help="Turning off credits keeps the next-episode countdown some clients build from it."
+                            options={[
+                              { value: 'Intro', label: 'Intro' },
+                              { value: 'Recap', label: 'Recap' },
+                              { value: 'Outro', label: 'Credits' },
+                            ]}
+                            value={
+                              userData.jellyfin?.segmentTypes ?? [
+                                'Intro',
+                                'Recap',
+                                'Outro',
+                              ]
+                            }
+                            onValueChange={(value) =>
+                              setUserData((prev) => ({
+                                ...prev,
+                                jellyfin: {
+                                  ...prev.jellyfin,
+                                  segmentTypes: value as NonNullable<
+                                    UserData['jellyfin']
+                                  >['segmentTypes'],
+                                },
+                              }))
+                            }
+                          />
+                        )}
+                        {(userData.jellyfin?.segments ?? true) &&
+                          jellyfinSegmentProviders.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-sm font-medium text-white">
+                                Sources
+                              </p>
+                              <ul className="space-y-1">
+                                {jellyfinSegmentProviders.map((provider) => {
+                                  const ownKey =
+                                    provider.id === 'pmdb' &&
+                                    !!userData.pmdbApiKey;
+                                  const missingKey =
+                                    provider.key === 'configuration' && !ownKey;
+                                  return (
+                                    <li
+                                      key={provider.id}
+                                      className="flex items-center justify-between gap-3 text-xs"
+                                    >
+                                      <span className="truncate text-gray-300">
+                                        {provider.name}
+                                      </span>
+                                      <span
+                                        className={
+                                          missingKey
+                                            ? 'shrink-0 text-[--orange]'
+                                            : 'shrink-0 text-gray-500'
+                                        }
+                                      >
+                                        {missingKey
+                                          ? 'Needs your key'
+                                          : ownKey
+                                            ? 'Using your key'
+                                            : 'Included'}
+                                      </span>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                              <p className="text-xs text-gray-500">
+                                Asked in this order; the first with a marker for
+                                a type supplies it.
+                              </p>
+                            </div>
+                          )}
+                        {(userData.jellyfin?.segments ?? true) &&
+                          jellyfinPmdbKey && (
+                            <PasswordInput
+                              autoComplete="new-password"
+                              label="PublicMetaDB API Key"
+                              help={
+                                <span>
+                                  {jellyfinPmdbKey === 'instance'
+                                    ? 'This instance already asks PublicMetaDB for markers; your own key makes those lookups as your account instead. '
+                                    : 'Adds markers from PublicMetaDB, which also covers movies. '}
+                                  Create a key under Settings → API on{' '}
+                                  <a
+                                    href="https://publicmetadb.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[--brand] hover:underline"
+                                  >
+                                    publicmetadb.com
+                                  </a>
+                                  .
+                                </span>
+                              }
+                              placeholder={
+                                jellyfinPmdbKey === 'instance'
+                                  ? 'Provided by this instance (enter your own to override)'
+                                  : 'Enter your PublicMetaDB API key'
+                              }
+                              value={userData.pmdbApiKey}
+                              onValueChange={(value) =>
+                                setUserData((prev) => ({
+                                  ...prev,
+                                  pmdbApiKey: value || undefined,
+                                }))
+                              }
+                            />
+                          )}
+                      </div>
+                    )}
+                  </div>
+                ),
+              },
+            ]}
+          />
+          <p className="mt-4 text-xs text-gray-500">Save to apply changes.</p>
+        </Modal>
+
+        <Modal
+          open={aniyomiModal.isOpen}
+          onOpenChange={aniyomiModal.toggle}
+          title="AIOStreams for Aniyomi / Animiru"
+          description="Install the extension to use AIOStreams in Aniyomi and Animiru"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-300">
+              This unofficial extension brings AIOStreams support to Aniyomi and
+              forks (e.g. Animiru).
+            </p>
+            <Button
+              intent="primary"
+              className="w-full"
+              leftIcon={<FiExternalLink />}
+              onClick={() =>
+                window.open(
+                  'https://github.com/worldInColors/aiostreams-extension',
+                  '_blank'
+                )
+              }
+            >
+              Open extension on GitHub
+            </Button>
+          </div>
+        </Modal>
+
+        <SavePreferencesModal
+          open={preferencesModal.isOpen}
+          onOpenChange={(open) =>
+            open ? preferencesModal.open() : preferencesModal.close()
+          }
+          showChanges={userData?.showChanges ?? false}
+          onShowChangesChange={(val) =>
+            setUserData((prev) => ({ ...prev, showChanges: val }))
+          }
+          manifestNotice={userData?.manifestNotice ?? 'always'}
+          onManifestNoticeChange={(val) =>
+            setUserData((prev) => ({ ...prev, manifestNotice: val }))
+          }
+          pushBehaviour={userData?.linkedAccounts?.pushBehaviour ?? 'ask'}
+          onPushBehaviourChange={(val) =>
+            setUserData((prev) => ({
+              ...prev,
+              linkedAccounts: { ...prev.linkedAccounts, pushBehaviour: val },
+            }))
+          }
+          hasLinkedAccounts={(linkedAccounts?.length ?? 0) > 0}
+        />
+        {linkOfferFor && (
+          <LinkOfferModal
+            open
+            onOpenChange={(open) => {
+              if (!open) setLinkOfferFor(null);
+            }}
+            credentials={linkOfferFor}
+            manifestUrl={manifestUrl}
+          />
+        )}
+        <ConfirmationDialog {...confirmDelete} />
+        <ConfirmationDialog {...confirmResetProps} />
+
+        <Modal
+          open={exportMenuModal.isOpen}
+          onOpenChange={exportMenuModal.toggle}
+          title="Export Configuration"
+          description="Choose how to export your configuration"
+        >
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <ModalOptionButton
+                onClick={handleExport}
+                icon={<UploadIcon className="h-8 w-8" />}
+                title="Export Config"
+                description="Download as JSON file for backup or sharing"
+              />
+              <ModalOptionButton
+                onClick={() => {
+                  exportMenuModal.close();
+                  templateExportModal.open();
+                }}
+                icon={<PlusIcon className="h-8 w-8" />}
+                title="Export as Template"
+                description="Create reusable template with custom metadata"
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 mt-6 p-3 bg-gray-800/50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-white">
+                    Exclude Credentials
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    Remove sensitive API keys and passwords from the export
+                  </div>
+                </div>
+                <Switch
+                  value={filterCredentialsInExport}
+                  onValueChange={setFilterCredentialsInExport}
+                />
+              </div>
+              <Alert
+                intent="warning"
+                isClosable={false}
+                description="While excluding credentials removes your API keys, custom addon URLs, manually overridden URLs and variant scripts are left as written. These may contain sensitive information - double-check before sharing."
+              />
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          open={importMenuModal.isOpen}
+          onOpenChange={importMenuModal.toggle}
+          title="Import Configuration"
+          description="Choose what type of configuration to import"
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <ModalOptionButton
+              onClick={() => {
+                importMenuModal.close();
+                importFileRef.current?.click();
+              }}
+              icon={<DownloadIcon className="h-8 w-8" />}
+              title="Import Config"
+              description="Restore from a backup JSON file"
+            />
+            <ModalOptionButton
+              onClick={() => {
+                importMenuModal.close();
+                templatesModal.open();
+              }}
+              icon={<PlusIcon className="h-8 w-8" />}
+              title="Import Template"
+              description="Load a pre-configured template"
+            />
+          </div>
+        </Modal>
+
+        <TemplateExportModal
+          open={templateExportModal.isOpen}
+          onOpenChange={templateExportModal.toggle}
+          userData={userData}
+          filterCredentials={filterCredentials}
+        />
+        <ConfigTemplatesModal
+          open={templatesModal.isOpen}
+          onOpenChange={templatesModal.toggle}
+          openImportModal
+        />
+      </div>
+    </>
+  );
+}

@@ -1,0 +1,120 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import '@aiostreams/ui/theme.css';
+
+@layer base {
+  :root {
+    --media-cue-backdrop: blur(0px);
+    --media-captions-padding: 0%;
+    --video-captions-offset: 0px;
+
+    --media-card-popup-background: theme('colors.gray.950');
+    --hover-from-background-color: theme('colors.gray.900');
+
+    --media-accent-color: theme('colors.brand.400');
+    --media-menu-item-hover-background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.JASSUB {
+  position: absolute !important;
+  width: 100%;
+}
+
+.discrete-controls[data-media-player][data-playing][data-controls]:not(
+    :has(.vds-controls-group:hover)
+  )
+  .vds-controls {
+  @apply lg:opacity-0;
+}
+
+.discrete-controls[data-media-player][data-buffering][data-controls]:not(
+    :has(.vds-controls-group:hover)
+  )
+  .vds-controls {
+  @apply lg:opacity-0;
+}
+
+.discrete-controls[data-media-player][data-playing][data-seeking][data-controls]:not(
+    :has(.vds-controls-group:hover)
+  ) {
+  @apply cursor-none;
+}
+
+.halo:after {
+  opacity: 0.1;
+  background-image:
+    radial-gradient(at 27% 37%, #fd3a67 0, transparent 50%),
+    radial-gradient(at 97% 21%, #9772fe 0, transparent 70%),
+    radial-gradient(at 52% 99%, #fd3a4e 0, transparent 50%),
+    radial-gradient(at 10% 29%, #fc5ab0 0, transparent 50%),
+    radial-gradient(at 97% 96%, #e4c795 0, transparent 50%),
+    radial-gradient(at 33% 50%, #8ca8e8 0, transparent 50%),
+    radial-gradient(at 79% 53%, #eea5ba 0, transparent 50%);
+  position: absolute;
+  content: '';
+  width: 100%;
+  height: 100%;
+  filter: blur(100px) saturate(150%);
+  z-index: -1;
+  top: 50px;
+  left: 0;
+  transform: translateZ(0);
+}
+
+.halo-2:after {
+  opacity: 0.1;
+  background-image:
+    radial-gradient(at 27% 37%, #fd3a67 0, transparent 30%),
+    radial-gradient(at 97% 21%, #9772fe 0, transparent 70%),
+    radial-gradient(at 52% 99%, #fd3a4e 0, transparent 20%),
+    radial-gradient(at 10% 29%, #fc5ab0 0, transparent 20%),
+    radial-gradient(at 97% 96%, #e4c795 0, transparent 20%),
+    radial-gradient(at 33% 50%, #8ca8e8 0, transparent 50%),
+    radial-gradient(at 79% 53%, #eea5ba 0, transparent 20%);
+  position: absolute;
+  content: '';
+  width: 100%;
+  height: 100%;
+  filter: blur(100px) saturate(150%);
+  z-index: -1;
+  top: 50px;
+  left: 0;
+  transform: translateZ(0);
+}
+
+/* The pulse the command palette leaves on whatever it scrolled you to.
+   Duration is mirrored by HIGHLIGHT_MS in command-palette/scroll-highlight.ts.
+ */
+[data-command-target='true'] {
+  border-radius: var(--radius-md);
+  animation: command-target-pulse 1.6s ease-out;
+}
+
+@keyframes command-target-pulse {
+  0% {
+    background-color: rgb(var(--color-brand-500) / 0);
+    box-shadow:
+      0 0 0 2px rgb(var(--color-brand-500) / 0),
+      0 0 20px 4px rgb(var(--color-brand-500) / 0);
+  }
+  12% {
+    background-color: rgb(var(--color-brand-500) / 0.14);
+    box-shadow:
+      0 0 0 2px rgb(var(--color-brand-500) / 0.85),
+      0 0 20px 4px rgb(var(--color-brand-500) / 0.3);
+  }
+  60% {
+    background-color: rgb(var(--color-brand-500) / 0.08);
+    box-shadow:
+      0 0 0 2px rgb(var(--color-brand-500) / 0.45),
+      0 0 16px 3px rgb(var(--color-brand-500) / 0.15);
+  }
+  100% {
+    background-color: rgb(var(--color-brand-500) / 0);
+    box-shadow:
+      0 0 0 2px rgb(var(--color-brand-500) / 0),
+      0 0 16px 3px rgb(var(--color-brand-500) / 0);
+  }
+}

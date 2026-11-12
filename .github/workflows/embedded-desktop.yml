@@ -1,0 +1,92 @@
+name: Integrated Windows desktop
+
+# Build artifacts only. This workflow never publishes to the upstream release
+# feed and has no repository write permission.
+on:
+  push:
+    branches: [codex/integrated-windows]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Installer SemVer
+        type: string
+        default: '0.1.0'
+  pull_request:
+    paths:
+      - 'packages/desktop/**'
+      - 'packages/server/**'
+      - 'packages/core/**'
+      - 'packages/web/**'
+      - 'packages/frontend/**'
+      - 'scripts/desktop/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/embedded-desktop.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: embedded-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-x64:
+    runs-on: windows-2025
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.0.8
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.18.1
+          cache: pnpm
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 9.0.x
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.99.1
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/desktop
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            make
+            curl
+            tar
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-zlib
+      - name: Build bundled ffprobe from verified source
+        shell: msys2 {0}
+        run: bash scripts/desktop/build-ffprobe.sh
+      - name: Build, test, stage, and package
+        env:
+          PACKAGE_VERSION: ${{ inputs.version || '0.1.0' }}
+        run: ./scripts/desktop/package-windows.ps1 -Version $env:PACKAGE_VERSION
+      - name: Backend with runtime-discovery paths removed
+        run: |
+          $node = Join-Path $PWD '.embedded-build/stage/backend/node.exe'
+          $runtime = Join-Path $PWD '.embedded-build/stage/backend/app'
+          $probe = Join-Path $PWD '.embedded-build/stage/backend/bin/ffprobe.exe'
+          $env:PATH = "$env:SystemRoot/system32;$env:SystemRoot"
+          & $node scripts/desktop/smoke.mjs --app-root $runtime --node $node --ffprobe $probe
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged runtime smoke test failed.' }
+      - name: Upload installer, portable build, source, and hashes
+        uses: actions/upload-artifact@v7
+        with:
+          name: aiostreams-integrated-windows-x64
+          path: |
+            .embedded-releases/*Setup.exe
+            .embedded-releases/*Portable.zip
+            .embedded-releases/*source.tar.gz
+            .embedded-releases/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14

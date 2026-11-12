@@ -1,0 +1,229 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSession } from '@/lib/jellyfin/session';
+import { firstInLanguages, languageCode, sameLanguage } from '@/lib/languages';
+import {
+  audioLanguages,
+  ORIGINAL_LANGUAGE,
+  subtitleLanguages,
+  usePlaybackPrefs,
+} from '@/lib/jellyfin/user-config';
+import type { PlaybackPrefs } from '@/lib/jellyfin/user-config';
+import {
+  bestOfTypes,
+  subtitleType,
+  subtitleTypes,
+} from '@/lib/subtitles/tracks';
+import type { PlayerController, Track } from './controller';
+import type { BaseItemDto, SourceInfo } from '@/lib/jellyfin/types';
+
+/** The user's display preferences under this id hold a pick per show. */
+const PREFS_ID = 'aiostreams-web-tracks';
+/**
+ * `audio|subtitle`: a language code each, `off` for no subtitles, or empty.
+ * A subtitle's type can follow its language, as in `eng:forced`.
+ */
+type Picks = Record<string, string>;
+const OFF = 'off';
+
+interface ShowPick {
+  audio?: string;
+  subtitle?: string;
+}
+
+/** A channel's programmes share the channel's pick, as episodes share their show's. */
+function showOf(item: BaseItemDto): string | undefined {
+  if (item.Type === 'Episode') return item.SeriesId ?? undefined;
+  if (item.Type === 'TvChannel') return item.Id ?? undefined;
+  if (item.Type === 'Program') return item.ChannelId ?? undefined;
+}
+
+/** Live TV starts without subtitles, whatever the user's languages. */
+const settingsFor = (prefs: PlaybackPrefs, item: BaseItemDto): PlaybackPrefs =>
+  item.Type === 'TvChannel' || item.Type === 'Program'
+    ? { ...prefs, SubtitleMode: 'None' }
+    : prefs;
+
+function pickOf(picks: Picks | undefined, showId: string): ShowPick {
+  const [audio, subtitle] = (picks?.[showId] ?? '').split('|');
+  return { audio: audio || undefined, subtitle: subtitle || undefined };
+}
+
+function langOf(track: Track | undefined): string | undefined {
+  const lang = track?.lang;
+  return lang && !/^(und|mul|zxx|mis)$/i.test(lang)
+    ? languageCode(lang)
+    : undefined;
+}
+
+function usePicksKey() {
+  const { client, user } = useSession();
+  return ['jf', client.base, user.Id, 'show-tracks'] as const;
+}
+
+export function useShowPicks() {
+  const { client, user } = useSession();
+  return useQuery({
+    queryKey: usePicksKey(),
+    meta: { cache: 'account' },
+    queryFn: async () => {
+      const prefs = await client.get<{
+        CustomPrefs?: Record<string, string | null>;
+      }>(`/DisplayPreferences/${PREFS_ID}`, {
+        client: PREFS_ID,
+        userId: user.Id,
+      });
+      // Servers add defaults of their own; a pick always has a `|`.
+      return Object.fromEntries(
+        Object.entries(prefs.CustomPrefs ?? {}).filter(
+          (entry): entry is [string, string] => !!entry[1]?.includes('|')
+        )
+      ) as Picks;
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** The user's languages, with the ones they picked for this show first. */
+export function withShowPick(
+  settings: PlaybackPrefs,
+  picks: Picks | undefined,
+  item: BaseItemDto
+): PlaybackPrefs {
+  const prefs = settingsFor(settings, item);
+  const showId = showOf(item);
+  if (!showId) return prefs;
+  const { audio, subtitle } = pickOf(picks, showId);
+  const out = { ...prefs };
+  if (audio && prefs.RememberAudioSelections !== false) {
+    out.AudioLanguages = [
+      audio,
+      ...audioLanguages(prefs).filter((l) => !sameLanguage(l, audio)),
+    ];
+    out.AudioLanguagePreference = audio;
+    out.PlayDefaultAudioTrack = false;
+  }
+  if (subtitle && prefs.RememberSubtitleSelections !== false) {
+    if (subtitle === OFF) out.SubtitleMode = 'None';
+    else {
+      const [lang, type] = subtitle.split(':');
+      out.SubtitleLanguages = [
+        lang,
+        ...subtitleLanguages(prefs).filter((l) => !sameLanguage(l, lang)),
+      ];
+      out.SubtitleLanguagePreference = lang;
+      out.SubtitleMode = 'Always';
+      if (type)
+        out.SubtitleTypes = [
+          type,
+          ...subtitleTypes(prefs).filter((t) => t !== type),
+        ];
+    }
+  }
+  return out;
+}
+
+/** The audio language the user's settings pick: their first one the version has. */
+function settingsAudio(prefs: PlaybackPrefs, source: SourceInfo) {
+  const tracks = (source.MediaStreams ?? []).filter((s) => s.Type === 'Audio');
+  const original = tracks.find(
+    (s) => s.Index === source.DefaultAudioStreamIndex
+  )?.Language;
+  const languages = audioLanguages(prefs)
+    .map((l) => (l === ORIGINAL_LANGUAGE ? original : l))
+    .filter((l): l is string => !!l);
+  const lang = firstInLanguages(languages, tracks, (s) => s.Language)?.Language;
+  return lang ? languageCode(lang) : undefined;
+}
+
+function useSavePick() {
+  const { client, user } = useSession();
+  const queryClient = useQueryClient();
+  const queryKey = usePicksKey();
+  return (showId: string, change: ShowPick) => {
+    const picks = queryClient.getQueryData<Picks>(queryKey) ?? {};
+    const pick = { ...pickOf(picks, showId), ...change };
+    const entry =
+      pick.audio || pick.subtitle
+        ? `${pick.audio ?? ''}|${pick.subtitle ?? ''}`
+        : '';
+    if (entry === (picks[showId] ?? '')) return;
+    const { [showId]: _, ...rest } = picks;
+    const next = entry ? { ...rest, [showId]: entry } : rest;
+    queryClient.setQueryData(queryKey, next);
+    // A server may keep a key it is not sent, so a forgotten pick is sent empty.
+    void client
+      .post(
+        `/DisplayPreferences/${PREFS_ID}`,
+        {
+          Id: PREFS_ID,
+          Client: PREFS_ID,
+          CustomPrefs: { ...next, ...(entry ? {} : { [showId]: '' }) },
+        },
+        { client: PREFS_ID, userId: user.Id }
+      )
+      .catch(() => undefined);
+  };
+}
+
+/**
+ * The player, keeping the tracks the user picks as the show's. A pick of what
+ * the user's settings would play forgets it.
+ */
+export function useShowTrackPicks(
+  player: PlayerController,
+  item: BaseItemDto,
+  source: SourceInfo
+): PlayerController {
+  const prefs = settingsFor(usePlaybackPrefs().prefs, item);
+  const save = useSavePick();
+  const showId = showOf(item);
+  if (!showId) return player;
+  return {
+    ...player,
+    setAudio: (id) => {
+      player.setAudio(id);
+      const lang = langOf(player.audioTracks.find((t) => t.id === id));
+      if (!lang || prefs.RememberAudioSelections === false) return;
+      save(showId, {
+        audio: lang === settingsAudio(prefs, source) ? undefined : lang,
+      });
+    },
+    setSubtitle: (id) => {
+      player.setSubtitle(id);
+      if (prefs.RememberSubtitleSelections === false) return;
+      if (id === null) {
+        save(showId, {
+          subtitle: prefs.SubtitleMode === 'None' ? undefined : OFF,
+        });
+        return;
+      }
+      const track = player.subtitleTracks.find((t) => t.id === id);
+      const lang = langOf(track);
+      if (!lang) return;
+      const typeOf = (t: Track | undefined) => subtitleType(t?.facts ?? {});
+      const type = typeOf(track);
+      const first = firstInLanguages(
+        subtitleLanguages(prefs),
+        player.subtitleTracks,
+        (t) => t.lang
+      );
+      const shown =
+        langOf(first) === lang
+          ? bestOfTypes(
+              player.subtitleTracks.filter((t) => langOf(t) === lang),
+              (t) => t.facts ?? {},
+              prefs
+            )
+          : undefined;
+      const usual =
+        prefs.SubtitleMode === 'Always' && !!shown && typeOf(shown) === type;
+      save(showId, {
+        subtitle: usual
+          ? undefined
+          : type === 'commentary'
+            ? lang
+            : `${lang}:${type}`,
+      });
+    },
+  };
+}

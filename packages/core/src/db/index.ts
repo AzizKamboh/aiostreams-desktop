@@ -1,0 +1,161 @@
+export { initDb, getDb, closeDb } from './db.js';
+export { UserRepository } from './repositories/users.js';
+export {
+  AdminUsersRepository,
+  type AdminUserListItem,
+  type AdminUserDetail,
+} from './repositories/admin-users.js';
+export {
+  SettingsRepository,
+  type SettingRow,
+} from './repositories/settings.js';
+export {
+  UsenetLibraryRepository,
+  usenetLibraryBus,
+  type UsenetLibraryEntry,
+  type UsenetLibraryFile,
+  type UsenetLibraryStatus,
+  type UsenetLibrarySource,
+  type UsenetLibraryOrigin,
+  type UsenetLibraryStatusGroup,
+  type UsenetLibrarySort,
+  type UsenetLibrarySortDir,
+} from './repositories/usenet-library.js';
+export {
+  ReleaseBlocklistRepository,
+  clampRefreshSeconds,
+  MIN_REFRESH_SECONDS,
+  MAX_REFRESH_SECONDS,
+  type BlocklistAggregatedEntry,
+} from './repositories/release-blocklist.js';
+export {
+  ReleaseBlocklistPublishRepository,
+  clampPublishIntervalSeconds,
+  MIN_PUBLISH_INTERVAL_SECONDS,
+  MAX_PUBLISH_INTERVAL_SECONDS,
+  DEFAULT_PUBLISH_INTERVAL_SECONDS,
+} from './repositories/release-blocklist-publish.js';
+export {
+  UsenetMetricsRepository,
+  type UsenetMetricDelta,
+  type UsenetMetricScope,
+  type UsenetProviderRollup,
+  type UsenetMetricBucket,
+} from './repositories/usenet-metrics.js';
+export {
+  UsenetIndexerMetricsRepository,
+  type UsenetIndexerGrabDelta,
+  type UsenetIndexerScope,
+  type UsenetIndexerRollup,
+  type UsenetIndexerLastError,
+} from './repositories/usenet-indexer-metrics.js';
+export {
+  StreamSessionRepository,
+  type StreamTransport,
+  type StreamEndReason,
+  type StreamSessionRow,
+  type StreamSessionUpsert,
+  type StreamBandwidthDelta,
+  type StreamBandwidthRollup,
+  type StreamBandwidthBucket,
+  type StreamHistoryQuery,
+} from './repositories/stream-sessions.js';
+export {
+  ConfigProfileRepository,
+  resolveConfigAlias,
+  MAX_PROFILES_PER_OWNER,
+  type ConfigProfile,
+  type ConfigAliasTarget,
+} from './repositories/config-profiles.js';
+export {
+  ConfigSessionRepository,
+  type ConfigSessionCredentials,
+  type IssuedConfigSession,
+} from './repositories/config-sessions.js';
+export { LinkedAccountRepository } from './repositories/linked-accounts.js';
+export {
+  JellyfinAddressRepository,
+  type JellyfinAddressTarget,
+} from './repositories/jellyfin-addresses.js';
+export {
+  JellyfinPlaylistRepository,
+  PLAYLIST_LIMITS,
+  type JellyfinPlaylist,
+  type PlaylistOwner,
+} from './repositories/jellyfin-playlists.js';
+export {
+  AppReportRepository,
+  normaliseReportCode,
+  formatReportCode,
+  type AppReport,
+  type AppReportInput,
+  type AppReportKind,
+  type AppReportListing,
+} from './repositories/app-reports.js';
+export {
+  CommunityRepository,
+  type CommunityItemInsert,
+  type CommunityLiveUpdate,
+} from './repositories/community.js';
+export {
+  WatchStateRepository,
+  watchKindOf,
+  type WatchSnapshot,
+  type WatchIdentity,
+  type WatchStateRow,
+  type WatchStatePatch,
+  type WatchKind,
+  type WatchOrigin,
+  type WatchHistoryCursor,
+  type WatchHistoryCounts,
+} from './repositories/watch-state.js';
+export {
+  WatchAirTimeRepository,
+  type WatchAirTime,
+} from './repositories/watch-air-times.js';
+export {
+  WatchSessionRepository,
+  type PlayingTracks,
+  type WatchSessionRow,
+  type WatchSessionUpsert,
+} from './repositories/watch-sessions.js';
+export { JellyfinRepository } from './repositories/jellyfin.js';
+export {
+  MediaInfoRepository,
+  type MediaInfoRow,
+  type MediaInfoKind,
+  type MediaInfoFileFilter,
+} from './repositories/media-info.js';
+export {
+  MediaInfoProbeRepository,
+  type ProbeAttempt,
+  type ProbeAttemptFilter,
+  type ProbeKind,
+  type ProbeOutcome,
+  type ProbePath,
+  type ProbeReader,
+} from './repositories/media-info-probes.js';
+export {
+  PlaybackHandoffRepository,
+  type SinkRow,
+  type SinkStatus,
+  type DeliveryRow,
+  type DeliveryStatus,
+} from './repositories/playback-handoff.js';
+export * from './schemas.js';
+
+export { sql, raw, join, SqlFragment } from './sql.js';
+export {
+  DbError,
+  classifyPgError,
+  classifySqliteError,
+  type DbErrorKind,
+} from './errors.js';
+export type {
+  DbDriver,
+  Dialect,
+  ExecResult,
+  IntervalUnit,
+  Row,
+  SqlInput,
+} from './driver/types.js';

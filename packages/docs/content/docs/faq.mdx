@@ -1,0 +1,193 @@
+---
+title: FAQ
+description: Answers to the most commonly asked questions about AIOStreams.
+---
+
+Something not working? See [Troubleshooting](/troubleshooting) for fixes to common problems.
+
+## The basics
+
+<Accordions>
+  <Accordion title="What's the difference between AIOStreams and AIOMetadata?">
+    They do different jobs and are usually used together.
+
+    - **AIOStreams** finds the streams: it asks your addons, debrid services and Usenet for a title, then filters, sorts and names the results.
+    - **[AIOMetadata](https://github.com/cedya77/aiometadata)** provides catalogs and metadata: the rows on your home page, and each title's details, seasons and episodes.
+
+    AIOStreams has no catalogs of its own: it shows whatever the addons inside it provide. In Stremio, install AIOMetadata next to AIOStreams. For the AIOStreams app, add it inside AIOStreams (see the next question).
+
+  </Accordion>
+
+  <Accordion title="Should I add AIOMetadata to AIOStreams?">
+    **For the [AIOStreams app](/apps), yes.** The app only shows what your configuration provides, so without a catalog and metadata addon inside AIOStreams its home page stays empty.
+
+    <Steps>
+      <Step>
+        Configure AIOMetadata and copy its manifest URL. [Tamtaro's AIOMetadata
+        guide](https://github.com/Tam-Taro/SEL-Filtering-and-Sorting/tree/main?tab=readme-ov-file#%EF%B8%8F-whats-included-for-aiometadata)
+        has ready-made configurations.
+      </Step>
+      <Step>
+        In AIOStreams, go to **Addons → Installed**, click **Add by URL** and
+        paste it.
+      </Step>
+      <Step>Move it to the top of **My Addons**, so its metadata is used first.</Step>
+      <Step>Save.</Step>
+    </Steps>
+
+    After you change AIOMetadata's catalogs, press refresh on the **Catalogs** card (**Addons → Installed → Catalogs**) and save, so AIOStreams picks up the new list. Other metadata addons work too: Cinemeta by URL, or **The Movie Database** from the marketplace.
+
+    **In Stremio, install AIOMetadata on its own instead.** Stremio then asks it directly, so your changes there show up straight away. Inside AIOStreams, its catalogs pass through AIOStreams' cache, which on a public instance the instance's owner controls, not you. If you use both Stremio and the app, a variant keeps AIOMetadata out of your Stremio install, so its catalogs don't show twice: see [Different addons for the apps and Stremio](/apps/media-server#different-addons-for-the-apps-and-stremio).
+
+  </Accordion>
+
+  <Accordion title="Do I need a debrid or Usenet service?">
+    **In Stremio, no, but it helps.** Without one you get P2P torrents, which need seeders and, in many countries, a VPN. A debrid service streams the same torrents from its own servers over HTTPS, instantly when they're cached.
+
+    **In the AIOStreams app, yes.** The apps only play streams with a link (debrid, Usenet and direct links), not P2P torrents.
+
+    The [Setup Guide](/configuration/setup#step-2-get-a-debrid-or-usenet-service) compares TorBox, Real-Debrid and Premiumize. For Usenet, see the [Usenet guide](/guides/usenet).
+
+  </Accordion>
+
+  <Accordion title="What do cached and uncached mean?">
+    A **cached** stream is already on your debrid service's servers and plays straight away. An **uncached** one has to be downloaded to the service first: playing it starts that download, and you can watch once it's done.
+
+    To hide uncached streams, turn on **Exclude Uncached** under **Filters → Cache**.
+
+  </Accordion>
+
+  <Accordion title="Should I use a public instance or host my own?">
+    A [public instance](/getting-started/public-instances) is the quickest start: there's nothing to run, and the configuration, the formatter, the AIOStreams app and the Stremio addon all work there. No public instance is better than another, so pick any from the list.
+
+    [Hosting your own](/getting-started/deployment) adds what a public instance can't offer: the built-in Usenet engine, Sonarr and Radarr, the dashboard, accounts, and full control over limits and addons.
+
+    Export your configuration now and then (**Save & Install → Backups → Export**). If your instance goes down, you can import it on another one.
+
+  </Accordion>
+
+  <Accordion title="Stable or nightly?">
+    **Stable** gets releases after they've been tested, so it changes less often. **Nightly** gets new features and fixes first, and occasionally a new bug. Instances that run both have a separate address for each. The version you're on is shown on the configure page's **About** menu.
+
+  </Accordion>
+
+  <Accordion title="Can I watch without Stremio?">
+    Yes. The [AIOStreams app](/apps) signs in to your configuration directly: in a browser, or as an app for Windows, Mac and Linux, Android phones and tablets, Android TV and Fire TV, and LG and Samsung TVs.
+
+    AIOStreams also works in apps that support Stremio addons, such as Nuvio and Fusion: install it with the manifest URL from **Save & Install**. And every configuration is also a media server, so [Jellyfin apps](/apps/jellyfin) such as Infuse and Swiftfin can sign in to it.
+
+  </Accordion>
+
+  <Accordion title="Is there an app for iPhone or Apple TV?">
+    There's no AIOStreams app for iOS or tvOS, and none is planned. On iPhone and iPad, open the app in Safari and add it to your home screen. On Apple TV, use a [Jellyfin app](/apps/jellyfin), or an app that supports Stremio addons.
+
+  </Accordion>
+
+  <Accordion title="Why is AIOStreams slower than installing addons individually?">
+    AIOStreams waits for **all** your addons to respond (or time out) before returning results, so one slow addon delays the whole list.
+
+    - **Lower each addon's timeout** to the most you're willing to wait. 5,000 ms suits most setups. Set it in each addon's settings under **Addons**.
+    - **Dynamic fetching** returns results as soon as a condition is met, such as "5 results received". It can miss results from slower addons.
+    - **[Groups](/guides/groups)** split addons into prioritised groups, so backups are only asked when the main ones come up short.
+
+  </Accordion>
+
+  <Accordion title="Why doesn't AIOStreams give me more results than the addons on their own?">
+    AIOStreams asks the same addons you would otherwise install directly, so it can't find more than they do. What it adds is one combined, deduplicated, sorted and formatted list with your filters applied.
+
+    The exception is the built-in addons, such as Newznab, Torznab, SeaDex and Knaben, which only run inside AIOStreams.
+
+  </Accordion>
+</Accordions>
+
+## Your configuration
+
+<Accordions>
+  <Accordion title="How do I change my configuration after installing it?">
+    In **Stremio**, click **Configure** next to the AIOStreams addon and sign in with your password. Or go to `https://your-instance/stremio/configure` and click **Sign In**.
+
+    After making changes, go to **Save & Install** and click **Save**.
+
+  </Accordion>
+
+  <Accordion title="When do I need to reinstall AIOStreams in Stremio?">
+    Most changes apply as soon as you save. **Only reinstall when a pop-up tells you to.** That happens when the addon's manifest changes, for example when you rename or reorder catalogs, or add the first addon of a new kind, such as your first subtitle addon.
+
+    If you linked your Stremio account under **Save & Install → Linked accounts**, AIOStreams reinstalls itself whenever you save.
+
+    This only applies to Stremio and other apps that install AIOStreams as an addon. The AIOStreams app and Jellyfin apps sign in to your configuration rather than installing it, so there's nothing to reinstall: they pick up your changes after you save.
+
+  </Accordion>
+
+  <Accordion title="I lost my UUID or password">
+    **Your UUID** is in the addon's URL in Stremio: the part after `/stremio/`. **Configure** next to the addon opens the sign-in with it filled in.
+
+    **Your password can't be recovered or reset.** AIOStreams stores no email address or other way to prove the configuration is yours. Create a new configuration instead; if you exported a backup, import it on **Save & Install** to get your settings back.
+
+    On instances with accounts, a [profile](/guides/config-profiles) saved to your account reopens the configuration without its password.
+
+  </Accordion>
+
+  <Accordion title="How do I back up or move my configuration?">
+    Go to **Save & Install → Backups** and click **Export** to download a JSON copy. **Import** in the same place restores it, on the same instance or another. Turn on **Exclude Credentials** before sharing an export, so your API keys stay out of it.
+
+  </Accordion>
+
+  <Accordion title="How do I update a template without losing my changes?">
+    Run the template again, and AIOStreams shows what the update changes before you apply it. Templates can choose to keep parts of your current configuration: Tamtaro's, for example, has **None** options to keep your current addons, formatter and variants.
+
+    Changes you made outside the template's own options are overwritten when you apply it. Make them through the template's options where you can, keep the rest few so they're quick to redo, or put them in a [variant](/reference/config-expressions), which applies on top of your configuration.
+
+  </Accordion>
+
+  <Accordion title="Can I use different settings on different devices, or for different people?">
+    Yes, from one configuration. **[Variants](/reference/config-expressions)** change parts of it for one install link, one app user, or automatically, for example 1080p only on your phone. The reference also compares variants with [a parent configuration](/reference/config-expressions#variants-or-a-parent-config).
+
+    In the AIOStreams app, each person can have their own user, with their own Continue Watching, trackers and variants: see [Users and PINs](/apps/media-server#users-and-pins).
+
+  </Accordion>
+
+  <Accordion title="What does 'Use Multiple Instances' mean in addon settings?">
+    It splits an addon that works with several services into one addon per service, such as `Addon RD` and `Addon TB`, each with its own timeout.
+
+    - **Off:** one addon handles every service under one timeout, so a slow service can hold up all of them.
+    - **On:** each service is asked separately, so a slow or failing one doesn't affect the others.
+
+  </Accordion>
+
+  <Accordion title="What is Service Wrapping?">
+    When an addon can return raw P2P results, AIOStreams can check them against your debrid services itself. That's **Service Wrapping**: fewer calls to your debrid service, no need to give your keys to the addon, and AIOStreams handles file selection and playback.
+
+    If an addon only returns results it has already resolved with a debrid service, such as Debridio, turn on **Reconfigure Service** instead. This repeats calls to your debrid service.
+
+  </Accordion>
+
+  <Accordion title="How does AIOStreams handle marketplace addon updates?">
+    Mostly without you doing anything. Changes on an addon's own server apply straight away. When an addon changes how it's configured, AIOStreams is updated to match, and your addon works again once your instance updates. New options appear in the addon's settings after an update, usually with sensible defaults. Now and then, such as when an addon starts requiring a new API key, you have to enter something yourself.
+
+  </Accordion>
+
+  <Accordion title="Where did the built-in TorBox Search go?">
+    TorBox shut down the Search API that TorBox Search was built on, so the addon was removed in [v2.32](/changelog/v2.32). TorBox still works as a debrid service with every other addon, and for Usenet on TorBox, add your own indexers: see the [Usenet guide](/guides/usenet).
+
+  </Accordion>
+</Accordions>
+
+## The AIOStreams app and Jellyfin apps
+
+<Accordions>
+  <Accordion title="Do I need a tracker for Continue Watching?">
+    No. Your configuration's [media server](/apps/media-server) keeps your watch history and Continue Watching itself. A tracker keeps it in sync with a service such as Trakt, Simkl or MDBList, through an addon that supports it, such as AIOMetadata: choose it for your user on the **Trackers** tab.
+
+  </Accordion>
+
+  <Accordion title="Why don't P2P streams show in the app?">
+    The apps play streams with a link: debrid, Usenet and direct links. P2P torrents need Stremio's own torrent engine, so they're left out. Add a debrid or Usenet service to watch in the apps.
+
+  </Accordion>
+
+  <Accordion title="Can I use Infuse, Swiftfin or another Jellyfin app?">
+    Yes. Every configuration speaks the Jellyfin API, so Jellyfin apps sign in to it like a Jellyfin server. See [Jellyfin apps](/apps/jellyfin) for the addresses to use.
+
+  </Accordion>
+</Accordions>

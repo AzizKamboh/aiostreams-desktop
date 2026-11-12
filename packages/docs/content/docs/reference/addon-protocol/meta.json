@@ -1,0 +1,14 @@
+{
+  "title": "Addon Protocol",
+  "pages": [
+    "index",
+    "metadata",
+    "people",
+    "collections",
+    "similar",
+    "streams",
+    "live-tv",
+    "subtitles",
+    "watch-state"
+  ]
+}

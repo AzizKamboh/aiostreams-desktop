@@ -1,0 +1,51 @@
+{
+  "name": "@aiostreams/core",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "tsx --test --test-force-exit --import ./test/setup.ts \"src/**/*.test.ts\"",
+    "test:watch": "tsx --test --watch --import ./test/setup.ts \"src/**/*.test.ts\"",
+    "build": "tsc",
+    "dev": "tsc -w --preserveWatchOutput"
+  },
+  "description": "Combine all your streams into one addon and display them with consistent formatting, sorting, and filtering.",
+  "dependencies": {
+    "@aiostreams/crypto": "workspace:*",
+    "@aiostreams/fsmux": "^0.3.1",
+    "@aiostreams/release-parser": "^1.0.1",
+    "@torbox/torbox-api": "github:viren070/torbox-sdk-js#dist",
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^13.0.3",
+    "bytes": "^3.1.2",
+    "dotenv": "^16.6.1",
+    "envalid": "^8.2.0",
+    "expr-eval-fork": "^3.0.3",
+    "fast-xml-builder": "^1.3.1",
+    "fast-xml-parser": "^5.11.2",
+    "fetch-socks": "^1.3.3",
+    "fuzzball": "^2.2.6",
+    "openid-client": "^6.8.8",
+    "p-limit": "^7.3.3",
+    "parse-torrent": "^11.0.24",
+    "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0",
+    "redis": "^5.12.1",
+    "stream-json": "^3.7.0",
+    "stremthru": "^0.11.0",
+    "undici": "^7.30.1",
+    "user-agents": "^2.1.227",
+    "webdav": "^5.11.0",
+    "yencode": "^1.2.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/bytes": "^3.1.6",
+    "@types/node": "^24.19.2",
+    "@types/parse-torrent": "^11.0.1",
+    "@types/pg": "^8.23.1"
+  }
+}

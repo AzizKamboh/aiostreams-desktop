@@ -1,0 +1,559 @@
+import { extract, full_process, ratio, FuzzballExtractOptions } from 'fuzzball';
+import {
+  createLogger,
+  constants,
+  FULL_LANGUAGE_MAPPING,
+  getLanguageDisplayName,
+} from '../utils/index.js';
+import { MetadataTitle } from '../metadata/utils.js';
+
+const logger = createLogger('parser');
+
+// Language-specific digraph transliterations, applied before the generic
+// fold.
+const germanDigraphMap: Record<string, string> = {
+  Ä: 'Ae',
+  ä: 'ae',
+  Ö: 'Oe',
+  ö: 'oe',
+  Ü: 'Ue',
+  ü: 'ue',
+};
+const nordicDigraphMap: Record<string, string> = {
+  Å: 'Aa',
+  å: 'aa',
+};
+const languageDigraphMaps: Record<string, Record<string, string>> = {
+  de: germanDigraphMap,
+  da: nordicDigraphMap,
+  no: nordicDigraphMap,
+  nb: nordicDigraphMap,
+  nn: nordicDigraphMap,
+};
+
+// Base letters that NFD cannot decompose, folded to the ASCII forms release
+// names use.
+const asciiFoldMap: Record<string, string> = {
+  ß: 'ss',
+  ı: 'i',
+  ø: 'o',
+  Ø: 'O',
+  ł: 'l',
+  Ł: 'L',
+  đ: 'd',
+  Đ: 'D',
+  æ: 'ae',
+  Æ: 'Ae',
+  œ: 'oe',
+  Œ: 'Oe',
+  ð: 'd',
+  Ð: 'D',
+  þ: 'th',
+  Þ: 'Th',
+};
+
+function foldToAscii(title: string, language?: string): string {
+  // every step below only rewrites non-ascii characters
+  if (!/[^\x00-\x7f]/.test(title)) return title;
+  const digraphMap = language ? languageDigraphMaps[language] : undefined;
+  return (
+    digraphMap ? title.replace(/[ÄäÖöÜüÅå]/g, (c) => digraphMap[c] ?? c) : title
+  )
+    .replace(/[ßıøØłŁđĐæÆœŒðÐþÞ]/g, (c) => asciiFoldMap[c])
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+type TitleMatchOptions = {
+  threshold: number;
+  limitTitles?: number;
+} & Exclude<FuzzballExtractOptions, 'returnObjects'>;
+
+interface TitleMatchInnerResult {
+  matched: boolean;
+  matchedIndex?: number;
+}
+
+/** What extract() applies to every choice before scoring. */
+const FULL_PROCESS_OPTIONS: FuzzballExtractOptions = {
+  force_ascii: false,
+  collapseWhitespace: true,
+};
+
+const limitedTitleLists = new WeakMap<string[], Map<number, string[]>>();
+const processedTitleLists = new WeakMap<string[], string[]>();
+const normalisedTitleLists = new WeakMap<MetadataTitle[], string[]>();
+
+/** One slice per list, so the caches below keep seeing a single array. */
+function limitTitleList(titles: string[], limit: number): string[] {
+  let byLimit = limitedTitleLists.get(titles);
+  if (!byLimit) {
+    byLimit = new Map();
+    limitedTitleLists.set(titles, byLimit);
+  }
+  let limited = byLimit.get(limit);
+  if (!limited) {
+    limited = titles.slice(0, limit);
+    byLimit.set(limit, limited);
+  }
+  return limited;
+}
+
+function processedTitles(titles: string[]): string[] {
+  let processed = processedTitleLists.get(titles);
+  if (!processed) {
+    processed = titles.map((title) =>
+      full_process(title, FULL_PROCESS_OPTIONS)
+    );
+    processedTitleLists.set(titles, processed);
+  }
+  return processed;
+}
+
+/**
+ * QRatio is round(200 * LCS / (l1 + l2)), so round(200 * min(l1, l2) / (l1 + l2))
+ * is an exact upper bound on it and candidates that cannot reach the threshold
+ * or beat the current best can be skipped without scoring them. Holds for
+ * fuzzball@2.2.6's default scorer at substitution cost 2.
+ */
+function bestDefaultScorerMatch(
+  parsedTitle: string,
+  titles: string[],
+  threshold: number
+): TitleMatchInnerResult {
+  const query = full_process(parsedTitle, FULL_PROCESS_OPTIONS);
+  const choices = processedTitles(titles);
+
+  let bestScore = 0;
+  let bestKey: number | undefined;
+
+  if (query.length) {
+    for (let i = 0; i < choices.length; i++) {
+      const choice = choices[i];
+      if (!choice.length) continue;
+
+      const lengthSum = query.length + choice.length;
+      const bound = Math.round(
+        (200 * Math.min(query.length, choice.length)) / lengthSum
+      );
+      if (bound <= bestScore || bound / 100 < threshold) continue;
+
+      const score = ratio(query, choice, { full_process: false });
+      if (score > bestScore) {
+        bestScore = score;
+        bestKey = i;
+      }
+    }
+  }
+
+  const matched = bestScore / 100 >= threshold;
+  return { matched, matchedIndex: matched ? bestKey : undefined };
+}
+
+/**
+ * Inner matching function shared by titleMatch and titleMatchWithLang.
+ * Returns the match result and the index of the best matching title.
+ */
+function _titleMatchInner(
+  parsedTitle: string,
+  titles: string[],
+  options: TitleMatchOptions
+): TitleMatchInnerResult {
+  const { threshold, limitTitles, ...extractOptions } = options;
+
+  if (limitTitles && titles.length > limitTitles) {
+    titles = limitTitleList(titles, limitTitles);
+  }
+
+  // when threshold is 1, no need to use levenshtein distance, just check for exact matches
+  if (threshold === 1 && !extractOptions.scorer) {
+    const idx = titles.findIndex(
+      (title) => title.toLowerCase() === parsedTitle.toLowerCase()
+    );
+    return { matched: idx !== -1, matchedIndex: idx !== -1 ? idx : undefined };
+  }
+
+  if (Object.keys(extractOptions).length === 0) {
+    return bestDefaultScorerMatch(parsedTitle, titles, threshold);
+  }
+
+  const results = extract(parsedTitle, titles, {
+    ...extractOptions,
+    returnObjects: true,
+  }) as { choice: string; score: number; key: number }[];
+
+  let bestScore = 0;
+  let bestKey: number | undefined;
+  for (const result of results) {
+    if (result.score > bestScore) {
+      bestScore = result.score;
+      bestKey = result.key;
+    }
+  }
+
+  const matched = bestScore / 100 >= threshold;
+  return { matched, matchedIndex: matched ? bestKey : undefined };
+}
+
+/**
+ * Check if a parsed title matches any of the provided titles.
+ * @returns true if a match is found above the threshold.
+ */
+export function titleMatch(
+  parsedTitle: string,
+  titles: string[],
+  options: TitleMatchOptions
+): boolean {
+  return _titleMatchInner(parsedTitle, titles, options).matched;
+}
+
+/**
+ * Like titleMatch, but accepts MetadataTitle[] and returns the language
+ * of the best matching title (if any). Normalises MetadataTitle strings
+ * internally so callers only need to normalise parsedTitle.
+ */
+export function titleMatchWithLang(
+  parsedTitle: string,
+  titles: MetadataTitle[],
+  options: TitleMatchOptions
+): { matched: boolean; language?: string } {
+  let normalisedTitles = normalisedTitleLists.get(titles);
+  if (!normalisedTitles) {
+    normalisedTitles = titles.map((t) => normaliseTitle(t.title));
+    normalisedTitleLists.set(titles, normalisedTitles);
+  }
+  const result = _titleMatchInner(parsedTitle, normalisedTitles, options);
+  return {
+    matched: result.matched,
+    language:
+      result.matchedIndex !== undefined
+        ? titles[result.matchedIndex]?.language
+        : undefined,
+  };
+}
+
+/**
+ * Tags the parser lifts out of a title: the country codes its country handler
+ * knows, and a year.
+ */
+const STRIPPED_TITLE_SUFFIX = /\b(?:19\d{2}|20\d{2}|UK|US|AU|NZ)\b/g;
+
+/**
+ * Long forms a known title spells a tag out as
+ */
+const COUNTRY_TAG_LONG_FORMS: Record<string, string[]> = {
+  US: ['USA'],
+  AU: ['Australia'],
+  NZ: ['New Zealand'],
+};
+
+const SEPARATOR_PATTERNS = [
+  /\s*[\/\|]\s*/,
+  /[\s\.\-\(\[]+a[\s\.]?k[\s\.]?a[\s\.\)\-\]]+/i,
+  /\s*\(([^)]+)\)$/,
+];
+
+/**
+ * The parts of preprocessTitle that depend only on the known titles, Keyed on array identity; every field is filled on first use.
+ */
+interface TitleIndex {
+  normalised?: Set<string>;
+  /** Per SEPARATOR_PATTERNS entry: common enough in the list to not split on. */
+  separatorIsCommon: (boolean | undefined)[];
+}
+
+const titleIndexes = new WeakMap<string[], TitleIndex>();
+
+function getTitleIndex(titles: string[]): TitleIndex {
+  let index = titleIndexes.get(titles);
+  if (!index) {
+    index = { separatorIsCommon: [] };
+    titleIndexes.set(titles, index);
+  }
+  return index;
+}
+
+/**
+ * The country tag or year the parser moved out of the title, if putting it back
+ * names a known title.
+ */
+function strippedTitleSuffix(
+  parsedTitle: string,
+  names: (string | undefined)[],
+  titles: string[],
+  index: TitleIndex
+): string | undefined {
+  const base = normaliseTitle(parsedTitle);
+  if (!base || !titles.length) return undefined;
+
+  const tags = names.flatMap(
+    (name) => name?.match(STRIPPED_TITLE_SUFFIX) ?? []
+  );
+  if (!tags.length) return undefined;
+
+  const known = (index.normalised ??= new Set(titles.map(normaliseTitle)));
+  // A known title already matches the title as parsed, so leave it alone.
+  if (known.has(base)) return undefined;
+
+  for (const tag of tags) {
+    for (const form of [tag, ...(COUNTRY_TAG_LONG_FORMS[tag] ?? [])]) {
+      if (known.has(base + normaliseTitle(form))) return form;
+    }
+  }
+
+  return undefined;
+}
+
+export interface ReconciledName {
+  title?: string;
+  year?: string;
+}
+
+/**
+ * Settles a parsed name against the known titles once, so every consumer reads
+ * the same one. A year that turns out to name the title is not also a release
+ * date, unless the requested item was released that year.
+ */
+export function reconcileParsedName(
+  parsed: ReconciledName,
+  names: (string | undefined)[],
+  titles: string[],
+  requestedYear?: number
+): ReconciledName {
+  const { title, year } = parsed;
+  if (!title) return parsed;
+
+  const suffix = strippedTitleSuffix(
+    title,
+    names,
+    titles,
+    getTitleIndex(titles)
+  );
+  if (!suffix) return parsed;
+
+  return {
+    title: `${title} ${suffix}`,
+    year: suffix === year && requestedYear !== Number(year) ? undefined : year,
+  };
+}
+
+export function preprocessTitle(
+  parsedTitle: string,
+  names: (string | undefined)[],
+  titles: string[]
+) {
+  let preprocessedTitle = parsedTitle;
+  const index = getTitleIndex(titles);
+
+  for (const [i, pattern] of SEPARATOR_PATTERNS.entries()) {
+    const match = preprocessedTitle.match(pattern);
+
+    if (match) {
+      // if more than 20% of titles contain the separator pattern, consider it common and do not split
+      const hasExistingTitleWithSeparator = (index.separatorIsCommon[i] ??=
+        titles.filter((title) => pattern.test(title.toLowerCase())).length /
+          titles.length >
+        0.2);
+
+      if (!hasExistingTitleWithSeparator) {
+        const parts = preprocessedTitle.split(pattern);
+        if (parts.length > 1 && parts[0]?.trim()) {
+          const originalTitle = preprocessedTitle;
+          preprocessedTitle = parts[0].trim();
+          logger.silly(
+            `Updated title from "${originalTitle}" to "${preprocessedTitle}"`
+          );
+          break;
+        }
+      }
+    }
+  }
+
+  const suffix = strippedTitleSuffix(preprocessedTitle, names, titles, index);
+  return suffix ? `${preprocessedTitle} ${suffix}` : preprocessedTitle;
+}
+
+// Collapse digraph transliterations so releases named either way
+// produce the same matching key.
+function collapseDigraphs(text: string): string {
+  return text
+    .replace(/ae/g, 'a')
+    .replace(/oe/g, 'o')
+    .replace(/ue/g, 'u')
+    .replace(/aa/g, 'a');
+}
+
+export function normaliseTitle(title: string) {
+  return collapseDigraphs(
+    foldToAscii(title)
+      .replace(/&/g, 'and')
+      .replace(/[^\p{L}\p{N}+]/gu, '')
+      .toLowerCase()
+  );
+}
+
+export function cleanTitle(title: string, language?: string) {
+  return foldToAscii(title, language)
+    .replace(/[♪♫★☆♡♥\-;:]/g, ' ')
+    .replace(/&/g, 'and')
+    .replace(/[^\p{L}\p{N}\s]/gu, '') // Remove remaining special chars
+    .replace(/\s+/g, ' ') // Normalise spaces
+    .toLowerCase()
+    .trim();
+}
+
+export function parseDuration(
+  durationString: string,
+  output: 'ms' | 's' = 'ms'
+): number | undefined {
+  // Regular expression to match different formats of time durations
+  const regex =
+    /(?<![^\s\[(_\-,.])(?:(\d+)h[:\s]?(\d+)m[:\s]?(\d+)s|(\d+)h[:\s]?(\d+)m|(\d+)m[:\s]?(\d+)s|(\d+)h|(\d+)m|(\d+)s)(?=[\s\)\]_.\-,]|$)/gi;
+
+  const match = regex.exec(durationString);
+  if (!match) {
+    return 0;
+  }
+
+  const hours = parseInt(match[1] || match[4] || match[8] || '0', 10);
+  const minutes = parseInt(
+    match[2] || match[5] || match[6] || match[9] || '0',
+    10
+  );
+  const seconds = parseInt(match[3] || match[7] || match[10] || '0', 10);
+
+  // Convert to milliseconds
+  const totalMilliseconds = (hours * 3600 + minutes * 60 + seconds) * 1000;
+  if (output === 's') {
+    return Math.floor(totalMilliseconds / 1000);
+  }
+
+  return totalMilliseconds;
+}
+
+export function parseAgeString(ageString: string): number | undefined {
+  const match = ageString.match(/^(\d+)([a-zA-Z])$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const value = parseInt(match[1], 10);
+  const unit = match[2].toLowerCase();
+
+  switch (unit) {
+    case 'd':
+      return value * 24;
+    case 'h':
+      return value;
+    case 'm':
+      return value / 60;
+    case 'y':
+      return value * 24 * 365;
+    default:
+      return undefined;
+  }
+}
+
+export function parseBitrate(bitrateString: string): number | undefined {
+  const match = bitrateString.match(
+    /^(\d+(\.\d+)?)\s*(bps|kbps|mbps|gbps|tbps)$/i
+  );
+  if (!match) {
+    const trimmed = bitrateString.trim();
+    if (!/^\d+(\.\d+)?$/.test(trimmed)) {
+      return undefined;
+    }
+    return parseFloat(trimmed);
+  }
+  const num = parseFloat(match[1]);
+  const unit = match[3].toLowerCase();
+  switch (unit) {
+    case 'bps':
+      return num;
+    case 'kbps':
+      return num * 1000;
+    case 'mbps':
+      return num * 1000000;
+    case 'gbps':
+      return num * 1000000000;
+    case 'tbps':
+      return num * 1000000000000;
+    default:
+      return num;
+  }
+}
+
+export function base32ToHex(base32: string): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = '';
+  for (const char of base32.toUpperCase()) {
+    bits += alphabet.indexOf(char).toString(2).padStart(5, '0');
+  }
+  let hex = '';
+  for (let i = 0; i + 4 <= bits.length; i += 4) {
+    hex += parseInt(bits.slice(i, i + 4), 2).toString(16);
+  }
+  return hex;
+}
+
+export function extractInfoHashFromMagnet(magnet: string): string | undefined {
+  const match = magnet.match(
+    /(?:urn(?::|%3A)btih(?::|%3A))([a-f0-9]{40}|[a-z2-7]{32})(?=$|[&#])/i
+  )?.[1];
+  if (!match) return undefined;
+  if (match.length === 40) return match.toLowerCase();
+  return base32ToHex(match);
+}
+
+/** Matches one or more flag emojis (each two regional indicator chars) after an indicator emoji. */
+function getFlagRegex(indicator: string): RegExp {
+  const escapedIndicator = indicator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(
+    `${escapedIndicator}\\s*((?:[\\u{1F1E6}-\\u{1F1FF}]{2}\\s*)+)`,
+    'u'
+  );
+}
+
+export function convertFlagToLanguage(flag: string): string | undefined {
+  const possibleLanguages = FULL_LANGUAGE_MAPPING.filter(
+    (language) => language.flag === flag
+  );
+  const language =
+    possibleLanguages.find((l) => l.flag_priority) || possibleLanguages[0];
+  if (!language) return undefined;
+  const languageName = getLanguageDisplayName(language);
+  return constants.LANGUAGES.includes(languageName as any)
+    ? languageName
+    : undefined;
+}
+
+/** Extracts every flag emoji (two regional indicator chars) from text and converts each to a language. */
+function extractLanguagesFromFlags(text: string): string[] {
+  const flags = text.match(/[\u{1F1E6}-\u{1F1FF}]{2}/gu) ?? [];
+  return flags
+    .map(convertFlagToLanguage)
+    .filter((language) => language !== undefined);
+}
+
+/** Extracts languages from flag emojis after a marker emoji, or undefined if the marker isn't present. */
+export function getLanguagesAfterMarker(
+  text: string | null | undefined,
+  indicator: string
+): string[] | undefined {
+  const match = text?.match(getFlagRegex(indicator));
+  return match ? extractLanguagesFromFlags(match[1]) : undefined;
+}
+
+export function getRegexForTextAfterEmojis(emojis: string[]): RegExp {
+  // Boundary also matches char+U+FE0F (e.g. ⚙️ needs it to render as emoji).
+  // Keeps all JS line terminators out of the separator/capture so lines
+  // can't bleed together.
+  const lineTerminators = '\\r\\n\\u2028\\u2029';
+  const escapedEmojis = emojis.map((emoji) =>
+    emoji.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  );
+  return new RegExp(
+    `(?:${escapedEmojis.join('|')})[^\\S${lineTerminators}]*([^\\p{Emoji_Presentation}${lineTerminators}]*?)(?=\\p{Emoji_Presentation}|.\\uFE0F|[${lineTerminators}]|$)`,
+    'u'
+  );
+}
