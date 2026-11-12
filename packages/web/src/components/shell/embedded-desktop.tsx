@@ -285,8 +285,23 @@ function EmbeddedContent({
 
   // "Library" in the dashboard and configuration sidebars closes the panel.
   React.useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      // Only the local dashboard frame, never another site or frame origin.
+      if (event.origin !== location.origin) return;
+      const data: unknown = event.data;
+      if (
+        data &&
+        typeof data === 'object' &&
+        (data as { type?: unknown }).type === CLOSE_PANEL_EVENT
+      )
+        closePanel();
+    };
     window.addEventListener(CLOSE_PANEL_EVENT, closePanel);
-    return () => window.removeEventListener(CLOSE_PANEL_EVENT, closePanel);
+    window.addEventListener('message', onMessage);
+    return () => {
+      window.removeEventListener(CLOSE_PANEL_EVENT, closePanel);
+      window.removeEventListener('message', onMessage);
+    };
   }, [closePanel]);
 
   const onKey = React.useCallback(

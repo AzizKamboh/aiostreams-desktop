@@ -233,8 +233,14 @@ try {
   const libraryEntry = 'document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelector("[data-vertical-menu-item-button=Library]")';
   await until(() => connection.evaluate(`!!${libraryEntry}`), 'dashboard panel with Library entry', 60000);
   pass('real dashboard opens in the panel with its Library sidebar entry');
+  await connection.evaluate("window.__panelMessages=[]; window.addEventListener('message', e => window.__panelMessages.push({ origin: e.origin, data: e.data })); true");
   await connection.evaluate(`${libraryEntry}.click(), true`);
-  await until(() => connection.evaluate('!document.querySelector("[role=dialog] iframe")'), 'Library closes the panel');
+  try {
+    await until(() => connection.evaluate('!document.querySelector("[role=dialog] iframe")'), 'Library closes the panel', 15000);
+  } catch (error) {
+    const detail = await connection.evaluate(`JSON.stringify({ messages: window.__panelMessages, entries: document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelectorAll("[data-vertical-menu-item-button=Library]").length, path: document.querySelector("[role=dialog] iframe")?.contentWindow?.location.pathname, inPanel: document.querySelector("[role=dialog] iframe")?.contentWindow?.parent === window })`).catch(() => 'unavailable');
+    throw new Error(`${error.message}; panel state ${detail}`);
+  }
   // Ctrl+, opens it; typing in a field never does; Escape closes it.
   await connection.evaluate("(() => { const input = document.createElement('input'); document.body.append(input); input.focus(); input.dispatchEvent(new KeyboardEvent('keydown', { key: ',', code: 'Comma', ctrlKey: true, bubbles: true })); input.remove(); return true; })()");
   await delay(500);

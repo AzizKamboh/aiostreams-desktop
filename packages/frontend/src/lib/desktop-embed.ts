@@ -24,7 +24,8 @@ export function inDesktopPanel(): boolean {
 }
 
 export function closeDesktopPanel(): void {
-  window.parent.dispatchEvent(new CustomEvent(CLOSE_EVENT));
+  // postMessage crosses frames reliably; the app checks the sender's origin.
+  window.parent.postMessage({ type: CLOSE_EVENT }, window.location.origin);
 }
 
 /** Footer entries for the dashboard and configuration sidebars. */
