@@ -89,11 +89,13 @@ jobs:
         with:
           name: aiostreams-native-evidence
           path: .embedded-build/native-evidence
+          include-hidden-files: true
           if-no-files-found: ignore
       - name: Upload installer, portable build, source, and hashes
         uses: actions/upload-artifact@v7
         with:
           name: aiostreams-integrated-windows-x64
+          include-hidden-files: true
           path: |
             .embedded-releases/*Setup.exe
             .embedded-releases/*Portable.zip
