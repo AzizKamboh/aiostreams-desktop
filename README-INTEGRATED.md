@@ -34,6 +34,30 @@ player features. **Diagnostics** provides backend status, restart, logs and a
 source-code download. The existing player retains subtitles, audio tracks and
 playback controls; external services still need your accounts and configuration.
 
+### AIOStreams account and built-in Usenet
+
+On first launch the app asks you to create an **AIOStreams account**. This is
+what a Docker install sets with `AIOSTREAMS_AUTH` and
+`AIOSTREAMS_AUTH_PERMISSIONS`; the **Environment variables** tab accepts those
+exact values if you want to copy them from an existing install. The account is
+stored with Windows DPAPI and passed to the local server as those two
+variables at every start. The app then checks it with the same test the
+built-in Usenet service uses before streaming, and shows the result.
+
+To stream from your Usenet providers:
+
+1. Add the NNTP providers in **Usenet providers** (linked from the setup screen;
+   also Server settings → dashboard → Usenet → Providers).
+2. In your configuration, add the **AIOStreams** service (built-in Usenet) and
+   paste your `username:password` as its AIOStreams auth token.
+
+The AIOStreams account is not your Usenet provider login, and it is separate
+from a configuration's password. Change accounts later in **Diagnostics →
+AIOStreams accounts**. Changing a password or removing an account stops
+configurations that use the old `username:password` until you paste the new
+one; unchanged accounts keep working. You can skip the setup; Debrid and
+WebDAV-based services do not need it, and remote-server users are never asked.
+
 Choose **Remote AIOStreams or Jellyfin server** in Diagnostics to use upstream's
 remote-server picker. That UI is served from the bundled client so a local backend
 failure does not interrupt its native-player bridge. The local backend remains

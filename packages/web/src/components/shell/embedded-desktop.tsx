@@ -22,6 +22,11 @@ import { findServer, sameServer } from '@/lib/jellyfin/servers';
 import { sendRemote } from '@/lib/remote/commands';
 import { party } from '@/lib/party/party';
 import { toast } from 'sonner';
+import {
+  AccountReady,
+  AccountSetup,
+  AccountsSummary,
+} from './embedded-accounts';
 
 type BackendState = ShellAnswer<'backend-state'>;
 type Tab = 'browse' | 'configure' | 'diagnostics';
@@ -29,6 +34,9 @@ type Mode = 'local' | 'remote';
 const MODE_KEY = 'aiostreams-desktop-backend-mode';
 const VISITED_KEY = 'aiostreams-desktop-configured';
 const API_PATH_KEY = 'aiostreams-desktop-local-api-path';
+/** The user chose to continue without an AIOStreams account for now. */
+const ACCOUNT_SKIP_KEY = 'aiostreams-desktop-account-skipped';
+const USENET_PROVIDERS_PATH = '/dashboard/usenet/providers';
 
 function LocalLinks({
   base,
@@ -198,6 +206,12 @@ function EmbeddedContent({
   const [playing, setPlaying] = React.useState(() =>
     location.hash.startsWith('#/play/')
   );
+  const accounts = state.accounts ?? [];
+  const [managingAccounts, setManagingAccounts] = React.useState(false);
+  const [skippedAccount, setSkippedAccount] = React.useState(
+    () => storage.get<boolean>(ACCOUNT_SKIP_KEY) === true
+  );
+  const [credentialShown, setCredentialShown] = React.useState(false);
 
   React.useEffect(() => {
     setEmbeddedOrigin(origin);
@@ -255,6 +269,15 @@ function EmbeddedContent({
     }
   };
   const showPane = tab !== 'browse' || (mode === 'local' && !ready);
+  const localReady = mode === 'local' && ready;
+  const finishAccountSetup = () => {
+    appBridge()?.send({ type: 'backend-accounts-ack' });
+    setCredentialShown(true);
+  };
+  const openLocalPath = (path: string) => {
+    setConfigurePath(path);
+    chooseTab('configure');
+  };
   const base = `${origin}${apiPath}`;
 
   return (
@@ -330,6 +353,13 @@ function EmbeddedContent({
                   </>
                 )}
               </dl>
+              {localReady && (
+                <AccountsSummary
+                  accounts={accounts}
+                  accountsError={state.accountsError}
+                  onManage={() => setManagingAccounts(true)}
+                />
+              )}
               <div className="flex flex-wrap gap-3">
                 <Button
                   intent="white"
@@ -422,6 +452,41 @@ function EmbeddedContent({
           </button>
         </nav>
       )}
+      {localReady && state.newCredential && !credentialShown ? (
+        <AccountReady
+          credential={state.newCredential}
+          accounts={accounts}
+          onOpenProviders={() => {
+            finishAccountSetup();
+            openLocalPath(USENET_PROVIDERS_PATH);
+          }}
+          onOpenConfiguration={() => {
+            finishAccountSetup();
+            openLocalPath('/stremio/configure');
+          }}
+          onBrowse={() => {
+            finishAccountSetup();
+            storage.set(VISITED_KEY, true);
+            chooseTab('browse');
+          }}
+        />
+      ) : localReady &&
+        !state.accountsError &&
+        (managingAccounts || (accounts.length === 0 && !skippedAccount)) ? (
+        <AccountSetup
+          accounts={managingAccounts ? accounts : []}
+          onCancel={managingAccounts ? () => setManagingAccounts(false) : undefined}
+          onSkip={
+            managingAccounts
+              ? undefined
+              : () => {
+                  storage.set(ACCOUNT_SKIP_KEY, true);
+                  setSkippedAccount(true);
+                }
+          }
+          onUseRemote={managingAccounts ? undefined : () => chooseMode('remote')}
+        />
+      ) : null}
     </>
   );
 }

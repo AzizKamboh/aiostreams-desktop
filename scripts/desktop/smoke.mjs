@@ -228,6 +228,25 @@ try {
   assert.equal(dashboard.status, 200);
   assert.match(dashboard.headers.get('content-type'), /text\/html/);
   pass('private backend authentication and real configuration interface');
+  // The account the setup screen saves reaches upstream as AIOSTREAMS_AUTH and
+  // passes the exact check the built-in Usenet service runs before streaming.
+  const loaded = await json(current, '/__desktop/accounts');
+  assert.deepEqual(loaded.accounts.map((a) => a.username), [admin], 'Internal account leaked or user account missing');
+  assert.ok(loaded.accounts[0].permissions.includes('service'));
+  assert.equal((await json(current, '/__desktop/account-check', {
+    method: 'POST', body: JSON.stringify({ credential: `${admin}:${password}` }),
+  })).success, true);
+  for (const credential of [`${admin}:wrong-password`, `nobody:${password}`, `desktop:${password}`, 'garbage']) {
+    const rejected = await (await api(current, '/__desktop/account-check', {
+      method: 'POST', body: JSON.stringify({ credential }),
+    })).json();
+    assert.equal(rejected.success, false, 'A wrong credential passed the Usenet service check');
+  }
+  const sessionCookie = bootstrap.headers.getSetCookie().find((value) => value.startsWith('aiostreams.session='));
+  assert.ok(sessionCookie, 'Internal desktop dashboard session missing beside a user account');
+  const internalSession = await api(current, '/api/v1/dashboard/settings/export', { headers: { Cookie: sessionCookie.split(';')[0] } });
+  assert.equal(internalSession.status, 200, 'Internal desktop admin session was not accepted');
+  pass('user AIOSTREAMS_AUTH account passes the built-in Usenet service check; internal dashboard account kept');
   await login(current);
   const imported = await json(current, '/api/v1/dashboard/settings/import/json', {
     method: 'POST', body: JSON.stringify({ settings: { 'branding.addonName': 'Desktop smoke 空間', 'usenet.performanceProfile': 'conservative' } }),

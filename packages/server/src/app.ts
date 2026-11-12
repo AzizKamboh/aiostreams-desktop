@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+﻿import express, { Express } from 'express';
 import {
   userApi,
   profilesApi,
@@ -96,7 +96,7 @@ import { StremioTransformer } from '@aiostreams/core';
 import { createResponse } from './utils/responses.js';
 import path from 'path';
 import fs from 'fs';
-import { desktopOptions, desktopBoundary } from './desktop.js';
+import { installDesktop } from './desktop-routes.js';
 import { fileURLToPath } from 'url';
 const app: Express = express();
 app.set('trust proxy', (addr: string) => isTrustedIp(addr));
@@ -109,41 +109,15 @@ export const frontendRoot = path.join(__dirname, '../../frontend/dist');
 export const jellyfinWebRoot = path.join(__dirname, '../../web/dist');
 export const staticRoot = path.join(__dirname, './static');
 
-export const embeddedDesktop = desktopOptions(process.env);
-app.use(
-  desktopBoundary(
-    embeddedDesktop,
-    constants.INTERNAL_SECRET_HEADER,
-    appConfig.bootstrap.internalSecret,
-    (req, res) => setSessionCookie(req, res, { username: 'desktop' })
-  )
-);
-if (embeddedDesktop) {
-  app.get('/__desktop/source', (_req, res) => {
-    const archive = process.env.AIOSTREAMS_DESKTOP_SOURCE_ARCHIVE;
-    if (!archive || !path.isAbsolute(archive) || !fs.existsSync(archive)) {
-      res.status(404).json({
-        success: false,
-        detail: 'Source archive is not present in this development build',
-      });
-      return;
-    }
-    res.download(
-      path.basename(archive),
-      'aiostreams-integrated-source.tar.gz',
-      {
-        root: path.dirname(archive),
-      }
-    );
-  });
-  const clientRoot =
-    process.env.AIOSTREAMS_DESKTOP_WEB_DIR ||
-    path.join(__dirname, '../../web/dist-standalone');
-  app.use(
-    '/__desktop/client',
-    express.static(clientRoot, { index: 'index.html', fallthrough: false })
-  );
-}
+// AIOStreams Integrated: private desktop boundary and routes (see desktop.ts).
+// Returns undefined, and installs nothing, outside the desktop app.
+export const embeddedDesktop = installDesktop(app, {
+  internalHeader: constants.INTERNAL_SECRET_HEADER,
+  internalSecret: appConfig.bootstrap.internalSecret,
+  establishSession: (req, res) =>
+    setSessionCookie(req, res, { username: 'desktop' }),
+  clientRoot: path.join(__dirname, '../../web/dist-standalone'),
+});
 
 app.use(ipMiddleware);
 app.use(loggerMiddleware);

@@ -188,3 +188,56 @@ export function secureDesktopUpgrades(
     for (const handler of handlers) handler.call(server, req, socket, head);
   });
 }
+
+
+/** The shell waits for this exact line on stdout before its health check. */
+export function announceDesktopReady(
+  options: DesktopOptions | undefined,
+  port: number
+): void {
+  if (!options) return;
+  process.stdout.write(
+    JSON.stringify({
+      event: 'aiostreams-desktop-ready',
+      port,
+      url: options.origin,
+    }) + '\n'
+  );
+}
+
+/**
+ * The shell asks for shutdown over stdin; EOF also means the shell crashed or
+ * was force-closed. `stop` runs once; a stuck shutdown exits after ten seconds.
+ */
+export function watchDesktopStdin(
+  options: DesktopOptions | undefined,
+  stop: () => Promise<void>
+): void {
+  if (!options || process.env.AIOSTREAMS_DESKTOP_STDIN_CONTROL !== '1') return;
+  let stopping = false;
+  const requestStop = () => {
+    if (stopping) return;
+    stopping = true;
+    setTimeout(() => process.exit(1), 10_000).unref();
+    void stop().finally(() => process.exit(0));
+  };
+  let input = '';
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', (chunk: string) => {
+    input += chunk;
+    if (input.length > 4096) return requestStop();
+    let newline: number;
+    while ((newline = input.indexOf('\n')) !== -1) {
+      const line = input.slice(0, newline);
+      input = input.slice(newline + 1);
+      try {
+        if (JSON.parse(line)?.command === 'shutdown') requestStop();
+      } catch {
+        /* Unknown parent commands have no effect. */
+      }
+    }
+  });
+  process.stdin.on('end', requestStop);
+  process.stdin.on('error', requestStop);
+  process.stdin.resume();
+}

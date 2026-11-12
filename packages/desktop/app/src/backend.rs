@@ -1,6 +1,8 @@
 //! The private, per-user server. Installed files are read-only; state lives beside
 //! the WebView profile. No shell is involved in launching or shutting it down.
 
+#[path = "backend/accounts.rs"]
+mod accounts;
 #[path = "backend/secure.rs"]
 mod secure;
 #[cfg(windows)]
@@ -22,6 +24,8 @@ use serde_json::{Value, json};
 const START_TIMEOUT: Duration = Duration::from_secs(240);
 const STOP_TIMEOUT: Duration = Duration::from_secs(10);
 const STORAGE_LIMIT: usize = 4 * 1024 * 1024;
+/// How long the just-created credential stays available for the copy step.
+const NEW_CREDENTIAL_TTL: Duration = Duration::from_secs(15 * 60);
 
 type Emit = Arc<dyn Fn(Value) + Send + Sync>;
 
@@ -38,6 +42,13 @@ struct State {
     storage: Value,
     storage_writable: bool,
     owned_origins: Vec<String>,
+    /// Usernames, permissions and the latest Usenet check; never passwords.
+    accounts: Value,
+    /// Set when saved accounts exist but cannot be read; saving is then refused.
+    accounts_error: Option<String>,
+    /// The primary credential the user just saved, for the setup screen's copy
+    /// step after the restart. Memory only; cleared when acknowledged.
+    new_credential: Option<(String, Instant)>,
 }
 
 /// Held by the native shell, never by the worker it owns.
@@ -46,6 +57,7 @@ pub struct Backend {
     worker: Mutex<Option<JoinHandle<()>>>,
     state: Arc<Mutex<State>>,
     storage_path: PathBuf,
+    root: PathBuf,
 }
 
 impl Backend {
@@ -65,6 +77,10 @@ impl Backend {
             Err(_) if !storage_path.exists() => (json!({}), None),
             Err(error) => (json!({}), Some(error)),
         };
+        let (saved_accounts, accounts_error) = match accounts::load(&root) {
+            Ok(saved) => (accounts::summary(&saved, None), None),
+            Err(error) => (json!([]), Some(error)),
+        };
         let state = Arc::new(Mutex::new(State {
             phase: "starting",
             message: "Starting the local AIOStreams server…".into(),
@@ -73,10 +89,14 @@ impl Backend {
             storage,
             storage_writable: storage_error.is_none(),
             owned_origins: Vec::new(),
+            accounts: saved_accounts,
+            accounts_error,
+            new_credential: None,
         }));
         let (commands, received) = mpsc::channel();
         let shared = state.clone();
         let emit: Emit = Arc::new(emit);
+        let worker_root = root.clone();
         let worker = thread::Builder::new()
             .name("embedded-backend".into())
             .spawn(move || {
@@ -84,7 +104,7 @@ impl Backend {
                     report(&shared, &emit, "failed", &error, None);
                     return;
                 }
-                run(root, received, shared, emit);
+                run(worker_root, received, shared, emit);
             });
         let worker = match worker {
             Ok(worker) => Some(worker),
@@ -100,7 +120,74 @@ impl Backend {
             worker: Mutex::new(worker),
             state,
             storage_path,
+            root,
         })
+    }
+
+    /// Save the setup screen's accounts, then restart the backend so upstream
+    /// reads them from AIOSTREAMS_AUTH. Existing accounts are only replaced when
+    /// the request says so explicitly, and unreadable ones never are.
+    pub fn save_accounts(&self, request: &Value) -> Result<(), String> {
+        // `keep` with an empty password keeps that user's saved password, so
+        // permissions can change without retyping every password.
+        let saved = accounts::load(&self.root).unwrap_or_default();
+        let mut entries = request["accounts"].clone();
+        let typed: Vec<String> = entries
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter(|e| e["password"].as_str().is_some_and(|p| !p.is_empty()))
+            .filter_map(|e| e["username"].as_str().map(str::to_owned))
+            .collect();
+        for entry in entries.as_array_mut().into_iter().flatten() {
+            if entry["keep"] == true && entry["password"].as_str() == Some("") {
+                let previous = saved
+                    .iter()
+                    .find(|a| Some(a.username.as_str()) == entry["username"].as_str());
+                match previous {
+                    Some(previous) => entry["password"] = json!(previous.password),
+                    None => {
+                        return Err("A kept account no longer exists; reload and try again".into());
+                    }
+                }
+            }
+        }
+        let new = accounts::parse(&entries)?;
+        if new.is_empty() {
+            return Err("Add at least one account".into());
+        }
+        {
+            let mut state = self.state.lock().map_err(|_| "Accounts are unavailable")?;
+            if let Some(error) = &state.accounts_error {
+                return Err(format!(
+                    "{error}. Refusing to overwrite them; restore the backend data backup or use the original Windows user."
+                ));
+            }
+            let existing = state.accounts.as_array().is_some_and(|a| !a.is_empty());
+            if existing && request["replace"] != true {
+                return Err("Confirm replacing the existing accounts".into());
+            }
+            accounts::save(&self.root, &new)?;
+            state.accounts = accounts::summary(&new, None);
+            // Offer the copy step only for an account whose password was typed now.
+            state.new_credential = new
+                .iter()
+                .find(|a| typed.contains(&a.username))
+                .map(|a| (format!("{}:{}", a.username, a.password), Instant::now()));
+        }
+        log::info!(
+            "embedded backend: saved {} AIOStreams account(s)",
+            new.len()
+        );
+        self.restart();
+        Ok(())
+    }
+
+    /// The setup screen has shown the new credential; forget it.
+    pub fn forget_new_credential(&self) {
+        if let Ok(mut state) = self.state.lock() {
+            state.new_credential = None;
+        }
     }
 
     pub fn status(&self) -> Value {
@@ -237,8 +324,23 @@ fn remember_origin(origins: &mut Vec<String>, origin: &str) {
 }
 
 fn snapshot(state: &Mutex<State>) -> Value {
-    let s = state.lock().unwrap();
-    json!({"type":"backend-state", "state":s.phase, "message":s.message, "url":s.url, "storage":s.storage})
+    let mut s = state.lock().unwrap();
+    if s.new_credential
+        .as_ref()
+        .is_some_and(|(_, at)| at.elapsed() > NEW_CREDENTIAL_TTL)
+    {
+        s.new_credential = None;
+    }
+    json!({
+        "type": "backend-state",
+        "state": s.phase,
+        "message": s.message,
+        "url": s.url,
+        "storage": s.storage,
+        "accounts": s.accounts,
+        "accountsError": s.accounts_error,
+        "newCredential": s.new_credential.as_ref().map(|(c, _)| c),
+    })
 }
 
 fn report(
@@ -429,6 +531,33 @@ fn launch(
                     report(
                         state,
                         emit,
+                        "starting",
+                        "Checking your AIOStreams accounts…",
+                        None,
+                    );
+                    if let Ok(saved) = accounts::load(root) {
+                        let checks: Vec<_> = saved
+                            .iter()
+                            .map(|account| accounts::check(port, token, account))
+                            .collect();
+                        for (account, check) in saved.iter().zip(&checks) {
+                            match check {
+                                Ok(()) => log::info!(
+                                    "embedded backend: account {} can use built-in Usenet",
+                                    account.username
+                                ),
+                                Err(_) => log::info!(
+                                    "embedded backend: account {} cannot use built-in Usenet",
+                                    account.username
+                                ),
+                            }
+                        }
+                        state.lock().unwrap().accounts =
+                            accounts::summary(&saved, Some(checks.as_slice()));
+                    }
+                    report(
+                        state,
+                        emit,
                         "ready",
                         "Local server ready",
                         Some(url.clone()),
@@ -519,7 +648,25 @@ impl OwnedChild {
             );
         }
         let base = format!("http://127.0.0.1:{port}");
+        // The user's accounts, exactly as a Docker install would set them.
+        // Inherited values are dropped so the app's own setting is authoritative.
+        let user_accounts = accounts::load(root).unwrap_or_else(|error| {
+            log::warn!("embedded backend: starting without user accounts: {error}");
+            Vec::new()
+        });
         let mut cmd = Command::new(node);
+        for name in [
+            "AIOSTREAMS_AUTH",
+            "AIOSTREAMS_AUTH_PERMISSIONS",
+            "AIOSTREAMS_AUTH_ADMINS",
+            "AIOSTREAMS_AUTH_PROXY",
+        ] {
+            cmd.env_remove(name);
+        }
+        if let Some((auth, permissions)) = accounts::environment(&user_accounts) {
+            cmd.env("AIOSTREAMS_AUTH", auth)
+                .env("AIOSTREAMS_AUTH_PERMISSIONS", permissions);
+        }
         cmd.arg(server)
             .current_dir(root)
             .stdin(Stdio::piped())

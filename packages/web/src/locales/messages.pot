@@ -5867,3 +5867,219 @@ msgstr ""
 #: src/components/shell/embedded-desktop.tsx
 msgid "Local server"
 msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Administrator (all permissions)"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Built-in Usenet streaming (service)"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Built-in proxy"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "SABnzbd API"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "WebDAV"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Create configurations"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Show"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "The desktop app is not available."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "The app did not answer. Open the logs and try again."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "The accounts were not saved."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Keep at least one account."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Each username can be used once."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "The passwords do not match."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Confirm that you understand how changing accounts affects existing configurations."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "AIOStreams accounts"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Create your AIOStreams account"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Environment variables"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Accounts"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Username"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "New password (leave empty to keep)"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Confirm password"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Keep this account"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Remove this account"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Save accounts"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Create account"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Your account is ready"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Your account was saved"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "The local server accepted this account for built-in Usenet streaming."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "The local server did not accept this account for built-in Usenet streaming. Check its permissions in Server settings."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Copied"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Usenet streaming: accepted"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Usenet streaming: not accepted"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Usenet streaming: not checked yet"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Change accounts"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Restarting the local server with your account…"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "The app checks the account against the built-in Usenet service, then continues."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "This app runs its own private AIOStreams server on this computer. Like the AIOSTREAMS_AUTH setting of a Docker install, an account here signs you in to that server and authorises the built-in Usenet streaming engine."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "This is not your Usenet provider login. NNTP provider usernames and passwords go in Server settings under Usenet providers. A configuration password or PIN is separate too."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Paste the same values you would put in a Docker .env file. Users without a permissions entry are administrators, as in upstream AIOStreams. This replaces every account."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Permissions"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Without Administrator or Built-in Usenet streaming, this account cannot stream from your Usenet providers."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Add account"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Configurations store an account as username:password, for example in the built-in AIOStreams Usenet service or the proxy. If you change that account's password or remove it, those configurations stop working until you paste the new credential into them. Accounts you leave unchanged keep working."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "I understand. Restart the local server with these accounts."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Skip for now"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Use a remote server instead"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Your AIOStreams credential, in the username:password form configurations use:"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "The app shows this once. It stays saved, protected for your Windows user, and you can change it later in Diagnostics."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Add your NNTP providers (host, port, SSL, connections, provider username and password) in Usenet providers."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Open Usenet providers"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "In your configuration, add the AIOStreams service (built-in Usenet) and paste the credential above as its AIOStreams auth token. Add your indexers there too."
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Open configuration"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "Ready to browse"
+msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "No account yet. Built-in Usenet streaming needs one."
+msgstr ""

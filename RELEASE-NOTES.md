@@ -1,5 +1,19 @@
 # AIOStreams Integrated release notes
 
+## Unreleased
+
+- **Built-in AIOStreams Usenet streaming now works.** A first-run screen creates
+  your AIOStreams account (username, password, permissions), or accepts
+  `AIOSTREAMS_AUTH` / `AIOSTREAMS_AUTH_PERMISSIONS` exactly as in a Docker
+  `.env`. The account is stored with DPAPI, applied at every server start,
+  checked against the built-in Usenet service, and manageable later in
+  Diagnostics. Existing installs keep all data and are offered the setup once.
+- Smaller changes to upstream files: integration code moved into dedicated
+  files, upstream SIGTERM/SIGINT handling restored, and stray formatting and
+  byte-order-mark changes reverted. See
+  `docs/embedded-desktop/UPSTREAM-HOOKS.md`.
+- Account passwords are redacted from backend logs.
+
 ## 0.1.0 — first public release
 
 The first public release of **AIOStreams Integrated**, an unofficial Windows x64
