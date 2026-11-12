@@ -65,7 +65,12 @@ export function desktopAuthorised(
   if (req.headers.host !== options.host) return false;
   const origin = req.headers.origin;
   if (origin !== undefined && origin !== options.origin) return false;
-  const url = new URL(req.url || '/', options.origin);
+  let url: URL;
+  try {
+    url = new URL(req.url || '/', options.origin);
+  } catch {
+    return false;
+  }
   const header = req.headers[DESKTOP_HEADER];
   return (
     equal(typeof header === 'string' ? header : undefined, options.token) ||
@@ -109,6 +114,32 @@ export function stripDesktopCredentials(req: IncomingMessage): void {
   }
 }
 
+/**
+ * Routes that answer with data or with bytes from addons, providers and
+ * indexers rather than with the app's own pages. A browser that opens one as a
+ * document gets an opaque, scriptless origin: provider HTML can never run as the
+ * private app origin, use its session cookie, or reach the native bridge.
+ */
+const UNTRUSTED_CONTENT = [
+  '/api/',
+  '/builtins/',
+  '/webdav',
+  '/blocklist',
+  '/chilllink/',
+  '/seanime/',
+  '/jellyfin/',
+  '/stremio/',
+];
+
+export function sandboxedPath(path: string): boolean {
+  if (!UNTRUSTED_CONTENT.some((prefix) => path.startsWith(prefix)))
+    return false;
+  // The configuration pages and the hosted web client are the app's own UI.
+  if (/\/configure\/?$/.test(path)) return false;
+  if (/^\/jellyfin\/(?:.*\/)?web(?:\/|$)/.test(path)) return false;
+  return true;
+}
+
 export function desktopBoundary(
   options: DesktopOptions | undefined,
   internalHeader: string,
@@ -119,6 +150,7 @@ export function desktopBoundary(
     if (!options) return next();
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     if (!desktopAuthorised(req, options, internalHeader, internalSecret)) {
       res
         .status(403)
@@ -129,14 +161,26 @@ export function desktopBoundary(
     // Native players do not share the WebView cookie jar. Carry the capability
     // only over local redirects (error clips and local playback hops), never an
     // external Location header. Browser requests already carry their cookie.
-    const queryAuthenticated = new URL(
-      req.url,
-      options.origin
-    ).searchParams.has(DESKTOP_QUERY);
-    if (queryAuthenticated && !bootstrap) {
+    const queryAuthenticated =
+      !bootstrap &&
+      new URL(req.url, options.origin).searchParams.has(DESKTOP_QUERY);
+    const sandboxed = sandboxedPath(req.path);
+    if (queryAuthenticated || sandboxed) {
       const setHeader = res.setHeader.bind(res);
       res.setHeader = (name, value) => {
-        if (name.toLowerCase() === 'location' && typeof value === 'string') {
+        const lower = name.toLowerCase();
+        // Relayed provider headers must not lift the sandbox set below.
+        if (
+          sandboxed &&
+          (lower === 'content-security-policy' ||
+            lower === 'x-content-type-options')
+        )
+          return res;
+        if (
+          queryAuthenticated &&
+          lower === 'location' &&
+          typeof value === 'string'
+        ) {
           try {
             const destination = new URL(value, options.origin);
             if (destination.origin === options.origin) {
@@ -149,9 +193,11 @@ export function desktopBoundary(
         }
         return setHeader(name, value);
       };
+      if (sandboxed) setHeader('Content-Security-Policy', 'sandbox');
     }
     stripDesktopCredentials(req);
     req.originalUrl = req.url;
+
     if (bootstrap) {
       if (req.method !== 'GET' && req.method !== 'POST') {
         res.status(405).end();

@@ -240,6 +240,18 @@ impl Backend {
             .is_some_and(|url| local_url(candidate, url))
     }
 
+    /// Only the bundled client page on the owned origin may use the native
+    /// bridge or receive backend state. Other responses on that origin (proxied
+    /// provider content, API answers) must never drive the player, downloads or
+    /// accounts.
+    pub fn is_client_page(&self, candidate: &str) -> bool {
+        let state = self.state.lock().unwrap();
+        state
+            .url
+            .as_ref()
+            .is_some_and(|url| candidate.starts_with(&format!("{url}/__desktop/client/")))
+    }
+
     /// Used only by native navigation; never included in diagnostics or persisted.
     pub fn bootstrap_url(&self) -> Option<String> {
         let s = self.state.lock().unwrap();

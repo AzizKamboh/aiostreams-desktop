@@ -1,5 +1,28 @@
 # AIOStreams Integrated release notes
 
+## 0.2.0 — stability and security
+
+Security review of the integration code. Upgrades 0.1.x in place; all data,
+keys, accounts and settings are kept.
+
+- **Untrusted content can no longer act as the app.** Responses that relay
+  addon, provider or indexer content (proxy, streams, WebDAV, builtins,
+  Jellyfin and Stremio APIs) are served with `Content-Security-Policy:
+  sandbox`, which a relayed provider header cannot remove. Opened as a page,
+  such content gets an opaque origin: no session cookie, no API access.
+- **Only the app's own page may use the native bridge** (player, downloads,
+  accounts). Previously any page on the local server's origin could.
+  Backend state, saved client credentials and player events are only sent to
+  the app's own pages.
+- Providers can no longer set cookies on the private origin through the proxy.
+- Every local-server response sends `X-Content-Type-Options: nosniff`.
+- Malformed request URLs are rejected instead of raising a server error.
+
+Known limits, unchanged: account passwords and the server key reach the local
+server as environment variables, readable by other programs running as the
+same Windows user; DPAPI protects data from other users and other computers,
+not from malware running as you.
+
 ## 0.1.1
 
 Adds built-in Usenet streaming support and native navigation. Upgrades

@@ -266,7 +266,7 @@ pub fn run(app: App) {
             let downloads = downloads.clone();
             move |req: Request<String>| {
                 let from = origin(&req.uri().to_string()).unwrap_or_default();
-                if from != app_origin && !crate::embedded::trusted(&req.uri().to_string()) {
+                if from != app_origin && !crate::embedded::bridge_trusted(&req.uri().to_string()) {
                     return log::warn!("ignored a message from {from}");
                 }
                 let send = |event: UserEvent| {
@@ -350,6 +350,7 @@ pub fn run(app: App) {
     let mut save_at: Option<Instant> = None;
     #[cfg(target_os = "macos")]
     let mut exit_at: Option<Instant> = None;
+    let page_origin = app_origin.clone();
     event_loop.run(move |event, _, flow| {
         if save_at.is_some_and(|at| Instant::now() >= at) {
             save_at = None;
@@ -368,14 +369,26 @@ pub fn run(app: App) {
                 ControlFlow::WaitUntil(at)
             };
         }
+        // Player events and backend state (with saved client credentials) go
+        // only to the app's own pages, never to other content on those origins.
+        let page_trusted = || {
+            webview.url().is_ok_and(|url| {
+                crate::allowed_navigation(&url, &page_origin)
+                    || crate::embedded::bridge_trusted(&url)
+            })
+        };
         let emit = |message: Outbound| {
-            let _ = webview.evaluate_script(&receive_script(&message));
+            if page_trusted() {
+                let _ = webview.evaluate_script(&receive_script(&message));
+            }
         };
         match event {
             #[cfg(windows)]
             Event::UserEvent(UserEvent::BackendState(state)) => {
-                let _ =
-                    webview.evaluate_script(&format!("window.__aiostreamsAppReceive?.({state})"));
+                if page_trusted() {
+                    let _ = webview
+                        .evaluate_script(&format!("window.__aiostreamsAppReceive?.({state})"));
+                }
                 let remote = state["storage"]["aiostreams-desktop-backend-mode"]
                     .as_str()
                     .and_then(|value| serde_json::from_str::<String>(value).ok())
@@ -479,7 +492,9 @@ pub fn run(app: App) {
             }
             Event::UserEvent(UserEvent::Closed) => *flow = ControlFlow::Exit,
             Event::UserEvent(UserEvent::Emit(script)) => {
-                let _ = webview.evaluate_script(&script);
+                if page_trusted() {
+                    let _ = webview.evaluate_script(&script);
+                }
             }
             Event::UserEvent(UserEvent::Fullscreen(value)) => {
                 let left = pip::set(&mut pip, false, &window, &mut placement, &mut remaximize);

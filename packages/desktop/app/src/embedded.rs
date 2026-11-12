@@ -25,6 +25,12 @@ pub fn trusted(url: &str) -> bool {
     get().is_some_and(|backend| backend.is_origin(url))
 }
 
+/// Pages that may use the native bridge: the bundled client only, not every
+/// response the local server can send.
+pub fn bridge_trusted(url: &str) -> bool {
+    get().is_some_and(|backend| backend.is_client_page(url))
+}
+
 /// Only called after the shell has checked the sending page's origin.
 #[cfg(windows)]
 pub fn receive(body: &str, send: &dyn Fn(crate::UserEvent)) -> bool {

@@ -271,6 +271,9 @@ try {
   assert.equal(play.origin, current.base, 'Generated playback URL has wrong dynamic server port');
   play.searchParams.set('__desktop_token', current.token);
   const streamed = await fetch(play, { signal: AbortSignal.timeout(15000) });
+  // Provider bytes on the private origin can never run as the app's own pages.
+  assert.equal(streamed.headers.get('content-security-policy'), 'sandbox', 'Proxied content is not sandboxed');
+  assert.equal(streamed.headers.get('x-content-type-options'), 'nosniff');
   assert.equal(streamed.status, 200);
   assert.deepEqual(Buffer.from(await streamed.arrayBuffer()), media);
   const range = await fetch(play, { headers: { Range: 'bytes=100-299' }, signal: AbortSignal.timeout(15000) });
