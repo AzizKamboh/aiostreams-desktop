@@ -142,6 +142,14 @@ try {
   let base = await launch();
   await until(() => connection.evaluate('document.querySelector("iframe")?.contentDocument?.body?.innerText.includes("AIOStreams")'), 'real configuration dashboard');
   pass('native Windows app, bundled WebView2, private backend and configuration dashboard');
+  const duplicate = spawn(path.join(stage, 'aiostreams-desktop.exe'), [], { cwd: stage, stdio: 'ignore', env: { ...process.env, AIOSTREAMS_DESKTOP_DATA_DIR: data } });
+  const duplicateCode = await new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => { duplicate.kill(); reject(new Error('Second app instance did not exit')); }, 15000);
+    duplicate.once('error', error => { clearTimeout(timeout); reject(error); });
+    duplicate.once('exit', code => { clearTimeout(timeout); resolve(code); });
+  });
+  assert.equal(duplicateCode, 0);
+  pass('second native app launch exits through the single-instance guard');
   const configured = await connection.evaluate(`fetch('/api/v1/dashboard/settings/import/json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:{'branding.addonName':'Native smoke 空間'}})}).then(r=>r.json())`);
   assert.equal(configured.success, true);
   const playable = await connection.evaluate(`fetch('/api/v1/proxy/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:${JSON.stringify(fixtureBase + '/sample.mp4')},filename:'sample.mp4',type:'stream'})}).then(r=>r.json())`);
@@ -156,9 +164,19 @@ try {
   await until(() => connection.evaluate('window.__nativeEvents.some(m=>m.type==="player-state" && m.positionMs>=600)'), 'mpv seek');
   await connection.evaluate(`window.aiostreamsApp.send({type:'player-subtitle-add',url:${JSON.stringify(fixtureBase + '/captions.srt')},title:'Fixture captions',language:'en'}); true`);
   await until(() => connection.evaluate('window.__nativeEvents.some(m=>m.type==="player-tracks" && m.tracks.some(t=>t.type==="subtitle"))'), 'subtitle track');
-  pass('native pause, seek and subtitle track controls');
+  const tracks = await connection.evaluate('window.__nativeEvents.filter(m=>m.type==="player-tracks").at(-1).tracks');
+  const audio = tracks.find(track => track.type === 'audio');
+  const subtitle = tracks.find(track => track.type === 'subtitle');
+  assert.ok(audio && subtitle, 'Expected decoded audio and subtitle tracks');
+  await connection.evaluate(`window.__nativeEvents=[]; window.aiostreamsApp.send({type:'player-set',audio:${JSON.stringify(audio.id)},subtitle:${JSON.stringify(subtitle.id)}}); true`);
+  await until(() => connection.evaluate(`window.__nativeEvents.some(m=>m.type==='player-state' && m.audio===${JSON.stringify(audio.id)}) && window.__nativeEvents.some(m=>m.type==='player-state' && m.subtitle===${JSON.stringify(subtitle.id)})`), 'audio/subtitle selection');
+  pass('native pause, seek, audio selection and subtitle controls');
   const screenshot = await connection.call('Page.captureScreenshot', { format: 'png' });
   await writeFile(path.join(evidence, 'native-webview.png'), Buffer.from(screenshot.data, 'base64'));
+  await connection.evaluate('window.__nativeSessionMarker="before-restart"; window.aiostreamsApp.send({type:"backend-restart"}); true');
+  await until(() => connection.evaluate('window.__nativeSessionMarker!=="before-restart" && location.pathname.startsWith("/__desktop/client") && !!window.aiostreamsApp && fetch("/api/v1/health").then(r=>r.ok)'), 'native backend restart and client reconnection', 240000);
+  base = await connection.evaluate('location.origin');
+  pass('native restart action reconnects the client to its healthy backend');
   await closeApp(base);
   pass('native app exit releases the backend socket');
   if (upgrade) { await install(upgrade); pass('newer integrated installer upgrades the same installation'); }
