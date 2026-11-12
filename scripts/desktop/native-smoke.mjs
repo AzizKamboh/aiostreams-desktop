@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, open, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -54,9 +54,67 @@ const debugPort = reservation.address().port;
 await new Promise(resolve => reservation.close(resolve));
 let child;
 let connection;
+let phase = 'test setup';
 const results = [];
 function pass(message) { results.push(message); console.log(`PASS ${message}`); }
+function redact(value, limit = 4096) {
+  return String(value ?? '')
+    .replace(/https?:\/\/[^\s"'<>]+/gi, (raw) => {
+      try {
+        const url = new URL(raw);
+        const segments = url.pathname.split('/');
+        const sensitive = segments.findIndex(segment => ['proxy', 'stremio', 'jellyfin'].includes(segment));
+        const pathname = sensitive >= 0 && segments.length > sensitive + 1
+          ? `${segments.slice(0, sensitive + 1).join('/')}/[redacted]`
+          : url.pathname;
+        return `${url.protocol}//${url.host}${pathname}${url.search ? '?[redacted]' : ''}`;
+      } catch { return '[redacted URL]'; }
+    })
+    .replace(/(__desktop_token(?:=|%3[dD]))[^&\s"']+/gi, '$1[redacted]')
+    .replace(/\b[a-f\d]{48,}\b/gi, '[redacted token]')
+    .replace(/((?:authorization|cookie|password|secret|token)\s*[=:]\s*)[^\r\n,;]+/gi, '$1[redacted]')
+    .slice(-limit);
+}
+async function logTail(filename, maximumBytes) {
+  const file = await open(filename, 'r');
+  try {
+    const size = (await file.stat()).size;
+    const buffer = Buffer.alloc(Math.min(size, maximumBytes));
+    const { bytesRead } = await file.read(buffer, 0, buffer.length, Math.max(0, size - buffer.length));
+    return redact(buffer.subarray(0, bytesRead).toString('utf8'), maximumBytes);
+  } finally { await file.close(); }
+}
+async function captureFailure(error) {
+  const failure = { results, phase, error: redact(error.message), details: {} };
+  try {
+    const logDirectory = path.join(data, 'data/logs');
+    const files = (await readdir(logDirectory, { withFileTypes: true }))
+      .filter(entry => entry.isFile() && /^aiostreams-desktop-[\d-]+\.log$/.test(entry.name))
+      .map(entry => entry.name).sort().slice(-2);
+    for (const name of files) {
+      await writeFile(path.join(evidence, name), await logTail(path.join(logDirectory, name), 32768));
+    }
+    failure.details.logFiles = files;
+  } catch (problem) { failure.details.logError = redact(problem.message); }
+  if (connection?.socket.readyState === WebSocket.OPEN) {
+    try {
+      // The profile belongs to this generated fixture. Collect only diagnostic
+      // scalars, never URLs, track objects, cookies, storage or arbitrary state.
+      const events = await connection.evaluate(`(window.__nativeEvents || []).slice(-20).map(message => Object.fromEntries(['type','positionMs','paused','idle','buffering','seeking','message'].filter(key => typeof message[key] === 'string' || typeof message[key] === 'number' || typeof message[key] === 'boolean').map(key => [key, message[key]])))`);
+      failure.details.events = Array.isArray(events) ? events.map(event => Object.fromEntries(
+        Object.entries(event).map(([key, value]) => [key, typeof value === 'string' ? redact(value, 1024) : value]),
+      )) : [];
+    } catch (problem) { failure.details.eventError = redact(problem.message); }
+    try {
+      const screenshot = await connection.call('Page.captureScreenshot', { format: 'png' });
+      await writeFile(path.join(evidence, 'native-failure.png'), Buffer.from(screenshot.data, 'base64'));
+      failure.details.screenshot = 'native-failure.png';
+    } catch (problem) { failure.details.screenshotError = redact(problem.message); }
+  }
+  await writeFile(path.join(evidence, 'native-failure.json'), JSON.stringify(failure, null, 2));
+}
 async function install(executable) {
+  phase = 'install or upgrade';
   const setup = spawn(path.resolve(executable), ['--silent', '--installto', installRoot], { stdio: 'ignore' });
   const code = await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => { setup.kill(); reject(new Error('Installer timed out')); }, 180000);
@@ -67,6 +125,7 @@ async function install(executable) {
   stage = path.join(installRoot, 'current');
 }
 async function until(check, label, milliseconds = 30000) {
+  phase = label;
   const deadline = Date.now() + milliseconds;
   let last;
   while (Date.now() < deadline) {
@@ -89,7 +148,15 @@ class CDP {
   }
   static async connect(url) {
     const socket = new WebSocket(url);
-    await new Promise((resolve, reject) => { socket.addEventListener('open', resolve, { once: true }); socket.addEventListener('error', reject, { once: true }); });
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        socket.close();
+        reject(new Error('CDP WebSocket handshake timed out after 15 seconds'));
+      }, 15000);
+      socket.addEventListener('open', () => { clearTimeout(timeout); resolve(); }, { once: true });
+      socket.addEventListener('error', () => { clearTimeout(timeout); reject(new Error('CDP WebSocket connection failed')); }, { once: true });
+      socket.addEventListener('close', () => { clearTimeout(timeout); reject(new Error('CDP WebSocket closed before connecting')); }, { once: true });
+    });
     return new CDP(socket);
   }
   call(method, params = {}) {
@@ -102,7 +169,7 @@ class CDP {
   }
   async evaluate(expression) {
     const result = await this.call('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
-    if (result.exceptionDetails) throw new Error(result.exceptionDetails.text);
+    if (result.exceptionDetails) throw new Error(redact(result.exceptionDetails.exception?.description ?? result.exceptionDetails.text));
     return result.result.value;
   }
 }
@@ -129,6 +196,7 @@ async function launch() {
   return connection.evaluate('location.origin');
 }
 async function closeApp(base) {
+  phase = 'native app shutdown';
   await connection.evaluate('window.aiostreamsApp.send({type:"close"}); true').catch(() => {});
   for (let i = 0; i < 150 && child.exitCode === null; i++) await delay(100);
   assert.notEqual(child.exitCode, null, 'Native app did not exit');
@@ -189,8 +257,8 @@ try {
   await closeApp(base);
   await writeFile(path.join(evidence, 'native-results.json'), JSON.stringify({ platform: process.platform, results, realNativeBridge: true, audioOutput: 'null (CI has no physical speaker)', installationTested: !!installer, upgradeTested: !!upgrade, developerToolsInChildPath: false }, null, 2));
 } catch (error) {
-  await writeFile(path.join(evidence, 'native-failure.json'), JSON.stringify({ results, error: error.message }, null, 2));
-  throw error;
+  await captureFailure(error).catch(problem => console.error(`Failure evidence could not be written: ${redact(problem.message)}`));
+  throw new Error(redact(error.message));
 } finally {
   connection?.socket.close();
   if (child?.exitCode === null) { child.kill(); await delay(1000); }
