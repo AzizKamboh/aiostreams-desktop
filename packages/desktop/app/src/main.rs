@@ -242,9 +242,17 @@ pub struct App {
     pub bridge: String,
 }
 
+/// The integrated package version, set by the packaging script. The upstream
+/// desktop client keeps its own version for protocol and feature checks.
+pub const INTEGRATED_VERSION: &str = match option_env!("AIOSTREAMS_INTEGRATED_VERSION") {
+    Some(version) => version,
+    None => "development",
+};
+
 fn about() -> String {
     format!(
-        "version={} os=\"{}\" webview={}",
+        "integrated={} client={} os=\"{}\" webview={}",
+        INTEGRATED_VERSION,
         env!("CARGO_PKG_VERSION"),
         platform::os_version(),
         shell::webview_version()
@@ -254,6 +262,10 @@ fn about() -> String {
 fn bridge_script(enabled: bool) -> String {
     include_str!("bridge.js")
         .replace("__BACKEND__", &enabled.to_string())
+        .replace(
+            "__INTEGRATED_VERSION__",
+            &serde_json::to_string(INTEGRATED_VERSION).unwrap(),
+        )
         .replace("__PROTOCOL__", &PROTOCOL_VERSION.to_string())
         .replace(
             "__VERSION__",

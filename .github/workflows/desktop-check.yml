@@ -24,7 +24,7 @@ env:
 jobs:
   check:
     name: check (${{ matrix.os }})
-    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
+    if: "${{ github.repository == 'Viren070/AIOStreams' && (!startsWith(github.head_ref, 'release-please--')) }}"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:

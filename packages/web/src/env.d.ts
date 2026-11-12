@@ -17,6 +17,9 @@ declare const __WEBGPU_PLAYER_MODULE__: string;
 /** The version of the app this page ships in, where the app can't say it; null otherwise. */
 declare const __APP_VERSION__: string | null;
 
+/** The AIOStreams server version from the same monorepo revision. */
+declare const __SERVER_VERSION__: string;
+
 /** Where the apps send their usage statistics, or null for a build that sends none. */
 declare const __USAGE_STATS__: { appKey: string; host: string } | null;
 

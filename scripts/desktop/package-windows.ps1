@@ -46,6 +46,8 @@ try {
     Checked { pnpm -F '@aiostreams/web' build:standalone }
     Remove-Item Env:AIOSTREAMS_DESKTOP_BUILD
     Checked { & (Join-Path $root 'packages/desktop/scripts/fetch-libs.ps1') -Arch x86_64 }
+    # Shown in About/Diagnostics beside the separate upstream client/server versions.
+    $env:AIOSTREAMS_INTEGRATED_VERSION = $Version
     Push-Location (Join-Path $root 'packages/desktop')
     try { Checked { cargo test --locked }; Checked { cargo build --release --locked } } finally { Pop-Location }
   }

@@ -1,5 +1,10 @@
-> **Integrated Windows variant:** see [README-INTEGRATED.md](README-INTEGRATED.md)
-> for the embedded-server implementation, packaging, and actual validation status.
+> **This repository is AIOStreams Integrated**, an unofficial Windows desktop
+> app that bundles the AIOStreams server with the AIOStreams desktop client, so
+> no Docker or separate server is needed. Download it from
+> [Releases](https://github.com/AzizKamboh/aiostreams-desktop/releases) and read
+> [README-INTEGRATED.md](README-INTEGRATED.md) and [RELEASE-NOTES.md](RELEASE-NOTES.md).
+> It is not affiliated with the AIOStreams project; everything below is the
+> upstream README by Viren070. Report problems with this build here, not upstream.
 
 <p align="center">
   <picture>

@@ -5851,3 +5851,19 @@ msgstr ""
 #: src/app/settings/cache.tsx
 msgid "Your watch history and totals."
 msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "AIOStreams Integrated"
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Desktop client (upstream)"
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Server (upstream)"
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Local server"
+msgstr ""

@@ -1,16 +1,21 @@
 name: Integrated Windows desktop
 
-# Build artifacts only. This workflow never publishes to the upstream release
-# feed and has no repository write permission.
+# Builds and tests on every push. A manual run can also create a DRAFT GitHub
+# release from the tested artifacts; publishing it stays a manual step. Only the
+# small release job has write permission, and it never checks out or runs code.
 on:
   push:
-    branches: [codex/integrated-windows]
+    branches: [main]
   workflow_dispatch:
     inputs:
       version:
-        description: Installer SemVer
+        description: Integrated app SemVer (also the release tag, prefixed with v)
         type: string
         default: '0.1.0'
+      draft_release:
+        description: Create a draft GitHub release from the tested build
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'packages/desktop/**'
@@ -103,3 +108,44 @@ jobs:
             .embedded-releases/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 14
+
+  draft-release:
+    needs: windows-x64
+    if: github.event_name == 'workflow_dispatch' && inputs.draft_release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: v${{ inputs.version }}
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: aiostreams-integrated-windows-x64
+          path: dist
+      - name: Verify checksums
+        working-directory: dist
+        run: sha256sum -c SHA256SUMS.txt
+      - name: Create draft release (not published)
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::Release $TAG already exists. Delete the draft or choose a new version."
+            exit 1
+          fi
+          {
+            echo "Unofficial integrated Windows build of [AIOStreams](https://github.com/Viren070/AIOStreams) by Viren070 (AGPL-3.0-only)."
+            echo
+            echo "Built from commit ${GITHUB_SHA} by [workflow run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})."
+            echo "Installer and portable ZIP are **unsigned**. Complete corresponding source is attached."
+            echo
+            echo "See RELEASE-NOTES.md and README-INTEGRATED.md in the repository for details and known limitations."
+            echo
+            echo '```'
+            cat dist/SHA256SUMS.txt
+            echo '```'
+          } > notes.md
+          gh release create "$TAG" --draft --target "$GITHUB_SHA" \
+            --title "AIOStreams Integrated $TAG" --notes-file notes.md dist/*
+

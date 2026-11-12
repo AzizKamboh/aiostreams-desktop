@@ -32,6 +32,7 @@ env:
 jobs:
   # The page every build ships, built once.
   web:
+    if: github.repository == 'Viren070/AIOStreams'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -55,6 +56,7 @@ jobs:
   # The Rust crates' licences, a page and a list for the app per target, made once for
   # every build; cargo-about fails on a licence that about.toml does not accept.
   licences:
+    if: github.repository == 'Viren070/AIOStreams'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -106,6 +108,7 @@ jobs:
 
   # The release the builds publish to, with notes on what to download.
   feed:
+    if: github.repository == 'Viren070/AIOStreams'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -132,7 +135,7 @@ jobs:
   windows:
     name: Windows ${{ matrix.arch }}
     needs: [web, feed, licences]
-    if: inputs.platforms == 'all' || inputs.platforms == 'windows'
+    if: "${{ github.repository == 'Viren070/AIOStreams' && (inputs.platforms == 'all' || inputs.platforms == 'windows') }}"
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     strategy:
@@ -240,7 +243,7 @@ jobs:
   macos:
     name: macOS ${{ matrix.arch }}
     needs: [web, feed, licences]
-    if: inputs.platforms == 'all' || inputs.platforms == 'macos'
+    if: "${{ github.repository == 'Viren070/AIOStreams' && (inputs.platforms == 'all' || inputs.platforms == 'macos') }}"
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     strategy:
@@ -371,7 +374,7 @@ jobs:
   linux:
     name: Linux ${{ matrix.arch }}
     needs: [web, feed, licences]
-    if: inputs.platforms == 'all' || inputs.platforms == 'linux'
+    if: "${{ github.repository == 'Viren070/AIOStreams' && (inputs.platforms == 'all' || inputs.platforms == 'linux') }}"
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
     strategy:

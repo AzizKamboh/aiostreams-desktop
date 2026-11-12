@@ -5,19 +5,18 @@ from the same upstream monorepo. It keeps the Rust/WebView2 shell, mpv player,
 browsing interface, server configuration dashboard, and existing provider logic.
 The desktop owns a private Node server process; Docker is not used.
 
-**Release status:** the Windows x64 installer and portable archive were built,
-and native Windows installation, WebView2/mpv playback controls, backend restart,
-shutdown and upgrade/data retention passed CI. See
-[the validation report](docs/embedded-desktop/VALIDATION.md) for the exact scope
-and remaining limits.
+**Version 0.1.0** is the first public release of this unofficial integrated
+variant, built from upstream `desktop-v0.24.0` (commit `76a5d6da`; desktop
+client 0.24.0, server 2.37.0). Download it from this repository's
+[Releases](https://github.com/AzizKamboh/aiostreams-desktop/releases): run
+`aiostreams-integrated-win-x64-Setup.exe`, or extract the portable ZIP. Packages
+are unsigned, so Windows SmartScreen may warn on first run. Read
+[the release notes](RELEASE-NOTES.md) for known limitations, and
+[the validation report](docs/embedded-desktop/VALIDATION.md) for what was tested.
 
-[Download the Windows bundle](https://github.com/AzizKamboh/aiostreams-desktop/actions/runs/43262406460/artifacts/13966812042)
-(installer, portable ZIP, complete source archive and checksums; about 1.28 GiB).
-Extract the bundle and run `aiostreams-integrated-win-x64-Setup.exe`.
-Packages are unsigned. GitHub requires sign-in for artifact downloads and retains
-this bundle until 2026-11-26. The
-[Integrated Windows desktop workflow](https://github.com/AzizKamboh/aiostreams-desktop/actions/workflows/embedded-desktop.yml)
-can regenerate it from source.
+The [Integrated Windows desktop workflow](https://github.com/AzizKamboh/aiostreams-desktop/actions/workflows/embedded-desktop.yml)
+builds and tests every push to `main`. Run it manually with **draft_release**
+ticked to turn a tested build into a draft release (see *Making a release*).
 
 ## Using a Windows package
 
@@ -82,6 +81,21 @@ node scripts/desktop/smoke.mjs --ffprobe /path/to/ffprobe
 # Optional full audio/video decode check:
 node scripts/desktop/smoke.mjs --ffprobe /path/to/ffprobe --ffmpeg /path/to/ffmpeg
 ```
+
+## Making a release
+
+1. Push the reviewed commit to `main` and wait for **Integrated Windows desktop**
+   to pass.
+2. Actions → Integrated Windows desktop → **Run workflow** on `main`, set
+   **version** (for example `0.1.0`) and tick **draft_release**. The run builds,
+   re-runs every test, then creates a *draft* release `v<version>` with the
+   installer, portable ZIP, source archive and `SHA256SUMS.txt`.
+3. Download and test the draft's files, edit its notes, then click **Publish**.
+   Nothing is published automatically.
+
+Each new release must use a higher version than the last. The in-app updater is
+off in 0.1.0, so users upgrade by running the newer Setup.exe; it upgrades the
+existing install in place and keeps all data.
 
 ## Data, upgrades and security
 

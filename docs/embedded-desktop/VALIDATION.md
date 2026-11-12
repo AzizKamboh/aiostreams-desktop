@@ -42,6 +42,23 @@ remaining acceptance limits.
 - `cargo test -p aiostreams-desktop-core` compiled successfully but discovered
   zero tests; it is not counted as behavioral coverage. `git diff --check` passed.
 
+## Release 0.1.0 candidate
+
+Changes on `main` after the validated run below, prepared without a local build
+(this environment could not install the Node 24 toolchain):
+
+- Every imported upstream workflow job now runs only in `Viren070/AIOStreams`, so
+  pushes to this repository's `main` cannot trigger upstream release, nightly,
+  Docker or update-feed jobs.
+- About/Diagnostics show the integrated version (from the packaging `-Version`)
+  separately from the upstream desktop client and server versions.
+- The workflow builds on pushes to `main` and can create a draft release.
+
+Checked here: workflow YAML parses and every imported job carries the guard;
+the Rust change passes `rustfmt --check`. Not yet run: TypeScript/Rust
+compilation and the full Windows test suite for these changes. The release must
+not be published until **Integrated Windows desktop** passes on this commit.
+
 ## Executed on native Windows CI
 
 [Windows run 43262406460](https://github.com/AzizKamboh/aiostreams-desktop/actions/runs/43262406460)

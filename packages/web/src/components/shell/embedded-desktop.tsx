@@ -308,11 +308,28 @@ function EmbeddedContent({
                         : t`Open the logs for details, then restart the backend to try again.`)}
                 </p>
               </div>
-              {origin && (
-                <p className="break-all font-mono text-sm text-gray-400">
-                  {origin}
-                </p>
-              )}
+              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-sm text-gray-400">
+                <dt>
+                  <Trans>AIOStreams Integrated</Trans>
+                </dt>
+                <dd>{appBridge()?.integratedVersion ?? '?'}</dd>
+                <dt>
+                  <Trans>Desktop client (upstream)</Trans>
+                </dt>
+                <dd>{appBridge()?.version ?? '?'}</dd>
+                <dt>
+                  <Trans>Server (upstream)</Trans>
+                </dt>
+                <dd>{__SERVER_VERSION__}</dd>
+                {origin && (
+                  <>
+                    <dt>
+                      <Trans>Local server</Trans>
+                    </dt>
+                    <dd className="break-all">{origin}</dd>
+                  </>
+                )}
+              </dl>
               <div className="flex flex-wrap gap-3">
                 <Button
                   intent="white"

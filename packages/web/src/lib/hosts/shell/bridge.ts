@@ -196,6 +196,8 @@ export type MediaKey =
 interface ShellBridge {
   /** This desktop distribution owns a private AIOStreams backend. */
   backend?: boolean;
+  /** The integrated package's own release version, separate from `version`. */
+  integratedVersion?: string;
   protocol: number;
   version: string;
   /** `windows`, `macos`, `linux` or `android`. */

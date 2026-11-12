@@ -21,6 +21,7 @@
   window.aiostreamsApp = Object.freeze({
     protocol: __PROTOCOL__,
     backend: __BACKEND__,
+    integratedVersion: __INTEGRATED_VERSION__,
     version: __VERSION__,
     platform: __PLATFORM__,
     miniPlayer: true,

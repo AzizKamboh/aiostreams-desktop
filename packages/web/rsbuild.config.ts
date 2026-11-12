@@ -133,6 +133,12 @@ export default defineConfig(async ({ envMode }) => {
     __USAGE_STATS__: JSON.stringify(usageStats(standalone)),
     // Set by the TV apps' build: they have no bridge to tell the page.
     __APP_VERSION__: JSON.stringify(process.env.APP_VERSION || null),
+    // The monorepo's server version, shown beside the integrated desktop version.
+    __SERVER_VERSION__: JSON.stringify(
+      JSON.parse(
+        readFileSync(new URL('../../package.json', import.meta.url), 'utf8')
+      ).version
+    ),
   };
   const source = {
     entry: { index: './src/main.tsx' },

@@ -5852,3 +5852,19 @@ msgstr "Your settings and server data stay on this computer."
 #: src/app/settings/cache.tsx
 msgid "Your watch history and totals."
 msgstr "Your watch history and totals."
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "AIOStreams Integrated"
+msgstr "AIOStreams Integrated"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Desktop client (upstream)"
+msgstr "Desktop client (upstream)"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Server (upstream)"
+msgstr "Server (upstream)"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Local server"
+msgstr "Local server"

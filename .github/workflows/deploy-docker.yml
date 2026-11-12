@@ -10,6 +10,7 @@ on:
 
 jobs:
   setup:
+    if: github.repository == 'Viren070/AIOStreams'
     name: Setup
     runs-on: ubuntu-latest
     permissions:
@@ -59,6 +60,7 @@ jobs:
           echo "channel=${CHANNEL}" >> $GITHUB_OUTPUT
 
   build:
+    if: github.repository == 'Viren070/AIOStreams'
     name: build (${{ matrix.suffix }})
     needs: setup
     permissions:
@@ -127,6 +129,7 @@ jobs:
           retention-days: 1
 
   merge:
+    if: github.repository == 'Viren070/AIOStreams'
     name: Merge manifests
     needs: [setup, build]
     runs-on: ubuntu-latest
