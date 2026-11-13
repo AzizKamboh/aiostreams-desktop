@@ -462,6 +462,7 @@ pub fn run(app: App) {
                 if let Some(backend) = crate::embedded::get() {
                     backend.stop();
                 }
+                crate::updates::on_exit();
                 match pip {
                     Some(_) => Pip::record(&window, &mut placement),
                     None => record(&window, &mut placement),

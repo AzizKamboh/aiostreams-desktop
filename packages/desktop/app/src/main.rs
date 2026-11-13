@@ -9,7 +9,11 @@ mod media;
 mod placement;
 mod platform;
 mod shell;
+// AIOStreams Integrated: the integrated app's own updater replaces upstream's
+// updates.rs (kept unchanged so upstream merges stay clean).
+#[path = "updates_integrated.rs"]
 mod updates;
+mod update_policy;
 
 use std::cell::RefCell;
 use std::path::{Component, Path, PathBuf};
@@ -445,6 +449,9 @@ pub fn start_player(
     platform::load_vulkan_loader(library);
     let awake = Mutex::new(Awake::default());
     let emit = move |message: Outbound| {
+        if let Outbound::PlayerState { state, .. } = &message {
+            updates::observe_player(state);
+        }
         if let Outbound::PlayerState { state, .. } = &message
             && let Ok(mut awake) = awake.lock()
         {
@@ -801,8 +808,8 @@ pub fn handle(
             }),
         },
         Inbound::UpdateApply => {
-            if let Some(updater) = updater {
-                updater.send(Command::Apply);
+            if updater.is_some() {
+                updates::apply(send);
             }
         }
         Inbound::Presence { presence } => now_playing::browsing(presence),

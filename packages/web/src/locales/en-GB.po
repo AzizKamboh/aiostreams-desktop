@@ -6188,3 +6188,99 @@ msgstr "Windows could not unlock the saved client settings of this app (sign-ins
 #: src/components/shell/embedded-desktop.tsx
 msgid "Reset client settings and start"
 msgstr "Reset client settings and start"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "AIOStreams (this app)"
+msgstr "AIOStreams (this app)"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Check for updates"
+msgstr "Check for updates"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Checking for updates…"
+msgstr "Checking for updates…"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Download progress"
+msgstr "Download progress"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Downloading {version}… {progress}%"
+msgstr "Downloading {version}… {progress}%"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Install and restart"
+msgstr "Install and restart"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Installing now stops what is playing. It also installs by itself when you close the app."
+msgstr "Installing now stops what is playing. It also installs by itself when you close the app."
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Last checked"
+msgstr "Last checked"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Last error"
+msgstr "Last error"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Last successful check"
+msgstr "Last successful check"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Latest available"
+msgstr "Latest available"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "portable"
+msgstr "portable"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Preview builds pass the same tests but arrive earlier and are more likely to have problems. Switching back to Stable waits for the next stable version; it never installs an older one."
+msgstr "Preview builds pass the same tests but arrive earlier and are more likely to have problems. Switching back to Stable waits for the next stable version; it never installs an older one."
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Reading update status…"
+msgstr "Reading update status…"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Release notes"
+msgstr "Release notes"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Stop and install"
+msgstr "Stop and install"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "This copy does not update itself ({reason}). Install the app with Setup to get updates."
+msgstr "This copy does not update itself ({reason}). Install the app with Setup to get updates."
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Unknown"
+msgstr "Unknown"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Update failed: {error}. The app keeps working; it tries again later."
+msgstr "Update failed: {error}. The app keeps working; it tries again later."
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Updates come only from this app's own releases, never from upstream's separate desktop app."
+msgstr "Updates come only from this app's own releases, never from upstream's separate desktop app."
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Upstream desktop client"
+msgstr "Upstream desktop client"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Upstream server"
+msgstr "Upstream server"
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Version {version} is downloaded and verified. It installs when you close the app, or now with Install and restart."
+msgstr "Version {version} is downloaded and verified. It installs when you close the app, or now with Install and restart."
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Waiting for the first check."
+msgstr "Waiting for the first check."

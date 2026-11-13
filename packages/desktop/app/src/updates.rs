@@ -55,11 +55,6 @@ pub struct Updater {
 impl Updater {
     /// Nothing to update in a build Velopack did not pack, such as `cargo run`.
     pub fn start(emit: impl Fn(Outbound) + Send + 'static) -> Option<Updater> {
-        // Integrated builds must never replace themselves with the upstream client-only app.
-        if std::env::var_os("AIOSTREAMS_UPDATE_FEED").is_none() {
-            log::info!("updates off: this integrated build has no configured update feed");
-            return None;
-        }
         let installed = match auto_locate_app_manifest(LocationContext::FromCurrentExe) {
             Ok(locator) => locator.get_manifest_channel(),
             Err(e) => {

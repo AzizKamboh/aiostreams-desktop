@@ -63,7 +63,7 @@ try {
     Remove-Item Env:AIOSTREAMS_DESKTOP_BUILD
     # Integration unit tests: private boundary, accounts, storage migration.
     # Run from the root, whose devDependencies provide vitest to every package.
-    Checked { pnpm exec vitest run packages/server/src/desktop.test.ts packages/web/tests/embedded-storage.test.ts packages/web/tests/embedded-accounts.test.ts }
+    Checked { pnpm exec vitest run packages/server/src/desktop.test.ts packages/web/tests/embedded-storage.test.ts packages/web/tests/embedded-accounts.test.ts packages/web/tests/embedded-updates.test.ts }
     Checked { & (Join-Path $root 'packages/desktop/scripts/fetch-libs.ps1') -Arch x86_64 }
     # Shown in About/Diagnostics beside the separate upstream client/server versions.
     $env:AIOSTREAMS_INTEGRATED_VERSION = $Version

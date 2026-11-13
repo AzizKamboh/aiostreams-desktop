@@ -6,6 +6,8 @@ import { Button } from '@aiostreams/ui/button';
 import { Modal } from '@aiostreams/ui/modal';
 import { currentHost } from '@/lib/hosts';
 import { useRestoreFocus } from '@/lib/input';
+import { appBridge } from '@/lib/hosts/shell/bridge';
+import { usePlayback } from '@/lib/playback/session';
 import {
   applyLabel,
   applyUpdate,
@@ -21,8 +23,10 @@ export function UpdatePrompt() {
   const ready = update?.state === 'ready' ? update : null;
   const [asking, setAsking] = React.useState<string | null>(null);
   const restoreFocus = useRestoreFocus(!!asking);
+  // AIOStreams Integrated: never offer a restart over a playing title; wait for it to end.
+  const deferred = !!usePlayback() && !!appBridge()?.backend;
   React.useEffect(() => {
-    if (!ready || offered.has(ready.version ?? '')) return;
+    if (!ready || deferred || offered.has(ready.version ?? '')) return;
     offered.add(ready.version ?? '');
     const text = updateStatus(ready);
     // A remote can't reach a toast.
@@ -34,7 +38,7 @@ export function UpdatePrompt() {
       (id) => <UpdateCard text={text} onLater={() => toast.dismiss(id)} />,
       { duration: Infinity }
     );
-  }, [ready]);
+  }, [ready, deferred]);
   return (
     <Modal
       data-ui="dialog"
