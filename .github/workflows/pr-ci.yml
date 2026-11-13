@@ -94,7 +94,8 @@ jobs:
       - name: Integration tests (private boundary, accounts, storage)
         run: pnpm exec vitest run packages/server/src/desktop.test.ts packages/web/tests/embedded-storage.test.ts packages/web/tests/embedded-accounts.test.ts packages/web/tests/embedded-updates.test.ts
       - name: Workspace tests
-        run: pnpm test
+        # The root has no test script; each package defines its own.
+        run: pnpm -r --if-present run test
       - name: Backend smoke test (real server process, fixtures only)
         run: node scripts/desktop/smoke.mjs
 
