@@ -543,6 +543,19 @@ function StartupScreen({
           </Button>
         )}
       </div>
+      {state.storageLocked && (
+        <div className="flex max-w-xl flex-col items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/5 p-4 text-sm text-amber-100">
+          <p>
+            <Trans>Windows could not unlock the saved client settings of this app (sign-ins and preferences). You can start again with empty client settings. The unreadable file is kept, and your server data, configurations and AIOStreams accounts are not touched.</Trans>
+          </p>
+          <Button
+            intent="gray-outline"
+            onClick={() => appBridge()?.send({ type: 'backend-storage-reset' })}
+          >
+            <Trans>Reset client settings and start</Trans>
+          </Button>
+        </div>
+      )}
     </main>
   );
 }

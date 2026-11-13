@@ -34,6 +34,8 @@ export type ShellMessage =
       storage?: Record<string, string>;
       /** The user's AIOStreams accounts (AIOSTREAMS_AUTH); never passwords. */
       accounts?: EmbeddedAccount[];
+      /** Saved client settings could not be unlocked; a reset is offered. */
+      storageLocked?: boolean;
       /** Saved accounts exist but could not be unlocked. */
       accountsError?: string | null;
       /** `user:pass` just saved in the setup screen, until acknowledged. */

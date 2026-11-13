@@ -6180,3 +6180,11 @@ msgstr "Escape, or Home in the dashboard sidebar"
 #: src/app/settings/page.tsx
 msgid "Status, accounts, AIOStreams Dashboard and logs"
 msgstr "Status, accounts, AIOStreams Dashboard and logs"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Windows could not unlock the saved client settings of this app (sign-ins and preferences). You can start again with empty client settings. The unreadable file is kept, and your server data, configurations and AIOStreams accounts are not touched."
+msgstr "Windows could not unlock the saved client settings of this app (sign-ins and preferences). You can start again with empty client settings. The unreadable file is kept, and your server data, configurations and AIOStreams accounts are not touched."
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Reset client settings and start"
+msgstr "Reset client settings and start"

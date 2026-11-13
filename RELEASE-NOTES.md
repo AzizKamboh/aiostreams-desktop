@@ -1,5 +1,21 @@
 # AIOStreams (integrated Windows app) release notes
 
+## Unreleased
+
+- **Much smaller download.** The app now uses the WebView2 that Windows keeps
+  up to date instead of shipping its own pinned copy, so the browser engine
+  gets security fixes without waiting for an app release. Setup installs
+  WebView2 if a PC lacks it. The portable ZIP needs WebView2 to be present
+  (it is on Windows 11 and on updated Windows 10).
+- Security: only the exact configuration and web-client pages are exempt from
+  the sandbox for relayed content; look-alike paths such as a relayed file
+  named `configure` are now sandboxed too.
+- If the local server stops unexpectedly after running for a minute or more,
+  the app restarts it once automatically instead of showing the failure screen.
+- If Windows cannot unlock the saved client settings, the failure screen now
+  offers to start with empty client settings. The unreadable file is kept;
+  server data, configurations and accounts are untouched.
+
 ## 0.2.1 — first public release
 
 Upgrades 0.1.0 and 0.2.0 in place; data, keys, accounts and settings are kept.

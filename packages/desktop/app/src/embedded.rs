@@ -52,6 +52,11 @@ pub fn receive(body: &str, send: &dyn Fn(crate::UserEvent)) -> bool {
     match kind {
         "backend-status" => send(crate::UserEvent::BackendState(backend.status())),
         "backend-restart" => backend.restart(),
+        "backend-storage-reset" => {
+            if let Err(error) = backend.reset_storage() {
+                log::warn!("could not reset the desktop browser settings: {error}");
+            }
+        }
         "backend-accounts-save" => {
             let result = backend.save_accounts(&value);
             let reply = serde_json::json!({
