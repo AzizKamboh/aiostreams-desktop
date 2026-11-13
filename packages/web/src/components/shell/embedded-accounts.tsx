@@ -371,7 +371,12 @@ export function AccountSetup({
                     autoComplete="new-password"
                   />
                 )}
-                <details className="text-sm" open={managing}>
+                {!managing ? (
+                  <p className="text-sm text-gray-400">
+                    <Trans>This account is the administrator: full access, including built-in Usenet streaming. You can add accounts with fewer permissions later in Settings, Local server.</Trans>
+                  </p>
+                ) : (
+                <details className="text-sm" open>
                   <summary className="cursor-pointer text-gray-300">
                     <Trans>Permissions</Trans>
                   </summary>
@@ -399,6 +404,7 @@ export function AccountSetup({
                     </p>
                   )}
                 </details>
+                )}
               </fieldset>
                 {managing && (
                   <button
