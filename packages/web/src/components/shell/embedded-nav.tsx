@@ -9,14 +9,14 @@ import type { SidebarItem } from '@aiostreams/ui/shared/sidebar';
 import { ControlButton } from '@/features/player/buttons';
 import { CONFIGURE_PATH, useDesktopShell } from '@/lib/embedded-shell';
 
-/** "Server dashboard", beside Settings in every navigation layout. */
+/** "AIOStreams Dashboard", beside Settings in every navigation layout. */
 export function useDesktopNavItems(): SidebarItem[] {
   const shell = useDesktopShell();
   if (!shell?.local) return [];
   return [
     {
       id: 'aiostreams-server',
-      name: t`Server dashboard`,
+      name: t`AIOStreams Dashboard`,
       iconType: LuServer,
       onClick: () => shell.openServer(),
     },
@@ -30,7 +30,7 @@ export function DesktopServerButton() {
   return (
     <ControlButton
       name="aiostreams-server"
-      label={t`Server dashboard`}
+      label={t`AIOStreams Dashboard`}
       onClick={() => shell.openServer()}
     >
       <LuServer />
@@ -54,6 +54,6 @@ export function useDesktopSignInLinks(): { label: string; onClick: () => void }[
       label: t`Create or edit a configuration`,
       onClick: () => shell.openServer(CONFIGURE_PATH),
     },
-    { label: t`Server dashboard`, onClick: () => shell.openServer() },
+    { label: t`AIOStreams Dashboard`, onClick: () => shell.openServer() },
   ];
 }

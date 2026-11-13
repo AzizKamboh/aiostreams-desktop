@@ -147,7 +147,7 @@ function sections(): Section[] {
           {
             id: 'local-server',
             label: t`Local server`,
-            description: t`Status, accounts, server dashboard and logs`,
+            description: t`Status, accounts, AIOStreams Dashboard and logs`,
             icon: LuServer,
             group: 'app' as const,
             Content: LocalServerSection,

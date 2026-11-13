@@ -241,7 +241,7 @@ function EmbeddedContent({
     setPanel(null);
     const player = activeDesktopPlayer();
     if (pausedForPanel.current && player) {
-      toast(t`Paused while the server dashboard was open`, {
+      toast(t`Paused while the AIOStreams Dashboard was open`, {
         action: {
           label: t`Resume`,
           onClick: () => activeDesktopPlayer()?.setPaused(false),
@@ -274,7 +274,7 @@ function EmbeddedContent({
     [openServer]
   );
 
-  // "Browse" in the dashboard and configuration sidebars closes the panel.
+  // "Home" in the dashboard and configuration sidebars closes the panel.
   React.useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       // Only the local dashboard frame, never another site or frame origin.
@@ -444,7 +444,7 @@ function EmbeddedContent({
 
 /**
  * Upstream's own dashboard and configuration, over the client so a playing
- * title keeps its player. Their sidebars' "Browse" entry closes it.
+ * title keeps its player. Their sidebars' "Home" entry closes it.
  */
 function ServerPanel({
   src,
@@ -473,7 +473,7 @@ function ServerPanel({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={t`Server dashboard`}
+      aria-label={t`AIOStreams Dashboard`}
       className="fixed inset-0 z-[70] flex flex-col bg-[#101014] pt-10"
     >
       {failed && (
@@ -482,7 +482,7 @@ function ServerPanel({
           className="flex flex-wrap items-center gap-3 border-b border-white/10 px-4 py-2 text-sm text-amber-200"
         >
           <span>
-            <Trans>The server dashboard did not load.</Trans>
+            <Trans>The AIOStreams Dashboard did not load.</Trans>
           </span>
           <Button size="sm" intent="gray-outline" onClick={() => frame.current?.contentWindow?.location.reload()}>
             <Trans>Try again</Trans>
@@ -492,13 +492,13 @@ function ServerPanel({
             intent="gray-outline"
             onClick={() => window.dispatchEvent(new CustomEvent(CLOSE_PANEL_EVENT))}
           >
-            <Trans>Back to browsing</Trans>
+            <Trans>Back to Home</Trans>
           </Button>
         </div>
       )}
       <iframe
         ref={frame}
-        title={t`Server dashboard`}
+        title={t`AIOStreams Dashboard`}
         src={src}
         onLoad={loaded}
         className="min-h-0 w-full flex-1 border-0 bg-[#101014]"

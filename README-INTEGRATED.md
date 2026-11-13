@@ -32,15 +32,15 @@ upstream interfaces, with native entries added where they belong:
 
 | Where | Entry |
 | --- | --- |
-| Library sidebar / menu (next to Settings) | **Server dashboard** |
-| Sign-in screens | **Create or edit a configuration**, **Server dashboard** |
-| Player controls (hide with the controls) | **Server dashboard** button |
+| Library sidebar / menu (next to Settings) | **AIOStreams Dashboard** |
+| Sign-in screens | **Create or edit a configuration**, **AIOStreams Dashboard** |
+| Player controls (hide with the controls) | **AIOStreams Dashboard** button |
 | Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, source download, local/remote switch |
-| Dashboard and configuration sidebars | **Browse** returns to the app |
+| Dashboard and configuration sidebars | **Home** returns to the app |
 
 The dashboard opens over the library, so a playing title keeps its player:
 playback pauses, and closing the dashboard offers **Resume**. Keyboard:
-**Ctrl+,** opens the server dashboard, **Ctrl+Shift+,** the configuration, and
+**Ctrl+,** opens the AIOStreams Dashboard, **Ctrl+Shift+,** the configuration, and
 **Escape** returns to the library. Shortcuts never fire while you type in a
 field. Restarting the backend or switching servers asks first while something
 plays.

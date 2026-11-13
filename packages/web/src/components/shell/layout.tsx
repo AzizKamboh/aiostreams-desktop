@@ -257,7 +257,7 @@ export function WebLayout() {
     ...(downloads ? [downloads] : []),
   ];
 
-  // AIOStreams Integrated: "Server dashboard"; empty outside the desktop app.
+  // AIOStreams Integrated: "AIOStreams Dashboard"; empty outside the desktop app.
   const serverItems = useDesktopNavItems();
   const settingsItem: SidebarItem = {
     id: 'settings',
