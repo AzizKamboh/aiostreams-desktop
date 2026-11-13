@@ -71,7 +71,7 @@ jobs:
       - id: plan
         env:
           VERSION: ${{ inputs.version }}
-          CHANNEL: ${{ inputs.channel || 'stable' }}
+          RELEASE_CHANNEL: ${{ inputs.channel || 'stable' }}
           RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.draft_release }}
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -81,9 +81,9 @@ jobs:
             [ -n "$VERSION" ] || { echo "::error::A release needs a version."; exit 1; }
             # Published releases and tags (drafts are checked again by the release job).
             { gh api "repos/$GITHUB_REPOSITORY/tags" --paginate --jq '.[].name'; gh release list --limit 200 --json tagName --jq '.[].tagName'; } | sort -u > existing.txt
-            node scripts/release/release.mjs validate --version "$VERSION" --channel "$CHANNEL" --existing existing.txt
+            node scripts/release/release.mjs validate --version "$VERSION" --channel "$RELEASE_CHANNEL" --existing existing.txt
             echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-            echo "feed=https://github.com/$GITHUB_REPOSITORY/releases/download/updates-$CHANNEL/" >> "$GITHUB_OUTPUT"
+            echo "feed=https://github.com/$GITHUB_REPOSITORY/releases/download/updates-$RELEASE_CHANNEL/" >> "$GITHUB_OUTPUT"
           else
             # Test builds are never released: a CI prerelease of the next version.
             echo "version=${VERSION:-$committed-ci.$GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
@@ -137,10 +137,10 @@ jobs:
       - name: Build, test, stage, and package
         env:
           PACKAGE_VERSION: ${{ needs.plan.outputs.version }}
-          CHANNEL: ${{ inputs.channel || 'stable' }}
+          RELEASE_CHANNEL: ${{ inputs.channel || 'stable' }}
           FEED: ${{ needs.plan.outputs.feed }}
           UPDATE_REPOSITORY: ${{ github.repository }}
-        run: ./scripts/desktop/package-windows.ps1 -Version $env:PACKAGE_VERSION -Channel $env:CHANNEL -FeedUrl $env:FEED -UpdateRepository $env:UPDATE_REPOSITORY
+        run: ./scripts/desktop/package-windows.ps1 -Version $env:PACKAGE_VERSION -Channel $env:RELEASE_CHANNEL -FeedUrl $env:FEED -UpdateRepository $env:UPDATE_REPOSITORY
       - name: Backend with runtime-discovery paths removed
         run: |
           $node = Join-Path $PWD '.embedded-build/stage/backend/node.exe'
@@ -152,11 +152,11 @@ jobs:
       - name: Verify the update feed and checksums
         env:
           PACKAGE_VERSION: ${{ needs.plan.outputs.version }}
-          CHANNEL: ${{ inputs.channel || 'stable' }}
+          RELEASE_CHANNEL: ${{ inputs.channel || 'stable' }}
         run: |
           node scripts/release/release.mjs verify-checksums --dir .embedded-releases
           if ($LASTEXITCODE -ne 0) { throw 'Checksums do not match.' }
-          node scripts/release/release.mjs verify-feed --dir .embedded-releases --version $env:PACKAGE_VERSION --channel $env:CHANNEL
+          node scripts/release/release.mjs verify-feed --dir .embedded-releases --version $env:PACKAGE_VERSION --channel $env:RELEASE_CHANNEL
           if ($LASTEXITCODE -ne 0) { throw 'The Velopack feed is not valid.' }
       - name: Install, play through native WebView2 and mpv, upgrade, and update
         run: ./scripts/desktop/test-windows.ps1
@@ -204,7 +204,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       VERSION: ${{ needs.plan.outputs.version }}
-      CHANNEL: ${{ inputs.channel }}
+      RELEASE_CHANNEL: ${{ inputs.channel }}
       TAG: v${{ needs.plan.outputs.version }}
       BUILD_RUN: ${{ inputs.reuse_run_id || github.run_id }}
     steps:
@@ -239,17 +239,17 @@ jobs:
       - name: Verify checksums, feed and build identity
         run: |
           node scripts/release/release.mjs verify-checksums --dir dist
-          node scripts/release/release.mjs verify-feed --dir dist --version "$VERSION" --channel "$CHANNEL"
+          node scripts/release/release.mjs verify-feed --dir dist --version "$VERSION" --channel "$RELEASE_CHANNEL"
           info=dist/BUILD-INFO.json
           [ "$(jq -r .version $info)" = "$VERSION" ] || { echo "::error::The build is version $(jq -r .version $info), not $VERSION"; exit 1; }
-          [ "$(jq -r .channel $info)" = "$CHANNEL" ] || { echo "::error::The build is channel $(jq -r .channel $info), not $CHANNEL"; exit 1; }
+          [ "$(jq -r .channel $info)" = "$RELEASE_CHANNEL" ] || { echo "::error::The build is channel $(jq -r .channel $info), not $RELEASE_CHANNEL"; exit 1; }
           [ "$(jq -r .commit $info)" = "$BUILD_SHA" ] || { echo "::error::The build is from $(jq -r .commit $info), not $BUILD_SHA"; exit 1; }
           [ "$(jq -r .packageId $info)" = aiostreams-integrated ] || { echo "::error::Wrong package identity"; exit 1; }
           [ "$(jq -r .updateRepository $info)" = "$GH_REPO" ] || { echo "::error::The build updates from $(jq -r .updateRepository $info), not $GH_REPO"; exit 1; }
       - name: Check the version again, including drafts
         run: |
           { gh api "repos/$GH_REPO/tags" --paginate --jq '.[].name'; gh release list --limit 200 --json tagName --jq '.[].tagName'; } | sort -u > existing.txt
-          node scripts/release/release.mjs validate --version "$VERSION" --channel "$CHANNEL" --existing existing.txt
+          node scripts/release/release.mjs validate --version "$VERSION" --channel "$RELEASE_CHANNEL" --existing existing.txt
       - name: Record build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
@@ -262,15 +262,15 @@ jobs:
         run: |
           # The newest published release this one follows: any for preview, stable for stable.
           gh release list --exclude-drafts --limit 100 --json tagName,isPrerelease > releases.json
-          previous=$(jq -r --arg channel "$CHANNEL" '[.[] | select(.tagName | test("^v[0-9]+[.][0-9]+[.][0-9]+(-preview[.][0-9]+)?$"))
+          previous=$(jq -r --arg channel "$RELEASE_CHANNEL" '[.[] | select(.tagName | test("^v[0-9]+[.][0-9]+[.][0-9]+(-preview[.][0-9]+)?$"))
             | select($channel == "preview" or (.isPrerelease | not))][0].tagName // empty' releases.json)
-          node scripts/release/release.mjs notes --version "$VERSION" --channel "$CHANNEL" --commit "$BUILD_SHA" \
+          node scripts/release/release.mjs notes --version "$VERSION" --channel "$RELEASE_CHANNEL" --commit "$BUILD_SHA" \
             --run "$BUILD_RUN" --repository "$GH_REPO" --dir dist ${previous:+--previous-tag "$previous"} > notes.md
-          prerelease=(); [ "$CHANNEL" = preview ] && prerelease=(--prerelease)
+          prerelease=(); [ "$RELEASE_CHANNEL" = preview ] && prerelease=(--prerelease)
           gh release create "$TAG" --draft "${prerelease[@]}" --target "$BUILD_SHA" \
             --title "AIOStreams $VERSION" --notes-file notes.md dist/*
           {
             echo "### Draft release $TAG created"
             echo "Built from \`$BUILD_SHA\` (run $BUILD_RUN). Review and edit the notes, test the files, then **Publish**."
-            echo "Publishing runs *Release publishing*, which verifies the release and only then updates the $CHANNEL update feed."
+            echo "Publishing runs *Release publishing*, which verifies the release and only then updates the $RELEASE_CHANNEL update feed."
           } >> "$GITHUB_STEP_SUMMARY"
