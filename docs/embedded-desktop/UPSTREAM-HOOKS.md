@@ -125,10 +125,14 @@ Check these when merging a new upstream release:
 | Current upstream baseline | `desktop-v0.24.0` / server `v2.37.0`, commit `76a5d6da` (`.github/upstream-sync.json`) |
 | Pending upstream changes | Open pull requests labelled `upstream-sync`; upstream `main` was 24 commits ahead with no newer stable release when this was written |
 | Blocked upstream releases | none (`blocked` in `.github/upstream-sync.json`) |
-| Compatibility patches | none beyond the hooks above |
+| Compatibility patches | `core/src/remuxdb/adapter.test.ts`: stale expectation (see below) |
 
 Patches made to adapt to an upstream change are listed here with the
 upstream release that required them and the reason.
+
+| Upstream file | Since | Patch | Reason | Remove when |
+| --- | --- | --- | --- | --- |
+| `packages/core/src/remuxdb/adapter.test.ts` ("maps audio and subtitle tracks") | `desktop-v0.24.0` | Assert only the mapped fields instead of the whole object | Upstream extended the shared wire format (`media-info/wire.ts`: `index`, `default`, accessibility flags) without updating this test; it fails at upstream `desktop-v0.24.0` and on upstream `main`. Upstream CI does not run tests; this repository's Pull Request CI does. Test-only, no runtime change. | Upstream fixes the test (a sync then conflicts on this hunk; take upstream's version) |
 
 ## Tests covering each critical hook
 

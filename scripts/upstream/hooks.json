@@ -37,7 +37,8 @@
     "packages/desktop/core/src/downloads.rs": "authorises local download URLs",
     "packages/desktop/core/src/logs.rs": "log redaction",
     ".github/workflows/": "upstream release/publish workflows are guarded to run only in Viren070/AIOStreams",
-    ".gitignore": "integration build directories"
+    ".gitignore": "integration build directories",
+    "packages/core/src/remuxdb/adapter.test.ts": "compatibility patch: stale test expectation (UPSTREAM-HOOKS.md, Compatibility record)"
   },
   "shadowedUpstreamFiles": {
     "packages/desktop/app/src/updates.rs": "kept byte-identical to upstream but not compiled; main.rs compiles updates_integrated.rs in its place. Review upstream changes here and port relevant fixes."
