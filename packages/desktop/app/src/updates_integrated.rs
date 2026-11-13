@@ -386,7 +386,20 @@ impl<E: Fn(Outbound)> State<E> {
             }
         });
         // Velopack verifies the package's SHA checksum from the feed before keeping it.
-        let downloaded = manager.download_updates(&info, Some(progress));
+        // Its installer can still hold the packages lock for a moment after the
+        // previous update; that is not a failed download, so wait and try again.
+        let mut waits = 0;
+        let downloaded = loop {
+            match manager.download_updates(&info, Some(progress.clone())) {
+                Err(e) if waits < policy::LOCK_RETRIES && policy::lock_busy(&e.to_string()) => {
+                    waits += 1;
+                    log::info!("update packages are locked by the installer; retry {waits}");
+                    std::thread::sleep(policy::LOCK_RETRY_DELAY);
+                }
+                result => break result,
+            }
+        };
+        drop(progress);
         let _ = reader.join();
         match downloaded {
             Ok(()) => {

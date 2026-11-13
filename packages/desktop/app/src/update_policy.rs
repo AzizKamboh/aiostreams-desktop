@@ -160,6 +160,15 @@ pub fn rate_limited(error: &str) -> bool {
     e.contains("429") || e.contains("rate limit") || (e.contains("403") && e.contains("github"))
 }
 
+/// Velopack's packages lock is briefly held by its installer after an update.
+pub const LOCK_RETRIES: u32 = 6;
+pub const LOCK_RETRY_DELAY: Duration = Duration::from_secs(5);
+
+/// Windows' sharing violation, which is how a held packages lock is reported.
+pub fn lock_busy(error: &str) -> bool {
+    error.contains("os error 32") || error.contains("being used by another process")
+}
+
 /// When to check again after `failures` consecutive failed checks.
 pub fn next_check(failures: u32, rate_limited: bool) -> Duration {
     if failures == 0 {
@@ -255,5 +264,9 @@ mod tests {
         assert!(rate_limited("HTTP 429 Too Many Requests"));
         assert!(rate_limited("403 Forbidden from github.com: API rate limit exceeded"));
         assert!(!rate_limited("connection refused"));
+        assert!(lock_busy(
+            "IO error: The process cannot access the file because it is being used by another process. (os error 32)"
+        ));
+        assert!(!lock_busy("Checksum did not match"));
     }
 }
