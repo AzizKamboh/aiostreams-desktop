@@ -298,7 +298,19 @@ try {
   }
   await writeFile(path.join(evidence, 'native-update-results.json'), JSON.stringify({ results, feedVersions: [update.version, next.version], portableTested: !!portableZip }, null, 2));
 } catch (error) {
-  await writeFile(path.join(evidence, 'native-update-failure.json'), JSON.stringify({ phase, message: error.message, results }, null, 2)).catch(() => {});
+  const report = { phase, message: error.message, results };
+  if (connection) {
+    report.lastStates = await connection.evaluate('(window.__updates || []).slice(-3)').catch(() => null);
+    report.heading = await connection.evaluate('document.querySelector("h1")?.innerText ?? null').catch(() => null);
+  }
+  await writeFile(path.join(evidence, 'native-update-failure.json'), JSON.stringify(report, null, 2)).catch(() => {});
+  // Update states hold versions, feed URLs (local fixture) and errors only; no secrets.
+  console.error(`::group::Native update failure report\n${JSON.stringify(report, null, 2)}\n::endgroup::`);
+  try {
+    const logs = path.join(data, 'data/logs');
+    const name = (await readdir(logs)).filter((n) => /^aiostreams-desktop-[\d-]+\.log$/.test(n)).sort().at(-1);
+    if (name) console.error(`::group::Native log tail\n${(await readFile(path.join(logs, name), 'utf8')).split('\n').slice(-80).join('\n').replace(/(__desktop_token(?:=|%3[dD]))[^&\s"']+/gi, '$1[redacted]').replace(/\b[a-f\d]{48,}\b/gi, '[redacted token]')}\n::endgroup::`);
+  } catch { /* no log yet */ }
   if (connection) {
     const shot = await connection.call('Page.captureScreenshot', { format: 'png' }).catch(() => null);
     if (shot) await writeFile(path.join(evidence, 'native-update-failure.png'), Buffer.from(shot.data, 'base64'));

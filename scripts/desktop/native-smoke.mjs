@@ -110,8 +110,20 @@ async function captureFailure(error) {
       await writeFile(path.join(evidence, 'native-failure.png'), Buffer.from(screenshot.data, 'base64'));
       failure.details.screenshot = 'native-failure.png';
     } catch (problem) { failure.details.screenshotError = redact(problem.message); }
+    try {
+      // What the page shows, and the account summary (usernames, permissions and
+      // the Usenet check result; it never contains passwords).
+      failure.details.heading = redact(await connection.evaluate('document.querySelector("h1")?.innerText ?? null'), 512);
+      failure.details.accounts = JSON.parse(redact(JSON.stringify(await connection.evaluate("fetch('/__desktop/accounts').then(r=>r.json()).catch(e=>({error:String(e)}))")), 4096));
+    } catch (problem) { failure.details.pageError = redact(problem.message); }
   }
   await writeFile(path.join(evidence, 'native-failure.json'), JSON.stringify(failure, null, 2));
+  // The evidence artifact is not always reachable; the job log is. All of this is redacted.
+  console.error(`::group::Native failure report\n${JSON.stringify(failure, null, 2)}\n::endgroup::`);
+  for (const name of failure.details.logFiles ?? []) {
+    const tail = (await readFile(path.join(evidence, name), 'utf8').catch(() => '')).split('\n').slice(-80).join('\n');
+    console.error(`::group::Native log tail ${name}\n${tail}\n::endgroup::`);
+  }
 }
 async function install(executable) {
   phase = 'install or upgrade';
