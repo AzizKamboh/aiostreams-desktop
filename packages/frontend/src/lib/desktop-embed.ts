@@ -1,10 +1,10 @@
 /**
  * AIOStreams Integrated: the dashboard and configuration pages open as a panel
- * over the desktop app's own library. These helpers add a "Browse" entry that
+ * over the desktop app's own library. These helpers add a "Home" entry that
  * closes that panel (upstream already has a Usenet "Library" page). Outside the integrated desktop app they return nothing,
  * so the hosted dashboard is unchanged.
  */
-import { BiMoviePlay } from 'react-icons/bi';
+import { BiHome } from 'react-icons/bi';
 
 const CLOSE_EVENT = 'aiostreams-desktop-close-panel';
 
@@ -32,6 +32,6 @@ export function closeDesktopPanel(): void {
 export function desktopFooterItems() {
   if (!inDesktopPanel()) return [];
   return [
-    { name: 'Browse', iconType: BiMoviePlay, onClick: closeDesktopPanel },
+    { name: 'Home', iconType: BiHome, onClick: closeDesktopPanel },
   ];
 }

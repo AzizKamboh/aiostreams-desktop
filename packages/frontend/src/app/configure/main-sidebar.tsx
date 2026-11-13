@@ -26,7 +26,7 @@ import {
   BiBarChartAlt2,
 } from 'react-icons/bi';
 import { useCommandPalette } from '@/context/command-palette';
-// AIOStreams Integrated: a "Browse" entry inside the desktop app only.
+// AIOStreams Integrated: a "Home" entry inside the desktop app only.
 import { desktopFooterItems } from '@/lib/desktop-embed';
 import { useRegisterQuickAction } from '@/context/quick-actions';
 import { useDisclosure } from '@aiostreams/ui/hooks/disclosure';

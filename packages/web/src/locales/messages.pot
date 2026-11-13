@@ -6151,3 +6151,31 @@ msgstr ""
 #: src/components/shell/embedded-desktop.tsx
 msgid "Escape, or Browse in the dashboard sidebar"
 msgstr ""
+
+#: src/components/shell/embedded-accounts.tsx
+msgid "This account is the administrator: full access, including built-in Usenet streaming. You can add accounts with fewer permissions later in Settings, Local server."
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Paused while the AIOStreams Dashboard was open"
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "AIOStreams Dashboard"
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "The AIOStreams Dashboard did not load."
+msgstr ""
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Back to Home"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Escape, or Home in the dashboard sidebar"
+msgstr ""
+
+#: src/app/settings/page.tsx
+msgid "Status, accounts, AIOStreams Dashboard and logs"
+msgstr ""

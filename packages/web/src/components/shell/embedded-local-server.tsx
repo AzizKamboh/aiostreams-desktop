@@ -83,7 +83,7 @@ export function LocalServerSection() {
           <SettingsRow label={t`Open`}>
             <span className="flex flex-wrap gap-2">
               <Button size="sm" intent="gray-outline" onClick={() => shell.openServer(DASHBOARD_PATH)}>
-                <Trans>Server dashboard</Trans>
+                <Trans>AIOStreams Dashboard</Trans>
               </Button>
               <Button size="sm" intent="gray-outline" onClick={() => shell.openServer(CONFIGURE_PATH)}>
                 <Trans>Configuration</Trans>
@@ -154,7 +154,7 @@ export function LocalServerSection() {
       )}
 
       <SettingsCard title={t`Versions`}>
-        <SettingsRow label={t`AIOStreams Integrated`}>
+        <SettingsRow label={t`App`}>
           <span className="text-sm text-[--muted]">{appBridge()?.integratedVersion ?? '?'}</span>
         </SettingsRow>
         <SettingsRow label={t`Desktop client (upstream)`}>
@@ -171,7 +171,7 @@ export function LocalServerSection() {
       </SettingsCard>
 
       <SettingsCard title={t`Shortcuts`}>
-        <SettingsRow label={t`Server dashboard`}>
+        <SettingsRow label={t`AIOStreams Dashboard`}>
           <kbd className="font-mono text-sm">Ctrl+,</kbd>
         </SettingsRow>
         <SettingsRow label={t`Configuration`}>
@@ -179,7 +179,7 @@ export function LocalServerSection() {
         </SettingsRow>
         <SettingsRow label={t`Back to the library`}>
           <span className="text-sm text-[--muted]">
-            <Trans>Escape, or Browse in the dashboard sidebar</Trans>
+            <Trans>Escape, or Home in the dashboard sidebar</Trans>
           </span>
         </SettingsRow>
       </SettingsCard>

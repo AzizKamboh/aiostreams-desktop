@@ -148,27 +148,18 @@ export function EmbeddedDesktop({
 }) {
   const { state, hydrated } = useBackend();
   if (!hydrated)
-    return (
+    return state.state === 'failed' ? (
       <>
         <SplashEnd />
-        <main className="fixed inset-0 flex flex-col items-center justify-center gap-5 bg-[#101014] p-8 text-white">
-          <h1 className="text-2xl font-semibold">{statusLabel(state.state)}</h1>
-          <p role="status">
-            {state.message || t`Restoring your saved settings…`}
-          </p>
-          <Button intent="gray-outline" onClick={openLogs}>
-            <Trans>Open logs</Trans>
-          </Button>
-          {state.state === 'failed' && (
-            <Button
-              intent="white"
-              onClick={() => appBridge()?.send({ type: 'backend-restart' })}
-            >
-              <Trans>Restart backend</Trans>
-            </Button>
-          )}
-        </main>
+        <StartupScreen
+          state={state}
+          onRestart={() => appBridge()?.send({ type: 'backend-restart' })}
+        />
       </>
+    ) : (
+      <StartupCaption
+        message={state.message || t`Restoring your saved settings…`}
+      />
     );
   return <EmbeddedContent state={state} browse={browse} remote={remote} />;
 }
@@ -250,7 +241,7 @@ function EmbeddedContent({
     setPanel(null);
     const player = activeDesktopPlayer();
     if (pausedForPanel.current && player) {
-      toast(t`Paused while the server dashboard was open`, {
+      toast(t`Paused while the AIOStreams Dashboard was open`, {
         action: {
           label: t`Resume`,
           onClick: () => activeDesktopPlayer()?.setPaused(false),
@@ -283,7 +274,7 @@ function EmbeddedContent({
     [openServer]
   );
 
-  // "Browse" in the dashboard and configuration sidebars closes the panel.
+  // "Home" in the dashboard and configuration sidebars closes the panel.
   React.useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       // Only the local dashboard frame, never another site or frame origin.
@@ -376,7 +367,10 @@ function EmbeddedContent({
 
   return (
     <>
-      <SplashEnd />
+      {/* The launch splash stays up while the local server starts. */}
+      {(mode === 'remote' || ready || state.state !== 'starting') && (
+        <SplashEnd />
+      )}
       {local && (
         <LocalLinks
           base={base}
@@ -450,7 +444,7 @@ function EmbeddedContent({
 
 /**
  * Upstream's own dashboard and configuration, over the client so a playing
- * title keeps its player. Their sidebars' "Browse" entry closes it.
+ * title keeps its player. Their sidebars' "Home" entry closes it.
  */
 function ServerPanel({
   src,
@@ -479,7 +473,7 @@ function ServerPanel({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={t`Server dashboard`}
+      aria-label={t`AIOStreams Dashboard`}
       className="fixed inset-0 z-[70] flex flex-col bg-[#101014] pt-10"
     >
       {failed && (
@@ -488,7 +482,7 @@ function ServerPanel({
           className="flex flex-wrap items-center gap-3 border-b border-white/10 px-4 py-2 text-sm text-amber-200"
         >
           <span>
-            <Trans>The server dashboard did not load.</Trans>
+            <Trans>The AIOStreams Dashboard did not load.</Trans>
           </span>
           <Button size="sm" intent="gray-outline" onClick={() => frame.current?.contentWindow?.location.reload()}>
             <Trans>Try again</Trans>
@@ -498,13 +492,13 @@ function ServerPanel({
             intent="gray-outline"
             onClick={() => window.dispatchEvent(new CustomEvent(CLOSE_PANEL_EVENT))}
           >
-            <Trans>Back to browsing</Trans>
+            <Trans>Back to Home</Trans>
           </Button>
         </div>
       )}
       <iframe
         ref={frame}
-        title={t`Server dashboard`}
+        title={t`AIOStreams Dashboard`}
         src={src}
         onLoad={loaded}
         className="min-h-0 w-full flex-1 border-0 bg-[#101014]"
@@ -514,7 +508,7 @@ function ServerPanel({
   );
 }
 
-/** Before the local server is ready, or when it stopped. */
+/** Plays the launch splash's role while the local server starts. */
 function StartupScreen({
   state,
   onRestart,
@@ -522,51 +516,79 @@ function StartupScreen({
 }: {
   state: BackendState;
   onRestart(): void;
-  onUseRemote(): void;
+  /** Absent before saved settings are restored. */
+  onUseRemote?(): void;
 }) {
-  const [since] = React.useState(() => Date.now());
-  const [now, setNow] = React.useState(since);
-  React.useEffect(() => {
-    if (state.state !== 'starting') return;
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, [state.state]);
-  const seconds = Math.floor((now - since) / 1000);
-  const elapsed = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+  if (state.state === 'starting')
+    return <StartupCaption message={state.message} />;
   return (
-    <main className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-[#101014] p-8 text-center text-white">
-      <p className="text-sm font-medium uppercase tracking-widest text-gray-400">
-        <Trans>AIOStreams Integrated</Trans>
-      </p>
-      <h1 className="text-3xl font-semibold">{statusLabel(state.state)}</h1>
-      <p role={state.state === 'failed' ? 'alert' : 'status'} className="max-w-xl text-gray-300">
-        {state.message}
-      </p>
-      {state.state === 'starting' && (
-        <p className="font-mono text-sm text-gray-400" aria-hidden>
-          {elapsed}
+    <main className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-black p-8 text-center text-white">
+      <img src="./logo.png" alt="AIOStreams" className="h-24 w-24 object-contain" />
+      <div className="flex max-w-xl flex-col gap-2">
+        <h1 className="text-2xl font-semibold">{statusLabel(state.state)}</h1>
+        <p role="alert" className="text-gray-300">
+          {state.message}
         </p>
-      )}
-      {state.state === 'starting' && seconds >= 45 && (
-        <p className="max-w-xl text-sm text-gray-400">
-          <Trans>The first start can take a few minutes while the server downloads its data. Later starts are faster.</Trans>
-        </p>
-      )}
+      </div>
       <div className="flex flex-wrap justify-center gap-3">
-        {state.state !== 'starting' && (
-          <Button intent="white" onClick={onRestart}>
-            <Trans>Restart backend</Trans>
-          </Button>
-        )}
+        <Button intent="white" onClick={onRestart}>
+          <Trans>Restart backend</Trans>
+        </Button>
         <Button intent="gray-outline" onClick={openLogs}>
           <Trans>Open logs</Trans>
         </Button>
-        {state.state !== 'starting' && (
+        {onUseRemote && (
           <Button intent="gray-outline" onClick={onUseRemote}>
             <Trans>Use a remote server instead</Trans>
           </Button>
         )}
       </div>
     </main>
+  );
+}
+
+/** How long before a start counts as slow; usually only the very first one. */
+const SLOW_START_MS = 45_000;
+
+/**
+ * A quiet line under the launch splash's breathing logo: the stage the shell
+ * reports, never an invented percentage or a clock.
+ */
+function StartupCaption({ message }: { message: string }) {
+  const [slow, setSlow] = React.useState(false);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setSlow(true), SLOW_START_MS);
+    return () => clearTimeout(timer);
+  }, []);
+  return (
+    <div className="fixed inset-x-0 bottom-[14%] z-[9999] flex flex-col items-center gap-3 px-8 text-center">
+      <style>{`
+        @keyframes aiostreams-startup-sweep {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(250%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [data-startup-sweep] { animation: none !important; opacity: 0.5; }
+        }
+      `}</style>
+      <div className="h-0.5 w-32 overflow-hidden rounded-full bg-white/10" aria-hidden>
+        <div
+          data-startup-sweep
+          className="h-full w-2/5 rounded-full bg-white/60"
+          style={{ animation: 'aiostreams-startup-sweep 1.6s ease-in-out infinite' }}
+        />
+      </div>
+      <p role="status" className="text-sm text-gray-400">
+        {message}
+      </p>
+      {slow && (
+        <p className="max-w-md text-xs text-gray-500">
+          <Trans>The first start can take a few minutes while the server downloads its data. Later starts are faster.</Trans>{' '}
+          <button type="button" onClick={openLogs} className="underline underline-offset-2 hover:text-gray-300">
+            <Trans>Open logs</Trans>
+          </button>
+        </p>
+      )}
+    </div>
   );
 }

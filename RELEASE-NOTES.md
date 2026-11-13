@@ -1,6 +1,26 @@
-# AIOStreams Integrated release notes
+# AIOStreams (integrated Windows app) release notes
 
-## 0.2.0 — first public release
+## 0.2.1 — first public release
+
+Upgrades 0.1.0 and 0.2.0 in place; data, keys, accounts and settings are kept.
+
+- The app is now called **AIOStreams** (window, Start menu, Windows Apps
+  list). Data folders and the install identity are unchanged, so updates keep
+  all data and settings.
+- **Much faster starts.** The local server no longer waits for its online
+  datasets (anime database, SeaDex, scene and ID mappings, Prowlarr indexer
+  list) before opening; they refresh in the background, using the previous
+  run's data meanwhile. On the very first run, anime matching fills in once
+  the download finishes. Node also keeps a compile cache between starts.
+- Startup keeps the AIOStreams launch splash, with the server's current stage
+  underneath instead of a separate screen and timer. A hint appears only when
+  a first start runs long; failures show restart, logs and remote options.
+- "Server dashboard" is now **AIOStreams Dashboard**, and the dashboard's
+  return entry is **Home**.
+- The first-run account is always the administrator; the permission selector
+  stays in Settings → Local server for extra accounts.
+
+## 0.2.0 (draft only; everything below ships in 0.2.1)
 
 Usenet accounts, native navigation and a security review.
 
@@ -14,9 +34,9 @@ Upgrades 0.1.0 in place; all data, keys and settings are kept.
   checked against the built-in Usenet service, and manageable later in
   Settings → Local server. Existing installs keep all data and are offered the setup once.
 - **Native navigation replaces the floating Browse / Server settings /
-  Diagnostics bar**, which covered the video. "Server dashboard" sits next to
+  Diagnostics bar**, which covered the video. "AIOStreams Dashboard" sits next to
   Settings in the library, on sign-in screens and in the player controls;
-  the dashboard and configuration sidebars get "Browse" to return. The
+  the dashboard and configuration sidebars get "Home" to return. The
   dashboard opens over the library, pausing playback and offering Resume, so
   the player, position, fullscreen and tracks are kept. Settings → Local server
   replaces Diagnostics. Shortcuts: Ctrl+, / Ctrl+Shift+, / Escape.
