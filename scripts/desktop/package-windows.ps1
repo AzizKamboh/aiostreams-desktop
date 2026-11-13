@@ -3,6 +3,9 @@
 param(
   [string]$Version = '0.1.0',
   [switch]$SkipBuild,
+  # Ship a pinned WebView2 inside the package instead of using the one Windows
+  # keeps up to date. Larger, and only patched when a new release is published.
+  [switch]$BundleWebView2,
   [switch]$SkipSmoke
 )
 $ErrorActionPreference = 'Stop'
@@ -96,6 +99,7 @@ try {
   Copy-Item "$work/ffmpeg/COPYING.LGPLv2.1", "$work/ffmpeg/LICENSE.md" "$stage/licenses/ffmpeg"
   Copy-Item "$work/ffmpeg-8.1.3.tar.xz" "$stage/source/ffmpeg-8.1.3.tar.xz"
 
+  if ($BundleWebView2) {
   $webviewCab = Download-Pinned $pins.webview2 "webview2-$($pins.webview2.version)-x64.cab"
   $webviewOut = Join-Path $work 'webview-unpacked'
   if (Test-Path $webviewOut) { Remove-Item $webviewOut -Recurse -Force }
@@ -104,6 +108,7 @@ try {
   $webviewExe = Get-ChildItem $webviewOut -Filter msedgewebview2.exe -Recurse | Select-Object -First 1
   if (-not $webviewExe) { throw 'Fixed WebView2 runtime did not contain msedgewebview2.exe.' }
   Copy-Item $webviewExe.Directory.FullName "$stage/webview2" -Recurse
+  }
 
   $tools = Join-Path $work 'tools'
   if (-not (Test-Path "$tools/bin/cargo-about.exe")) {
@@ -135,7 +140,8 @@ try {
       --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams' `
       --packAuthors 'AIOStreams contributors; integrated desktop contributors' `
       --icon packages/desktop/app/icons/aiostreams.ico --channel win-x64 `
-      --runtime win-x64 --shortcuts StartMenuRoot --instLocation PerUser --outputDir $releases
+      --runtime win-x64 --shortcuts StartMenuRoot --instLocation PerUser --outputDir $releases `
+      @(if (-not $BundleWebView2) { '--framework', 'webview2' })
   }
   Get-ChildItem $releases -File | ForEach-Object {
     $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()

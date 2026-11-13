@@ -23,6 +23,9 @@ use serde_json::{Value, json};
 
 const START_TIMEOUT: Duration = Duration::from_secs(240);
 const STOP_TIMEOUT: Duration = Duration::from_secs(10);
+/// A server that ran at least this long before dying is restarted once
+/// automatically; one that dies sooner would only loop.
+const CRASH_RESTART_AFTER: Duration = Duration::from_secs(60);
 const STORAGE_LIMIT: usize = 4 * 1024 * 1024;
 /// How long the just-created credential stays available for the copy step.
 const NEW_CREDENTIAL_TTL: Duration = Duration::from_secs(15 * 60);
@@ -102,7 +105,17 @@ impl Backend {
             .spawn(move || {
                 if let Some(error) = storage_error {
                     report(&shared, &emit, "failed", &error, None);
-                    return;
+                    // Wait for the user to reset the unreadable settings.
+                    loop {
+                        match received.recv() {
+                            Ok(Control::Restart) => {
+                                if shared.lock().unwrap().storage_writable {
+                                    break;
+                                }
+                            }
+                            _ => return,
+                        }
+                    }
                 }
                 run(worker_root, received, shared, emit);
             });
@@ -215,6 +228,37 @@ impl Backend {
         }
         secure::write(&self.storage_path, &bytes)?;
         state.storage = value;
+        Ok(())
+    }
+
+    /// Start over with empty client settings when the saved ones cannot be
+    /// unlocked. The unreadable file is kept under another name, never deleted.
+    /// Server data, the server key and accounts are separate and untouched.
+    pub fn reset_storage(&self) -> Result<(), String> {
+        {
+            let mut state = self
+                .state
+                .lock()
+                .map_err(|_| "Client settings are unavailable")?;
+            if state.storage_writable {
+                return Err("The saved client settings are readable; nothing to reset".into());
+            }
+            if self.storage_path.exists() {
+                let stamp = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_secs())
+                    .unwrap_or(0);
+                let kept = self
+                    .storage_path
+                    .with_file_name(format!("client-storage.unreadable-{stamp}"));
+                fs::rename(&self.storage_path, &kept)
+                    .map_err(|_| "Could not set the unreadable client settings aside")?;
+            }
+            state.storage = json!({});
+            state.storage_writable = true;
+        }
+        log::warn!("embedded backend: unreadable client settings set aside at the user's request");
+        self.restart();
         Ok(())
     }
 
@@ -351,6 +395,7 @@ fn snapshot(state: &Mutex<State>) -> Value {
         "storage": s.storage,
         "accounts": s.accounts,
         "accountsError": s.accounts_error,
+        "storageLocked": !s.storage_writable,
         "newCredential": s.new_credential.as_ref().map(|(c, _)| c),
     })
 }
@@ -453,6 +498,11 @@ fn run(root: PathBuf, received: mpsc::Receiver<Control>, state: Arc<Mutex<State>
             }
             RunResult::Restart => continue,
             RunResult::Failed(message) => report(&state, &emit, "failed", &message, None),
+            RunResult::Crashed(message, ran) if ran >= CRASH_RESTART_AFTER => {
+                log::warn!("embedded backend: stopped unexpectedly, restarting: {message}");
+                continue;
+            }
+            RunResult::Crashed(message, _) => report(&state, &emit, "failed", &message, None),
         }
         match received.recv() {
             Ok(Control::Restart) => continue,
@@ -465,6 +515,8 @@ enum RunResult {
     Stop,
     Restart,
     Failed(String),
+    /// Exited on its own after being ready for the given time.
+    Crashed(String, Duration),
 }
 
 fn launch(
@@ -487,6 +539,7 @@ fn launch(
         };
         let deadline = Instant::now() + START_TIMEOUT;
         let mut ready = false;
+        let mut ready_at = Instant::now();
         loop {
             match received.recv_timeout(Duration::from_millis(200)) {
                 Ok(Control::Stop) | Err(mpsc::RecvTimeoutError::Disconnected) => {
@@ -518,7 +571,12 @@ fn launch(
                     if !ready && failure.as_deref() == Some("port-conflict") {
                         break;
                     }
-                    return RunResult::Failed(failure.unwrap_or_else(|| format!("The backend exited with {exit}. Open logs for the startup summary, then restart the backend.")));
+                    let message = failure.unwrap_or_else(|| format!("The backend exited with {exit}. Open logs for the startup summary, then restart the backend."));
+                    return if ready {
+                        RunResult::Crashed(message, ready_at.elapsed())
+                    } else {
+                        RunResult::Failed(message)
+                    };
                 }
                 Err(_) => {
                     return RunResult::Failed("Could not monitor the owned backend process".into());
@@ -539,6 +597,9 @@ fn launch(
                         }
                     }
                     ready = true;
+                    ready_at = Instant::now();
+                    // Diagnostics matched while starting must not explain a later exit.
+                    *process.failure.lock().unwrap() = None;
                     let _ = fs::write(root.join("last-port"), port.to_string());
                     report(
                         state,
@@ -873,6 +934,44 @@ mod tests {
         assert!(!valid_storage(&json!({"x":{"a":"b"}})));
         assert!(!valid_storage(&json!(["a"])));
     }
+    #[test]
+    fn unreadable_client_settings_can_be_reset_without_deleting_them() {
+        let dir = std::env::temp_dir().join(format!(
+            "aiostreams-reset-test-{}",
+            secure::random_hex().unwrap()
+        ));
+        let root = dir.join("backend");
+        fs::create_dir_all(&root).unwrap();
+        let file = root.join("client-storage.protected");
+        fs::write(&file, b"not protected data and not json").unwrap();
+        let backend = Backend::start(dir.clone(), |_| {});
+        assert_eq!(backend.status()["storageLocked"], true);
+        // Unreadable settings are never overwritten by a save.
+        assert!(backend.save_storage(json!({"theme": "dark"})).is_err());
+        backend.reset_storage().unwrap();
+        assert_eq!(backend.status()["storageLocked"], false);
+        assert!(!file.exists());
+        let kept: Vec<_> = fs::read_dir(&root)
+            .unwrap()
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                e.file_name()
+                    .to_string_lossy()
+                    .starts_with("client-storage.unreadable-")
+            })
+            .collect();
+        assert_eq!(kept.len(), 1);
+        assert_eq!(
+            fs::read(kept[0].path()).unwrap(),
+            b"not protected data and not json"
+        );
+        // Readable settings cannot be reset away.
+        assert!(backend.reset_storage().is_err());
+        assert!(backend.save_storage(json!({"theme": "dark"})).is_ok());
+        backend.stop();
+        let _ = fs::remove_dir_all(&dir);
+    }
+
     #[test]
     fn classifier_does_not_echo_secrets() {
         assert_eq!(

@@ -90,6 +90,10 @@ bash scripts/desktop/build-ffprobe.sh
 # Native Windows x64, PowerShell 7
 ./scripts/desktop/package-windows.ps1 -Version 0.1.0
 ```
+The package uses the WebView2 runtime that Windows keeps up to date (Setup
+installs it if missing). Add `-BundleWebView2` to ship a pinned copy inside the
+package instead; that is larger and only updated with each release.
+
 
 `.github/workflows/embedded-desktop.yml` runs the Windows build and tests and
 uploads the installer, portable archive, source and hashes. It does not publish

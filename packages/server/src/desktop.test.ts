@@ -201,6 +201,11 @@ describe('sandboxedPath', () => {
       '/webdav/file.mkv',
       '/jellyfin/Videos/1/stream',
       '/stremio/u/p/stream/movie/x.json',
+      // Look-alikes of the exempt pages stay sandboxed.
+      '/api/v1/proxy/abc/configure',
+      '/stremio/u/p/stream/configure',
+      '/jellyfin/u/p/Videos/1/web/evil.html',
+      '/jellyfin/web/index.html',
     ])
       expect(sandboxedPath(path)).toBe(true);
   });
@@ -210,7 +215,8 @@ describe('sandboxedPath', () => {
       '/dashboard/usenet/providers',
       '/stremio/configure',
       '/stremio/u/p/configure',
-      '/jellyfin/web/index.html',
+      '/jellyfin/u/p/web/index.html',
+      '/jellyfin/p/code/web',
       '/',
     ])
       expect(sandboxedPath(path)).toBe(false);

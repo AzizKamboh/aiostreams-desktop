@@ -134,9 +134,16 @@ const UNTRUSTED_CONTENT = [
 export function sandboxedPath(path: string): boolean {
   if (!UNTRUSTED_CONTENT.some((prefix) => path.startsWith(prefix)))
     return false;
-  // The configuration pages and the hosted web client are the app's own UI.
-  if (/\/configure\/?$/.test(path)) return false;
-  if (/^\/jellyfin\/(?:.*\/)?web(?:\/|$)/.test(path)) return false;
+  // Only the exact routes of the app's own pages are exempt. A looser match
+  // would let a relayed file named "configure" or a path containing "/web/"
+  // escape the sandbox.
+  if (/^\/stremio\/(?:[^/]+\/[^/]+\/)?configure\/?$/.test(path)) return false;
+  if (
+    /^\/jellyfin\/(?:p\/[^/]+|u\/[^/]+|[^/]+\/[^/]+)\/web(?:\/(?:index\.html)?)?$/.test(
+      path
+    )
+  )
+    return false;
   return true;
 }
 
