@@ -222,14 +222,16 @@ try {
   let base = await launch();
   // First run: the AIOStreams account setup (AIOSTREAMS_AUTH) appears first.
   await until(() => connection.evaluate('!!document.getElementById("account-setup-title")'), 'first-run account setup screen');
+  // Other forms (upstream's pages under the account overlay) can come first in
+  // the document, so always submit the account form itself.
   const fill = (selector, value) => connection.evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, ${JSON.stringify(value)}); el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
   await fill('input[autocomplete="username"]', 'native user');
   await fill('#account-password-0', 'native-pass-1');
   await fill('#account-confirm-0', 'different-pass');
-  await connection.evaluate('document.querySelector("form button[type=submit]").click(), true');
+  await connection.evaluate('document.getElementById("account-password-0").form.querySelector("button[type=submit]").click(), true');
   await until(() => connection.evaluate('!!document.querySelector("[role=alert]")?.innerText.includes("do not match")'), 'password mismatch is refused');
   await fill('#account-confirm-0', 'native-pass-1');
-  await connection.evaluate('document.querySelector("form button[type=submit]").click(), true');
+  await connection.evaluate('document.getElementById("account-password-0").form.querySelector("button[type=submit]").click(), true');
   pass('native WebView2 client shows first-run account setup and refuses mismatched passwords');
   // Saving restarts the backend with AIOSTREAMS_AUTH, which reloads the page.
   await until(() => connection.evaluate('document.body.innerText.includes("Your account is ready")'), 'account accepted by the built-in Usenet check', 240000);
