@@ -5,7 +5,7 @@ from the same upstream monorepo. It keeps the Rust/WebView2 shell, mpv player,
 browsing interface, server configuration dashboard, and existing provider logic.
 The desktop owns a private Node server process; Docker is not used.
 
-**Version 0.1.0** is the first public release of this unofficial integrated
+**Version 0.2.0** is the first public release of this unofficial integrated
 variant, built from upstream `desktop-v0.24.0` (commit `76a5d6da`; desktop
 client 0.24.0, server 2.37.0). Download it from this repository's
 [Releases](https://github.com/AzizKamboh/aiostreams-desktop/releases): run
@@ -129,7 +129,7 @@ node scripts/desktop/smoke.mjs --ffprobe /path/to/ffprobe --ffmpeg /path/to/ffmp
    Nothing is published automatically.
 
 Each new release must use a higher version than the last. The in-app updater is
-off in 0.1.0, so users upgrade by running the newer Setup.exe; it upgrades the
+off in 0.2.0, so users upgrade by running the newer Setup.exe; it upgrades the
 existing install in place and keeps all data.
 
 ## Data, upgrades and security
