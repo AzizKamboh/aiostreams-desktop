@@ -169,7 +169,24 @@ async function launch(appDir) {
   }, 'WebView2 debugging endpoint', 90000);
   connection = await CDP.connect(target.webSocketDebuggerUrl);
   await until(() => connection.evaluate('location.pathname.startsWith("/__desktop/client") && !!window.aiostreamsApp'), 'embedded client', 240000);
-  await connection.evaluate(`window.__updates=[]; window.__events=[]; window.aiostreamsApp.subscribe(m => { window.__events.push(m); if (m.type === 'integrated-update-state') window.__updates.push(m); }); true`);
+  await subscribeEvents();
+  return connection.evaluate('location.origin');
+}
+/** Records bridge messages; again after every page reload. */
+function subscribeEvents() {
+  return connection.evaluate(`window.__updates=[]; window.__events=[]; window.aiostreamsApp.subscribe(m => { window.__events.push(m); if (m.type === 'integrated-update-state') window.__updates.push(m); }); true`);
+}
+/** The first-run account, as a user creates it; saving restarts the server and reloads the page. */
+async function createAccount() {
+  await until(() => connection.evaluate('!!document.getElementById("account-setup-title")'), 'first-run account setup', 120000);
+  const fill = (selector, value) => connection.evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, ${JSON.stringify(value)}); el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
+  await fill('input[autocomplete="username"]', 'update user');
+  await fill('#account-password-0', 'update-pass-1');
+  await fill('#account-confirm-0', 'update-pass-1');
+  await connection.evaluate('document.getElementById("account-password-0").form.querySelector("button[type=submit]").click(), true');
+  await until(() => connection.evaluate('document.body.innerText.includes("Your account is ready")'), 'account accepted', 240000);
+  await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Ready to browse"))?.click(), true');
+  await subscribeEvents();
   return connection.evaluate('location.origin');
 }
 /** Sends an integrated-update message and waits for a state matching `accept`. */
@@ -189,7 +206,8 @@ async function waitExit(label) {
   connection.socket.close();
   connection = null;
 }
-const healthy = (base) => fetch(`${base}/api/v1/health`, { signal: AbortSignal.timeout(5000) }).then((r) => r.ok);
+// From the app's own page: the private server rejects requests without the app's capability.
+const healthy = () => connection.evaluate("fetch('/api/v1/health').then(r => r.ok)");
 const packagesHave = async (root, version) => (await readdir(path.join(root, 'packages')).catch(() => [])).some((name) => name.includes(`-${version}-`) && name.endsWith('.nupkg'));
 
 try {
@@ -201,6 +219,8 @@ try {
   pass(`installed ${original} into a spaced Unicode path`);
 
   let base = await launch(path.join(installRoot, 'current'));
+  base = await createAccount();
+  pass('first-run account created before updating');
   // Data that must survive every update: server settings and an account.
   const imported = await connection.evaluate(`fetch('/api/v1/dashboard/settings/import/json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:{'branding.addonName':'Update test 空間'}})}).then(r=>r.json())`);
   assert.equal(imported.success, true, 'Could not save server settings');
@@ -221,7 +241,7 @@ try {
     // Only a state from a new check counts, never the previous scenario's.
     const checks = (await updateState('integrated-update-status', () => true, 'status')).checks ?? 0;
     const state = await updateState('integrated-update-check', (s) => s.state === 'error' && s.checks > checks && pattern.test(s.lastError ?? ''), label);
-    assert.ok(await healthy(base), `${label}: the local server stopped working`);
+    assert.ok(await healthy(), `${label}: the local server stopped working`);
     assert.equal(await packagesHave(installRoot, update.version), false, `${label}: a package was kept`);
     pass(`${label}: reported (${state.lastError.slice(0, 80)}), nothing installed, app keeps working`);
   }
@@ -232,7 +252,7 @@ try {
   pass('an older version on the feed is never installed (no downgrade)');
   await connection.evaluate(`window.aiostreamsApp.send({type:'update-check',channel:'bogus'}); true`);
   await delay(1000);
-  assert.ok(await healthy(base));
+  assert.ok(await healthy());
   pass('an invalid channel request is ignored');
 
   mode = 'good';
@@ -268,7 +288,10 @@ try {
   assert.equal(after.installedVersion, update.version);
   const settings = await connection.evaluate("fetch('/api/v1/dashboard/settings/export').then(r=>r.json())");
   assert.equal(settings.data.settings['branding.addonName'], 'Update test 空間');
-  pass('after the update the DPAPI key, database and server settings are intact');
+  const kept = await connection.evaluate("fetch('/__desktop/accounts').then(r=>r.json())");
+  assert.deepEqual(kept.accounts.map((a) => a.username), ['update user']);
+  assert.equal(await connection.evaluate('!!document.getElementById("account-setup-title")'), false, 'Account setup shown again after the update');
+  pass('after the update the DPAPI key, database, server settings and AIOStreams account are intact');
 
   // Install and restart: the app closes normally and Velopack starts the new version.
   mode = 'next';
