@@ -16,6 +16,10 @@ on:
         description: Create a draft GitHub release from the tested build
         type: boolean
         default: false
+      reuse_run_id:
+        description: Optional. Release the tested build from this earlier run of this workflow on the same commit instead of building again
+        type: string
+        default: ''
   pull_request:
     paths:
       - 'packages/desktop/**'
@@ -37,6 +41,7 @@ concurrency:
 
 jobs:
   windows-x64:
+    if: github.event_name != 'workflow_dispatch' || inputs.reuse_run_id == ''
     runs-on: windows-2025
     timeout-minutes: 90
     defaults:
@@ -111,23 +116,53 @@ jobs:
 
   draft-release:
     needs: windows-x64
-    if: github.event_name == 'workflow_dispatch' && inputs.draft_release
+    if: >-
+      always() && github.event_name == 'workflow_dispatch' && inputs.draft_release &&
+      (needs.windows-x64.result == 'success' ||
+       (needs.windows-x64.result == 'skipped' && inputs.reuse_run_id != ''))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: write
+      actions: read
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       TAG: v${{ inputs.version }}
+      BUILD_RUN: ${{ inputs.reuse_run_id || github.run_id }}
     steps:
+      - name: Identify the tested build
+        run: |
+          if [ -z "${{ inputs.reuse_run_id }}" ]; then
+            echo "BUILD_SHA=$GITHUB_SHA" >> "$GITHUB_ENV"; exit 0
+          fi
+          read -r path build_sha <<< "$(gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" --jq '[.path, .head_sha] | @tsv')"
+          [ "$path" = .github/workflows/embedded-desktop.yml ] || { echo "::error::Run $BUILD_RUN is not this workflow"; exit 1; }
+          job=$(gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN/jobs" --jq '.jobs[] | select(.name=="windows-x64") | .conclusion')
+          [ "$job" = success ] || { echo "::error::The Windows build and tests in run $BUILD_RUN did not succeed ($job)"; exit 1; }
+          # Since that build, only this workflow and documentation may differ:
+          # the released files and source archive must match the shipped code.
+          status=$(gh api "repos/$GH_REPO/compare/$build_sha...$GITHUB_SHA" --jq .status)
+          case "$status" in ahead|identical) ;; *) echo "::error::$build_sha is not an ancestor of $GITHUB_SHA"; exit 1;; esac
+          gh api "repos/$GH_REPO/compare/$build_sha...$GITHUB_SHA" --jq '.files[].filename' | while read -r file; do
+            case "$file" in .github/workflows/embedded-desktop.yml|*.md) ;; *) echo "::error::$file changed since the tested build"; exit 1;; esac
+          done
+          echo "BUILD_SHA=$build_sha" >> "$GITHUB_ENV"
       - uses: actions/download-artifact@v7
         with:
           name: aiostreams-integrated-windows-x64
           path: dist
+          run-id: ${{ env.BUILD_RUN }}
+          github-token: ${{ github.token }}
       - name: Verify checksums
         working-directory: dist
-        run: sha256sum -c SHA256SUMS.txt
+        # The build also checksums Velopack updater files, which are not
+        # released while the in-app updater is off. Publish only what ships.
+        run: |
+          grep -E '  aiostreams-integrated-(win-x64-Setup\.exe|win-x64-Portable\.zip|source\.tar\.gz)$' SHA256SUMS.txt > released.txt
+          [ "$(wc -l < released.txt)" -eq 3 ] || { cat SHA256SUMS.txt; echo "::error::Expected checksums for the installer, portable ZIP and source"; exit 1; }
+          sha256sum -c released.txt
+          mv released.txt SHA256SUMS.txt
       - name: Create draft release (not published)
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
@@ -137,7 +172,7 @@ jobs:
           {
             echo "Unofficial integrated Windows build of [AIOStreams](https://github.com/Viren070/AIOStreams) by Viren070 (AGPL-3.0-only)."
             echo
-            echo "Built from commit ${GITHUB_SHA} by [workflow run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})."
+            echo "Built and tested from commit ${BUILD_SHA} by [workflow run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${BUILD_RUN})."
             echo "Installer and portable ZIP are **unsigned**. Complete corresponding source is attached."
             echo
             echo "See RELEASE-NOTES.md and README-INTEGRATED.md in the repository for details and known limitations."
@@ -146,6 +181,6 @@ jobs:
             cat dist/SHA256SUMS.txt
             echo '```'
           } > notes.md
-          gh release create "$TAG" --draft --target "$GITHUB_SHA" \
+          gh release create "$TAG" --draft --target "$BUILD_SHA" \
             --title "AIOStreams Integrated $TAG" --notes-file notes.md dist/*
 
