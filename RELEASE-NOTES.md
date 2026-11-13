@@ -1,6 +1,8 @@
 # AIOStreams (integrated Windows app) release notes
 
-## Unreleased
+## 0.2.1
+
+Upgrades 0.1.0 and 0.2.0 in place; data, keys, accounts and settings are kept.
 
 - The app is now called **AIOStreams** (window, Start menu, Windows Apps
   list). Data folders and the install identity are unchanged, so updates keep
