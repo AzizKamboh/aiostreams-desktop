@@ -90,7 +90,7 @@ bash scripts/desktop/build-ffprobe.sh
 
 ```powershell
 # Native Windows x64, PowerShell 7
-./scripts/desktop/package-windows.ps1 -Version 0.1.0
+./scripts/desktop/package-windows.ps1 -Version 0.3.0-dev.1
 ```
 The package uses the WebView2 runtime that Windows keeps up to date (Setup
 installs it if missing). Add `-BundleWebView2` to ship a pinned copy inside the
@@ -125,18 +125,16 @@ node scripts/desktop/smoke.mjs --ffprobe /path/to/ffprobe --ffmpeg /path/to/ffmp
 
 ## Making a release
 
-1. Push the reviewed commit to `main` and wait for **Integrated Windows desktop**
-   to pass.
-2. Actions → Integrated Windows desktop → **Run workflow** on `main`, set
-   **version** (for example `0.1.0`) and tick **draft_release**. The run builds,
-   re-runs every test, then creates a *draft* release `v<version>` with the
-   installer, portable ZIP, source archive and `SHA256SUMS.txt`.
-3. Download and test the draft's files, edit its notes, then click **Publish**.
-   Nothing is published automatically.
+See [docs/RELEASE-PROCESS.md](docs/RELEASE-PROCESS.md): set
+`integrated-version.json` and the release notes in a reviewed pull request,
+run **Integrated Windows desktop** with **version**, **channel** and
+**draft_release**, review the draft, then publish it. Publishing verifies the
+release and only then puts it on the update feed that installed apps read.
 
-Each new release must use a higher version than the last. The in-app updater is
-off in 0.2.2, so users upgrade by running the newer Setup.exe; it upgrades the
-existing install in place and keeps all data.
+From 0.3.0 the app updates itself from this repository
+([docs/AUTO-UPDATE.md](docs/AUTO-UPDATE.md)). 0.2.x has no updater: run the
+0.3.0 Setup.exe once; it upgrades the existing install in place and keeps all
+data.
 
 ## Data, upgrades and security
 
@@ -174,9 +172,10 @@ off; either can be enabled in the existing settings. Providers, configured remot
 servers, and upstream metadata/catalog sources
 make the network requests required by their existing functions.
 
-The upstream updater is disabled because its client-only release would remove
-the integration. Install a newer integrated package with the same package ID to
-upgrade. Windows can associate the upstream `aiostreams:` protocol with one app
+The upstream updater is replaced by the integrated updater, which reads only
+this repository's feeds and refuses any package other than
+`aiostreams-integrated`: upstream's client-only release would remove the
+integration. Windows can associate the upstream `aiostreams:` protocol with one app
 at a time; the installer retains upstream's protocol registration behavior.
 
 ## Troubleshooting and boundaries

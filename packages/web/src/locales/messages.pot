@@ -6283,3 +6283,15 @@ msgstr ""
 #: src/components/shell/embedded-updates.tsx
 msgid "Waiting for the first check."
 msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "An unofficial integrated build of AIOStreams, created by Viren070 and the AIOStreams contributors. It is not affiliated with or endorsed by the AIOStreams project. Licensed AGPL-3.0-only."
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "This build"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Upstream project"
+msgstr ""

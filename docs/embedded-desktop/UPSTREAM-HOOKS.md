@@ -5,13 +5,22 @@ possible, so that merging a new upstream release mostly means accepting it.
 Integration logic lives in files upstream does not have; upstream files get
 small, commented hooks that call into them.
 
-Baseline: upstream `desktop-v0.24.0`, commit `76a5d6da`. Regenerate the list
-below with:
+Baseline: the upstream release recorded in
+[`.github/upstream-sync.json`](../../.github/upstream-sync.json) (now
+`desktop-v0.24.0`, commit `76a5d6da`). Upstream is an ancestor in Git
+history, so the integrated-versus-upstream diff is:
 
 ```sh
-git fetch --no-tags https://github.com/Viren070/AIOStreams.git 76a5d6da6d1babf885c7f65a2e19bbd55401a26d
-git diff --stat 76a5d6da HEAD -- packages
+base=$(jq -r .baseline.commit .github/upstream-sync.json)
+git fetch --no-tags https://github.com/Viren070/AIOStreams.git "$base"
+git diff --stat "$base" HEAD -- packages      # every integration change to upstream code
+git diff "$base" HEAD -- packages/web/src/app  # one area in full
 ```
+
+The machine-readable form of this page is
+[`scripts/upstream/hooks.json`](../../scripts/upstream/hooks.json); sync pull
+requests use it to flag affected hooks, and a test checks every path in it
+exists. Process: [UPSTREAM-SYNC.md](../UPSTREAM-SYNC.md).
 
 ## Integration-owned files (upstream has none of these)
 
@@ -28,7 +37,11 @@ git diff --stat 76a5d6da HEAD -- packages
 | `packages/frontend/src/lib/desktop-embed.ts` | "Home" entry in the dashboard/configuration sidebars, only inside the app |
 | `packages/web/src/lib/embedded-*.ts` | Local origin handling, settings persistence across ports, account rules |
 | `packages/desktop/app/src/backend.rs`, `backend/*.rs`, `embedded.rs` | Node supervisor, DPAPI storage, accounts, Job Object |
-| `scripts/desktop/*`, `.github/workflows/embedded-desktop.yml` | Build, packaging, tests |
+| `packages/desktop/app/src/updates_integrated.rs`, `update_policy.rs` | Integrated updater: own feeds, package-identity check, backoff, playback-safe install |
+| `packages/web/src/lib/embedded-updates.ts`, `embedded-update-state.ts`, `components/shell/embedded-updates.tsx` | Settings → Updates for the integrated updater |
+| `scripts/desktop/*`, `.github/workflows/embedded-desktop.yml` | Build, packaging, native tests (`native-update.mjs`: real updates) |
+| `scripts/upstream/*`, `.github/workflows/upstream-sync.yml`, `.github/upstream-sync.json` | Upstream synchronisation |
+| `scripts/release/*`, `integrated-version.json`, `.github/workflows/{pr-ci,release-publish,post-release-validation,dependency-maintenance}.yml` | Versioning, release verification, feeds, CI |
 
 ## Hooks in upstream files
 
@@ -52,11 +65,39 @@ git diff --stat 76a5d6da HEAD -- packages
 | `web/src/lib/jellyfin/session.tsx`, `settings/index.ts`, `storage.ts`, `app/settings/account.tsx`, `components/media/no-catalogs.tsx` | 1–9 lines each | Local sign-in, Discord presence default off, storage change event, open configuration in-app |
 | `web/rsbuild.config.ts`, `web/src/env.d.ts` | 1 constant | Server version shown in Diagnostics |
 | `web/src/locales/en-GB.po`, `messages.pot` | appended entries | Source text for new UI strings |
-| `desktop/app/src/main.rs`, `shell/tao_shell.rs`, `platform/windows.rs`, `bridge.js`, `updates.rs`, `Cargo.toml` | small | Start the backend, trust its origin, app identity, integrated version, updater off |
+| `desktop/app/src/main.rs` | small; `#[path = "updates_integrated.rs"] mod updates;`, `updates::apply`, `updates::observe_player` | Start the backend, integrated version; compile the integrated updater instead of upstream's; playback state for safe installs |
+| `desktop/app/src/shell/tao_shell.rs` | small; `crate::updates::on_exit()` after `backend.stop()` | Trust the backend origin, route embedded messages; install a downloaded update after a normal shutdown |
+| `desktop/app/src/platform/windows.rs`, `bridge.js` | small | App identity, integrated version |
+| `desktop/app/Cargo.toml` | Windows API features | DPAPI, Job Objects, free disk space (`Win32_Storage_FileSystem`) |
+| `web/src/app/settings/apps.tsx` | 1 import, 1 line | Integrated Settings → Updates instead of upstream's card, in the integrated app only |
+| `web/src/components/shell/update-prompt.tsx` | 2 imports, 2 lines | Upstream's update notice waits while something plays (integrated app only) |
 | `desktop/core/src/downloads.rs`, `logs.rs` | small | Authorise local download URLs; log redaction |
 
 Upstream files keep their original byte-order marks and formatting so diffs show
 only real changes.
+
+## Shadowed upstream files
+
+| Upstream file | Replaced by | Review on sync |
+| --- | --- | --- |
+| `desktop/app/src/updates.rs` | `updates_integrated.rs` (same public API) | Kept byte-identical to upstream and not compiled. Port upstream fixes that apply (Velopack API changes, new bridge update messages). |
+
+## Integration-replaced files
+
+Replaced wholesale; on a sync conflict `sync.mjs` keeps this repository's
+version and lists upstream's change in the report for manual review.
+
+| Path | Why |
+| --- | --- |
+| `README.md` | The integrated project's landing page; links upstream's README |
+| `.github/ISSUE_TEMPLATE/` | Issue forms for this distribution; upstream-only bugs go upstream |
+
+## Upstream workflows
+
+Every job of every inherited upstream workflow carries
+`if: github.repository == 'Viren070/AIOStreams'` (or adds that condition to
+its existing `if:`), so nothing upstream publishes runs here. Pull Request CI
+fails if a merge brings an unguarded job.
 
 ## Upstream behaviour the integration depends on
 
@@ -76,3 +117,28 @@ Check these when merging a new upstream release:
   Ctrl+, shortcuts must not collide with new upstream ones.
 - `setSessionCookie` and the `/api/v1/health` endpoint.
 - The desktop bridge protocol between `desktop/app` and `web/src/lib/hosts/shell`.
+
+## Compatibility record
+
+| | |
+| --- | --- |
+| Current upstream baseline | `desktop-v0.24.0` / server `v2.37.0`, commit `76a5d6da` (`.github/upstream-sync.json`) |
+| Pending upstream changes | Open pull requests labelled `upstream-sync`; upstream `main` was 24 commits ahead with no newer stable release when this was written |
+| Blocked upstream releases | none (`blocked` in `.github/upstream-sync.json`) |
+| Compatibility patches | none beyond the hooks above |
+
+Patches made to adapt to an upstream change are listed here with the
+upstream release that required them and the reason.
+
+## Tests covering each critical hook
+
+| Hook | Tests |
+| --- | --- |
+| Private access boundary (`desktop.ts`, Host/Origin, capability) | `packages/server/src/desktop.test.ts`, `scripts/desktop/smoke.mjs` |
+| Accounts / `AIOSTREAMS_AUTH`, built-in Usenet check | `packages/web/tests/embedded-accounts.test.ts`, `backend/accounts.rs` tests, `native-smoke.mjs` |
+| Storage across ports, DPAPI | `packages/web/tests/embedded-storage.test.ts`, `backend.rs` tests, `native-smoke.mjs` (restart, upgrade) |
+| Proxy cookie/CSP isolation, sandboxed relayed content | `desktop.test.ts`, `smoke.mjs` |
+| Dashboard routes, Home entry, shortcuts | `native-smoke.mjs` |
+| mpv bridge: playback, pause, seek, audio and subtitle tracks | `native-smoke.mjs` (fullscreen transitions are not automated yet) |
+| Integrated updater and feed | `update_policy.rs` / `updates_integrated.rs` tests, `embedded-updates.test.ts`, `native-update.mjs`, `scripts/release/feed-check`, `scripts/release/lib.test.mjs` |
+| Upstream workflow guards, conflict markers | `sync.mjs check-guards`, `check-markers` (Pull Request CI) |

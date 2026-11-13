@@ -6284,3 +6284,15 @@ msgstr "Version {version} is downloaded and verified. It installs when you close
 #: src/components/shell/embedded-updates.tsx
 msgid "Waiting for the first check."
 msgstr "Waiting for the first check."
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "An unofficial integrated build of AIOStreams, created by Viren070 and the AIOStreams contributors. It is not affiliated with or endorsed by the AIOStreams project. Licensed AGPL-3.0-only."
+msgstr "An unofficial integrated build of AIOStreams, created by Viren070 and the AIOStreams contributors. It is not affiliated with or endorsed by the AIOStreams project. Licensed AGPL-3.0-only."
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "This build"
+msgstr "This build"
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Upstream project"
+msgstr "Upstream project"

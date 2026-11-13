@@ -113,7 +113,41 @@ remains advisable. Installer signing is not configured.
 - DPAPI protects the server key and stable native client snapshot. Active
   upstream browser localStorage credentials remain in the per-user WebView
   profile. This does not isolate malicious processes under the same Windows user.
-- The integrated upstream updater is disabled. Use a later integrated installer
-  with the same package identity. Windows x64 is the initial packaging target.
+- Up to 0.2.2 the updater was disabled. From 0.3.0 the integrated updater is
+  used; see "Release automation and updates" below for what has been run.
+  Windows x64 is the initial packaging target.
 - Distribution still requires reviewing final dependency notices and supplying
   corresponding source for bundled copyleft libraries, in addition to this app.
+
+## Release automation and updates (0.3.0 work)
+
+Recorded separately from the 0.1.0–0.2.2 results above. Executed on a Linux
+development container while this work was prepared:
+
+| Check | Result |
+| --- | --- |
+| `node --test scripts/upstream/*.test.mjs scripts/release/*.test.mjs` | passed |
+| `cargo test --locked --workspace` in `packages/desktop` (Linux build; includes `update_policy` and integrated updater unit tests) | passed |
+| `vitest run packages/web/tests/embedded-*.test.ts` | passed |
+| `node scripts/release/release.mjs check` | passed |
+| `sync.mjs detect` against the real upstream repository | passed: newest stable upstream release is `desktop-v0.24.0`, already integrated |
+| `sync.mjs prepare` against a local copy of upstream with a test tag on upstream `main` (24 commits ahead) | clean merge, report generated |
+| `sync.mjs prepare` with a deliberately conflicting upstream commit | conflict committed with markers, draft report, `check-markers` fails as intended |
+| `feed-check` (Velopack 1.2.161 client) against local HTTP feeds | valid update found and downloaded; foreign package ID refused; tampered package rejected by checksum; missing feed, wrong channel and unreachable server fail cleanly; up-to-date copy gets no offer |
+| `release.mjs verify-feed` / `check-forward` / `merge-feed` on fixture feeds | passed / rejected as intended |
+
+Not executable in that container (no Windows; `pnpm install` could not fetch
+one GitHub-hosted dependency tarball): the full TypeScript build, the
+Windows-only Rust code paths (`cfg(windows)`), and the native Windows tests,
+including `scripts/desktop/native-update.mjs` (real installs and updates:
+missing/unavailable/malformed feeds, foreign package, corrupted package,
+older version, invalid channel, successful download, install request during
+playback, install on close with data kept, install and restart, portable
+update). Those run in **Integrated Windows desktop** on `windows-2025`; their
+results are that workflow's run on the pull request that introduced them.
+
+Not tested anywhere yet: an update from a *published* 0.3.0 to a later
+published release through the live feed (possible only once two releases
+exist; *Post-release validation* covers discovery and download from the live
+feed after each release), an update interrupted mid-install (Velopack's
+responsibility; not simulated), and real provider accounts.
