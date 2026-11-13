@@ -1,6 +1,6 @@
 # AIOStreams (integrated Windows app) release notes
 
-## 0.2.1
+## 0.2.1 — first public release
 
 Upgrades 0.1.0 and 0.2.0 in place; data, keys, accounts and settings are kept.
 
@@ -20,7 +20,7 @@ Upgrades 0.1.0 and 0.2.0 in place; data, keys, accounts and settings are kept.
 - The first-run account is always the administrator; the permission selector
   stays in Settings → Local server for extra accounts.
 
-## 0.2.0 — first public release
+## 0.2.0 (draft only; everything below ships in 0.2.1)
 
 Usenet accounts, native navigation and a security review.
 
