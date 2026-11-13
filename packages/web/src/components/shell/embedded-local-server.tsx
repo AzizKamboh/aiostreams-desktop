@@ -154,7 +154,7 @@ export function LocalServerSection() {
       )}
 
       <SettingsCard title={t`Versions`}>
-        <SettingsRow label={t`AIOStreams Integrated`}>
+        <SettingsRow label={t`App`}>
           <span className="text-sm text-[--muted]">{appBridge()?.integratedVersion ?? '?'}</span>
         </SettingsRow>
         <SettingsRow label={t`Desktop client (upstream)`}>

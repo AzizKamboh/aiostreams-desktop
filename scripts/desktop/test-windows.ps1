@@ -13,7 +13,7 @@ try {
   # A test-only newer package, never published or included in release artifacts.
   $upgradeDir = Join-Path $root '.embedded-build/upgrade-test'
   & $vpk pack --packId aiostreams-integrated --packVersion 999.0.0 `
-    --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams Integrated' `
+    --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams' `
     --packAuthors 'AIOStreams contributors; integrated desktop contributors' `
     --icon packages/desktop/app/icons/aiostreams.ico --channel win-x64 `
     --runtime win-x64 --shortcuts StartMenuRoot --instLocation PerUser --outputDir $upgradeDir

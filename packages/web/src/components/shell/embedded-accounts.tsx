@@ -251,9 +251,7 @@ export function AccountSetup({
         aria-labelledby="account-setup-title"
       >
         <div className="flex flex-col gap-3">
-          <p className="text-sm font-medium uppercase tracking-widest text-gray-400">
-            <Trans>AIOStreams Integrated</Trans>
-          </p>
+          <img src="./logo.png" alt="AIOStreams" className="h-14 w-14 object-contain" />
           <h1 id="account-setup-title" className="text-3xl font-semibold">
             {managing ? t`AIOStreams accounts` : t`Create your AIOStreams account`}
           </h1>

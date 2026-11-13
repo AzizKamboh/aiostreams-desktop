@@ -1,4 +1,15 @@
-# AIOStreams Integrated release notes
+# AIOStreams (integrated Windows app) release notes
+
+## Unreleased
+
+- The app is now called **AIOStreams** (window, Start menu, Windows Apps
+  list). Data folders and the install identity are unchanged, so updates keep
+  all data and settings.
+- Startup keeps the AIOStreams launch splash, with the server's current stage
+  underneath instead of a separate screen and timer. A hint appears only when
+  a first start runs long; failures show restart, logs and remote options.
+- The first-run account is always the administrator; the permission selector
+  stays in Settings → Local server for extra accounts.
 
 ## 0.2.0 — first public release
 

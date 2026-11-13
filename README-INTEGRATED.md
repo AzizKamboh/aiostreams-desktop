@@ -1,6 +1,6 @@
-# AIOStreams Integrated for Windows
+# AIOStreams for Windows, with its own server
 
-This variant combines the existing AIOStreams server and Windows desktop client
+The app is called **AIOStreams**. It is an unofficial build that combines the existing AIOStreams server and Windows desktop client
 from the same upstream monorepo. It keeps the Rust/WebView2 shell, mpv player,
 browsing interface, server configuration dashboard, and existing provider logic.
 The desktop owns a private Node server process; Docker is not used.
