@@ -1,6 +1,10 @@
-import app, { embeddedDesktop } from './app.js';
-import type { Server } from 'node:http';
-import { secureDesktopUpgrades } from './desktop.js';
+﻿import app, { embeddedDesktop } from './app.js';
+// AIOStreams Integrated hooks; each is a no-op outside the desktop app.
+import {
+  announceDesktopReady,
+  secureDesktopUpgrades,
+  watchDesktopStdin,
+} from './desktop.js';
 import {
   attachJellyfinWebSocket,
   registerJellyfinTasks,
@@ -67,8 +71,6 @@ import {
 } from '@aiostreams/core';
 
 const logger = createLogger('server');
-let httpServer: Server | undefined;
-let stopping: Promise<void> | undefined;
 
 async function initialiseDatabase() {
   try {
@@ -471,18 +473,9 @@ async function start() {
           `Server running on port ${appConfig.bootstrap.port}: ${JSON.stringify(server.address())}`
         );
         settleMetricsHistory();
-        if (embeddedDesktop) {
-          process.stdout.write(
-            JSON.stringify({
-              event: 'aiostreams-desktop-ready',
-              port: appConfig.bootstrap.port,
-              url: embeddedDesktop.origin,
-            }) + '\n'
-          );
-        }
+        announceDesktopReady(embeddedDesktop, appConfig.bootstrap.port);
       }
     );
-    httpServer = server;
     attachJellyfinWebSocket(server);
     attachPartyRelay(server);
     secureDesktopUpgrades(server, embeddedDesktop);
@@ -522,59 +515,23 @@ process.on('uncaughtException', (err) => {
   logger.fatal({ err }, 'uncaught exception ');
 });
 
-function requestShutdown(): Promise<void> {
-  if (stopping) return stopping;
-  stopping = (async () => {
-    // Closing the listening socket stops new work before database cleanup.
-    const deadline = setTimeout(() => process.exit(1), 10_000);
-    deadline.unref();
-    httpServer?.close();
-    httpServer?.closeAllConnections();
-    try {
-      await shutdown();
-    } finally {
-      process.exit(0);
-    }
-  })();
-  return stopping;
-}
-
-process.on('SIGTERM', () => {
-  void requestShutdown();
-});
-process.on('SIGINT', () => {
-  void requestShutdown();
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received. Shutting down gracefully...');
+  await shutdown();
+  process.exit(0);
 });
 
-if (embeddedDesktop && process.env.AIOSTREAMS_DESKTOP_STDIN_CONTROL === '1') {
-  let input = '';
-  process.stdin.setEncoding('utf8');
-  process.stdin.on('data', (chunk: string) => {
-    input += chunk;
-    if (input.length > 4096) {
-      void requestShutdown();
-      return;
-    }
-    let newline: number;
-    while ((newline = input.indexOf('\n')) !== -1) {
-      const line = input.slice(0, newline);
-      input = input.slice(newline + 1);
-      try {
-        if (JSON.parse(line)?.command === 'shutdown') void requestShutdown();
-      } catch {
-        /* Unknown parent commands have no effect. */
-      }
-    }
-  });
-  // EOF also covers the native desktop crashing or being force-closed.
-  process.stdin.on('end', () => {
-    void requestShutdown();
-  });
-  process.stdin.on('error', () => {
-    void requestShutdown();
-  });
-  process.stdin.resume();
-}
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received. Shutting down gracefully...');
+  await shutdown();
+  process.exit(0);
+});
+
+watchDesktopStdin(embeddedDesktop, async () => {
+  logger.info('Desktop shell requested shutdown. Shutting down gracefully...');
+  await shutdown();
+  process.exit(0);
+});
 
 start().catch((error) => {
   if (error instanceof ConfigStartupError) {

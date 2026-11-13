@@ -25,6 +25,12 @@ pub fn trusted(url: &str) -> bool {
     get().is_some_and(|backend| backend.is_origin(url))
 }
 
+/// Pages that may use the native bridge: the bundled client only, not every
+/// response the local server can send.
+pub fn bridge_trusted(url: &str) -> bool {
+    get().is_some_and(|backend| backend.is_client_page(url))
+}
+
 /// Only called after the shell has checked the sending page's origin.
 #[cfg(windows)]
 pub fn receive(body: &str, send: &dyn Fn(crate::UserEvent)) -> bool {
@@ -46,6 +52,18 @@ pub fn receive(body: &str, send: &dyn Fn(crate::UserEvent)) -> bool {
     match kind {
         "backend-status" => send(crate::UserEvent::BackendState(backend.status())),
         "backend-restart" => backend.restart(),
+        "backend-accounts-save" => {
+            let result = backend.save_accounts(&value);
+            let reply = serde_json::json!({
+                "type": "backend-accounts-result",
+                "ok": result.is_ok(),
+                "message": result.err(),
+            });
+            send(crate::UserEvent::Emit(format!(
+                "window.__aiostreamsAppReceive?.({reply})"
+            )));
+        }
+        "backend-accounts-ack" => backend.forget_new_credential(),
         "backend-storage" => {
             let values = value["values"].clone();
             let valid = values.as_object().is_some_and(|map| {

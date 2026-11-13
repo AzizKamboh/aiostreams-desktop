@@ -32,7 +32,14 @@ export type ShellMessage =
       message?: string;
       /** Native storage is encrypted with the current Windows user's DPAPI key. */
       storage?: Record<string, string>;
+      /** The user's AIOStreams accounts (AIOSTREAMS_AUTH); never passwords. */
+      accounts?: EmbeddedAccount[];
+      /** Saved accounts exist but could not be unlocked. */
+      accountsError?: string | null;
+      /** `user:pass` just saved in the setup screen, until acknowledged. */
+      newCredential?: string | null;
     }
+  | { type: 'backend-accounts-result'; ok: boolean; message?: string | null }
   | {
       type: 'youtube-resolved';
       request: string;
@@ -191,6 +198,15 @@ export type MediaKey =
   | { action: 'play' | 'pause' | 'toggle' | 'stop' | 'next' | 'previous' }
   | { action: 'seek'; position: number }
   | { action: 'skip'; offset: number };
+
+/** One AIOSTREAMS_AUTH account as the integrated desktop shell reports it. */
+export interface EmbeddedAccount {
+  username: string;
+  permissions: string[];
+  /** Whether the built-in Usenet service accepted it at the last start. */
+  usenet?: boolean | null;
+  detail?: string | null;
+}
 
 /** The AIOStreams apps' bridge to their player and system, on the desktop and Android. */
 interface ShellBridge {

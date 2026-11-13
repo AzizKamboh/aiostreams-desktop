@@ -65,7 +65,12 @@ export function desktopAuthorised(
   if (req.headers.host !== options.host) return false;
   const origin = req.headers.origin;
   if (origin !== undefined && origin !== options.origin) return false;
-  const url = new URL(req.url || '/', options.origin);
+  let url: URL;
+  try {
+    url = new URL(req.url || '/', options.origin);
+  } catch {
+    return false;
+  }
   const header = req.headers[DESKTOP_HEADER];
   return (
     equal(typeof header === 'string' ? header : undefined, options.token) ||
@@ -109,6 +114,32 @@ export function stripDesktopCredentials(req: IncomingMessage): void {
   }
 }
 
+/**
+ * Routes that answer with data or with bytes from addons, providers and
+ * indexers rather than with the app's own pages. A browser that opens one as a
+ * document gets an opaque, scriptless origin: provider HTML can never run as the
+ * private app origin, use its session cookie, or reach the native bridge.
+ */
+const UNTRUSTED_CONTENT = [
+  '/api/',
+  '/builtins/',
+  '/webdav',
+  '/blocklist',
+  '/chilllink/',
+  '/seanime/',
+  '/jellyfin/',
+  '/stremio/',
+];
+
+export function sandboxedPath(path: string): boolean {
+  if (!UNTRUSTED_CONTENT.some((prefix) => path.startsWith(prefix)))
+    return false;
+  // The configuration pages and the hosted web client are the app's own UI.
+  if (/\/configure\/?$/.test(path)) return false;
+  if (/^\/jellyfin\/(?:.*\/)?web(?:\/|$)/.test(path)) return false;
+  return true;
+}
+
 export function desktopBoundary(
   options: DesktopOptions | undefined,
   internalHeader: string,
@@ -119,6 +150,7 @@ export function desktopBoundary(
     if (!options) return next();
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     if (!desktopAuthorised(req, options, internalHeader, internalSecret)) {
       res
         .status(403)
@@ -129,14 +161,26 @@ export function desktopBoundary(
     // Native players do not share the WebView cookie jar. Carry the capability
     // only over local redirects (error clips and local playback hops), never an
     // external Location header. Browser requests already carry their cookie.
-    const queryAuthenticated = new URL(
-      req.url,
-      options.origin
-    ).searchParams.has(DESKTOP_QUERY);
-    if (queryAuthenticated && !bootstrap) {
+    const queryAuthenticated =
+      !bootstrap &&
+      new URL(req.url, options.origin).searchParams.has(DESKTOP_QUERY);
+    const sandboxed = sandboxedPath(req.path);
+    if (queryAuthenticated || sandboxed) {
       const setHeader = res.setHeader.bind(res);
       res.setHeader = (name, value) => {
-        if (name.toLowerCase() === 'location' && typeof value === 'string') {
+        const lower = name.toLowerCase();
+        // Relayed provider headers must not lift the sandbox set below.
+        if (
+          sandboxed &&
+          (lower === 'content-security-policy' ||
+            lower === 'x-content-type-options')
+        )
+          return res;
+        if (
+          queryAuthenticated &&
+          lower === 'location' &&
+          typeof value === 'string'
+        ) {
           try {
             const destination = new URL(value, options.origin);
             if (destination.origin === options.origin) {
@@ -149,9 +193,11 @@ export function desktopBoundary(
         }
         return setHeader(name, value);
       };
+      if (sandboxed) setHeader('Content-Security-Policy', 'sandbox');
     }
     stripDesktopCredentials(req);
     req.originalUrl = req.url;
+
     if (bootstrap) {
       if (req.method !== 'GET' && req.method !== 'POST') {
         res.status(405).end();
@@ -187,4 +233,57 @@ export function secureDesktopUpgrades(
     stripDesktopCredentials(req);
     for (const handler of handlers) handler.call(server, req, socket, head);
   });
+}
+
+
+/** The shell waits for this exact line on stdout before its health check. */
+export function announceDesktopReady(
+  options: DesktopOptions | undefined,
+  port: number
+): void {
+  if (!options) return;
+  process.stdout.write(
+    JSON.stringify({
+      event: 'aiostreams-desktop-ready',
+      port,
+      url: options.origin,
+    }) + '\n'
+  );
+}
+
+/**
+ * The shell asks for shutdown over stdin; EOF also means the shell crashed or
+ * was force-closed. `stop` runs once; a stuck shutdown exits after ten seconds.
+ */
+export function watchDesktopStdin(
+  options: DesktopOptions | undefined,
+  stop: () => Promise<void>
+): void {
+  if (!options || process.env.AIOSTREAMS_DESKTOP_STDIN_CONTROL !== '1') return;
+  let stopping = false;
+  const requestStop = () => {
+    if (stopping) return;
+    stopping = true;
+    setTimeout(() => process.exit(1), 10_000).unref();
+    void stop().finally(() => process.exit(0));
+  };
+  let input = '';
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', (chunk: string) => {
+    input += chunk;
+    if (input.length > 4096) return requestStop();
+    let newline: number;
+    while ((newline = input.indexOf('\n')) !== -1) {
+      const line = input.slice(0, newline);
+      input = input.slice(newline + 1);
+      try {
+        if (JSON.parse(line)?.command === 'shutdown') requestStop();
+      } catch {
+        /* Unknown parent commands have no effect. */
+      }
+    }
+  });
+  process.stdin.on('end', requestStop);
+  process.stdin.on('error', requestStop);
+  process.stdin.resume();
 }

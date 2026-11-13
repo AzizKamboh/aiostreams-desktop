@@ -42,6 +42,8 @@ import { DownloadsSection } from './downloads';
 import { AccountSection } from './account';
 import { AppSection, DesktopSection, AndroidSection } from './apps';
 import { AboutSection } from './about';
+import { LuServer } from 'react-icons/lu';
+import { LocalServerSection } from '@/components/shell/embedded-local-server';
 
 interface Section {
   id: string;
@@ -139,6 +141,19 @@ function sections(): Section[] {
       group: 'app' as const,
       Content: AccountSection,
     },
+    // AIOStreams Integrated: the local server; absent outside the desktop app.
+    ...(appBridge()?.backend
+      ? [
+          {
+            id: 'local-server',
+            label: t`Local server`,
+            description: t`Status, accounts, server dashboard and logs`,
+            icon: LuServer,
+            group: 'app' as const,
+            Content: LocalServerSection,
+          },
+        ]
+      : []),
     ...(host.name === 'desktop'
       ? [
           {

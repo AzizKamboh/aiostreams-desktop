@@ -1,4 +1,4 @@
-import {
+﻿import {
   Cache,
   HEADERS_FOR_IP_FORWARDING,
   INTERNAL_SECRET_HEADER,
@@ -91,7 +91,10 @@ export function makeUrlLogSafe(url: string) {
  * be tuned.
  */
 export type FetchContext =
-  'nzb_grabs' | 'torrent_grabs' | 'newznab' | 'torznab';
+  | 'nzb_grabs'
+  | 'torrent_grabs'
+  | 'newznab'
+  | 'torznab';
 
 export interface RequestOptions {
   timeout: number;
@@ -286,6 +289,7 @@ export async function makeRequest(url: string, options: RequestOptions) {
 
     // Re-evaluated per hop so the secret never travels to a redirect target
     // outside the internal origin.
+    // AIOStreams Integrated: compare origins, not string prefixes (port 3000 vs 30001).
     if (urlObj.origin === new URL(appConfig.bootstrap.internalUrl).origin) {
       headers.set(INTERNAL_SECRET_HEADER, appConfig.bootstrap.internalSecret);
     } else {

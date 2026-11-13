@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response, Router } from 'express';
+﻿import { NextFunction, Request, Response, Router } from 'express';
 import {
   APIError,
   constants,
@@ -62,6 +62,14 @@ function sanitiseHeaders(
 
   for (const [key, value] of Object.entries(headers)) {
     if (value === undefined || HOP_BY_HOP.includes(key.toLowerCase())) {
+      continue;
+    }
+    // AIOStreams Integrated: a provider must not set cookies or page policy on
+    // the private desktop origin.
+    if (
+      process.env.AIOSTREAMS_DESKTOP_TOKEN &&
+      ['set-cookie', 'content-security-policy'].includes(key.toLowerCase())
+    ) {
       continue;
     }
 

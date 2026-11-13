@@ -74,6 +74,7 @@ import { HistoryButtons } from './history-buttons';
 import { ConnectionNote } from './unreachable';
 import { Logo, onBar } from './nav/common';
 import { SidebarAccount } from './nav/account';
+import { useDesktopNavItems } from './embedded-nav';
 import { MobileNav } from './nav/mobile-nav';
 import { TouchRail } from './nav/touch-rail';
 import { TvRail } from './nav/tv-rail';
@@ -256,6 +257,8 @@ export function WebLayout() {
     ...(downloads ? [downloads] : []),
   ];
 
+  // AIOStreams Integrated: "Server dashboard"; empty outside the desktop app.
+  const serverItems = useDesktopNavItems();
   const settingsItem: SidebarItem = {
     id: 'settings',
     name: t`Settings`,
@@ -312,14 +315,14 @@ export function WebLayout() {
                 {nav === 'rail' ? (
                   <TouchRail
                     items={items}
-                    footerItems={[settingsItem]}
+                    footerItems={[...serverItems, settingsItem]}
                     you={you}
                     named={named}
                   />
                 ) : nav === 'tv-rail' ? (
                   <TvRail
                     items={items}
-                    footerItems={[settingsItem]}
+                    footerItems={[...serverItems, settingsItem]}
                     you={you}
                     open={named}
                   />
@@ -328,7 +331,7 @@ export function WebLayout() {
                     header={<Logo />}
                     items={items}
                     belowItems={<HistoryButtons />}
-                    footerItems={[settingsItem]}
+                    footerItems={[...serverItems, settingsItem]}
                     footer={<SidebarAccount you={you} />}
                   />
                 )}
@@ -338,7 +341,7 @@ export function WebLayout() {
               (nav === 'rail' ? (
                 <TouchRail
                   items={items}
-                  footerItems={[settingsItem]}
+                  footerItems={[...serverItems, settingsItem]}
                   you={you}
                   named={named}
                   floating
@@ -346,7 +349,7 @@ export function WebLayout() {
               ) : (
                 <TvRail
                   items={items}
-                  footerItems={[settingsItem]}
+                  footerItems={[...serverItems, settingsItem]}
                   you={you}
                   open={named}
                   floating
@@ -383,7 +386,7 @@ export function WebLayout() {
                 {shape === 'corner' && (
                   <CornerMenu
                     items={items}
-                    footerItems={[settingsItem]}
+                    footerItems={[...serverItems, settingsItem]}
                     you={you}
                     tv={nav === 'tv-rail'}
                   />
@@ -397,7 +400,7 @@ export function WebLayout() {
                     items={items.filter(
                       (i) => i !== together && i !== playlists
                     )}
-                    footerItems={[playlists, together, settingsItem]}
+                    footerItems={[playlists, together, ...serverItems, settingsItem]}
                     you={you}
                   />
                 )}
@@ -457,7 +460,11 @@ export function WebLayout() {
                 together,
                 ...items.filter(onBar),
               ]}
-              menuItems={several ? [settingsItem, switchItem] : [settingsItem]}
+              menuItems={[
+                ...serverItems,
+                settingsItem,
+                ...(several ? [switchItem] : []),
+              ]}
               wide={nav === 'bar'}
               named={tabNames === 'shown'}
             />

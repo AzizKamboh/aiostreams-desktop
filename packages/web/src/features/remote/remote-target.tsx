@@ -16,6 +16,8 @@ import { useSession } from '@/lib/jellyfin/session';
 import type { BaseItemDto, SourceInfo } from '@/lib/jellyfin/types';
 import { useLatest } from '@/hooks/use-latest';
 import { useVersionPicker } from '@/features/versions/version-picker';
+// AIOStreams Integrated hook: no effect outside the desktop app.
+import { useRegisterActivePlayer } from '@/lib/embedded-shell';
 
 /** Opens a title, or plays one as Play would here. */
 export function useOpenRemote(opts: { replace?: boolean } = {}) {
@@ -68,6 +70,7 @@ export function useRemotePlayer(
   queue?: (itemIds: string[], soon: boolean) => void
 ) {
   const open = useOpenRemote({ replace: true });
+  useRegisterActivePlayer(player);
   const setTrack = useLatest((kind: TrackKind, index: number) => {
     const tracks =
       kind === 'audio' ? player.audioTracks : player.subtitleTracks;

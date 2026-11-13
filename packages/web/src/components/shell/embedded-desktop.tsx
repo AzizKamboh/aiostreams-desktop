@@ -3,11 +3,12 @@ import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@aiostreams/ui/button';
-import { appBridge, type ShellAnswer } from '@/lib/hosts/shell/bridge';
+import { appBridge } from '@/lib/hosts/shell/bridge';
 import { openLogs, requestDiagnostics, useShellLinks } from '@/lib/hosts/shell';
 import { storage } from '@/lib/storage';
 import { SplashEnd } from '@/lib/splash';
 import { navigate, to } from '@/lib/paths';
+import { playbackNow } from '@/lib/playback/session';
 import {
   embeddedOrigin,
   onOpenConfiguration,
@@ -22,13 +23,24 @@ import { findServer, sameServer } from '@/lib/jellyfin/servers';
 import { sendRemote } from '@/lib/remote/commands';
 import { party } from '@/lib/party/party';
 import { toast } from 'sonner';
+import { AccountReady, AccountSetup } from './embedded-accounts';
+import {
+  CONFIGURE_PATH,
+  DASHBOARD_PATH,
+  USENET_PROVIDERS_PATH,
+  activeDesktopPlayer,
+  desktopShortcut,
+  publishDesktopShell,
+  typingIn,
+  type BackendMode as Mode,
+  type BackendState,
+} from '@/lib/embedded-shell';
 
-type BackendState = ShellAnswer<'backend-state'>;
-type Tab = 'browse' | 'configure' | 'diagnostics';
-type Mode = 'local' | 'remote';
 const MODE_KEY = 'aiostreams-desktop-backend-mode';
-const VISITED_KEY = 'aiostreams-desktop-configured';
 const API_PATH_KEY = 'aiostreams-desktop-local-api-path';
+/** The user chose to continue without an AIOStreams account for now. */
+const ACCOUNT_SKIP_KEY = 'aiostreams-desktop-account-skipped';
+const CLOSE_PANEL_EVENT = 'aiostreams-desktop-close-panel';
 
 function LocalLinks({
   base,
@@ -70,7 +82,7 @@ function LocalLinks({
       return;
     }
     toast.info(
-      t`To connect to another server, select the remote connection in Diagnostics.`
+      t`To connect to another server, choose Remote server in Settings, Local server.`
     );
   });
   return null;
@@ -161,6 +173,13 @@ export function EmbeddedDesktop({
   return <EmbeddedContent state={state} browse={browse} remote={remote} />;
 }
 
+/** Only paths of the local server's own dashboard and configuration open in the panel. */
+function panelPath(path: string): string {
+  return path.startsWith('/dashboard') || path.startsWith('/stremio/')
+    ? path
+    : DASHBOARD_PATH;
+}
+
 function EmbeddedContent({
   state,
   browse,
@@ -176,14 +195,6 @@ function EmbeddedContent({
   const [mode, setMode] = React.useState<Mode>(() =>
     storage.get<Mode>(MODE_KEY) === 'remote' ? 'remote' : 'local'
   );
-  const [tab, setTab] = React.useState<Tab>(() =>
-    storage.get<Mode>(MODE_KEY) === 'remote' ||
-    storage.get<boolean>(VISITED_KEY)
-      ? 'browse'
-      : 'configure'
-  );
-  const [configurePath, setConfigurePath] =
-    React.useState('/stremio/configure');
   const [apiPath, setApiPath] = React.useState(() => {
     const saved = storage.get<string>(API_PATH_KEY);
     return saved &&
@@ -193,235 +204,369 @@ function EmbeddedContent({
       ? saved
       : '/jellyfin';
   });
-  const [diagnostics, setDiagnostics] = React.useState('');
-  const [readingDiagnostics, setReadingDiagnostics] = React.useState(false);
-  const [playing, setPlaying] = React.useState(() =>
-    location.hash.startsWith('#/play/')
+  const local = mode === 'local' && ready;
+  /** The dashboard or configuration path open over the client, if any. */
+  const [panel, setPanel] = React.useState<string | null>(null);
+  const panelRef = React.useRef<string | null>(null);
+  panelRef.current = panel;
+  const pausedForPanel = React.useRef(false);
+  const returnFocus = React.useRef<HTMLElement | null>(null);
+  /** Remounts the client after configuration changes when nothing plays. */
+  const [sessionKey, setSessionKey] = React.useState(0);
+  const accounts = state.accounts ?? [];
+  const [managingAccounts, setManagingAccounts] = React.useState(false);
+  const [skippedAccount, setSkippedAccount] = React.useState(
+    () => storage.get<boolean>(ACCOUNT_SKIP_KEY) === true
   );
+  const [credentialShown, setCredentialShown] = React.useState(false);
 
   React.useEffect(() => {
     setEmbeddedOrigin(origin);
     return () => setEmbeddedOrigin(null);
   }, [origin]);
+
+  const openServer = React.useCallback(
+    (path: string = DASHBOARD_PATH) => {
+      if (!local) return;
+      if (panelRef.current === null) {
+        returnFocus.current =
+          document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
+        // Pause through the player's own controller; the player stays mounted.
+        const player = activeDesktopPlayer();
+        if (player && !player.state.paused) {
+          player.setPaused(true);
+          pausedForPanel.current = true;
+        }
+      }
+      setPanel(panelPath(path));
+    },
+    [local]
+  );
+
+  const closePanel = React.useCallback(() => {
+    if (panelRef.current === null) return;
+    setPanel(null);
+    const player = activeDesktopPlayer();
+    if (pausedForPanel.current && player) {
+      toast(t`Paused while the server dashboard was open`, {
+        action: {
+          label: t`Resume`,
+          onClick: () => activeDesktopPlayer()?.setPaused(false),
+        },
+      });
+    }
+    pausedForPanel.current = false;
+    // Configuration changes show in the library: reload it when nothing
+    // plays, otherwise only refresh its data so the player keeps going.
+    if (playbackNow()) void queryClient.invalidateQueries();
+    else setSessionKey((key) => key + 1);
+    const focus = returnFocus.current;
+    returnFocus.current = null;
+    requestAnimationFrame(() => {
+      if (focus?.isConnected) focus.focus();
+    });
+  }, [queryClient]);
+
+  // The local server went away (restart, failure, remote mode): no panel.
+  React.useEffect(() => {
+    if (!local && panelRef.current !== null) closePanel();
+  }, [local, closePanel]);
+
   React.useEffect(
     () =>
       onOpenConfiguration((url) => {
         const parsed = new URL(url);
-        setConfigurePath(parsed.pathname + parsed.search + parsed.hash);
-        setTab('configure');
-        setMode('local');
+        openServer(parsed.pathname + parsed.search + parsed.hash);
       }),
-    []
+    [openServer]
+  );
+
+  // "Browse" in the dashboard and configuration sidebars closes the panel.
+  React.useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      // Only the local dashboard frame, never another site or frame origin.
+      if (event.origin !== location.origin) return;
+      const data: unknown = event.data;
+      if (
+        data &&
+        typeof data === 'object' &&
+        (data as { type?: unknown }).type === CLOSE_PANEL_EVENT
+      )
+        closePanel();
+    };
+    window.addEventListener(CLOSE_PANEL_EVENT, closePanel);
+    window.addEventListener('message', onMessage);
+    return () => {
+      window.removeEventListener(CLOSE_PANEL_EVENT, closePanel);
+      window.removeEventListener('message', onMessage);
+    };
+  }, [closePanel]);
+
+  const onKey = React.useCallback(
+    (event: KeyboardEvent, inPanel: boolean) => {
+      if (event.key === 'Escape' && panelRef.current !== null) {
+        // Inside the dashboard, Escape first closes its own dialogs.
+        const target = event.target as Node | null;
+        const doc = target?.ownerDocument ?? document;
+        if (inPanel && doc.querySelector('[role="dialog"], [role="alertdialog"]'))
+          return;
+        // Stop here: the player beneath would treat Escape as "leave".
+        event.preventDefault();
+        event.stopPropagation();
+        closePanel();
+        return;
+      }
+      const path = desktopShortcut(event);
+      if (!path || typingIn(event.target)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openServer(path);
+    },
+    [closePanel, openServer]
   );
   React.useEffect(() => {
-    const changed = () => setPlaying(location.hash.startsWith('#/play/'));
-    window.addEventListener('hashchange', changed);
-    return () => window.removeEventListener('hashchange', changed);
-  }, []);
+    const handle = (event: KeyboardEvent) => onKey(event, false);
+    window.addEventListener('keydown', handle, true);
+    return () => window.removeEventListener('keydown', handle, true);
+  }, [onKey]);
 
-  const chooseMode = (next: Mode) => {
-    if (next === mode) return;
-    appBridge()?.send({ type: 'player-stop' });
-    appBridge()?.send({ type: 'player-stop', external: true });
-    navigate(to.home, { replace: true });
-    queryClient.clear();
-    storage.set(MODE_KEY, next);
-    // The native shell chooses its trusted page origin from the persisted mode.
-    // storage.set synchronously snapshots it before this status request.
-    appBridge()?.send({ type: 'backend-status' });
-    setMode(next);
-    setTab('browse');
-  };
-  const chooseTab = (next: Tab) => {
-    if (next !== 'browse') {
+  const chooseMode = React.useCallback(
+    (next: Mode) => {
+      if (next === mode) return;
+      setPanel(null);
       appBridge()?.send({ type: 'player-stop' });
       appBridge()?.send({ type: 'player-stop', external: true });
       navigate(to.home, { replace: true });
-    }
-    if (next === 'browse') storage.set(VISITED_KEY, true);
-    setTab(next);
+      queryClient.clear();
+      storage.set(MODE_KEY, next);
+      // The native shell chooses its trusted page origin from the persisted mode.
+      // storage.set synchronously snapshots it before this status request.
+      appBridge()?.send({ type: 'backend-status' });
+      setMode(next);
+    },
+    [mode, queryClient]
+  );
+  const restart = React.useCallback(
+    () => appBridge()?.send({ type: 'backend-restart' }),
+    []
+  );
+
+  React.useEffect(() => {
+    publishDesktopShell({
+      state,
+      mode,
+      local,
+      origin,
+      openServer,
+      restart,
+      chooseMode,
+      manageAccounts: () => setManagingAccounts(true),
+      readDiagnostics: () => requestDiagnostics(origin),
+    });
+  }, [state, mode, local, origin, openServer, restart, chooseMode]);
+  React.useEffect(() => () => publishDesktopShell(null), []);
+
+  const finishAccountSetup = () => {
+    appBridge()?.send({ type: 'backend-accounts-ack' });
+    setCredentialShown(true);
   };
-  const restart = () => appBridge()?.send({ type: 'backend-restart' });
-  const readDiagnostics = async () => {
-    setReadingDiagnostics(true);
-    try {
-      setDiagnostics(await requestDiagnostics(origin));
-    } catch {
-      setDiagnostics(
-        t`Could not read diagnostics. Use Open logs to inspect the log files.`
-      );
-    } finally {
-      setReadingDiagnostics(false);
-    }
-  };
-  const showPane = tab !== 'browse' || (mode === 'local' && !ready);
   const base = `${origin}${apiPath}`;
 
   return (
     <>
       <SplashEnd />
-      {mode === 'local' && ready && (
+      {local && (
         <LocalLinks
           base={base}
-          onBrowse={() => chooseTab('browse')}
+          onBrowse={closePanel}
           onServer={(path) => {
             if (path !== '/jellyfin' && !path.startsWith('/jellyfin/')) return;
             storage.set(API_PATH_KEY, path);
             setApiPath(path);
             queryClient.clear();
-            chooseTab('browse');
+            closePanel();
           }}
         />
       )}
-      {mode === 'remote' && tab === 'browse'
-        ? remote
-        : ready && tab === 'browse'
-          ? browse(base, () => chooseMode('remote'))
-          : null}
-      {showPane && (
-        <main className="fixed inset-x-0 bottom-20 top-10 z-40 overflow-auto bg-[#101014] text-white">
-          {tab === 'configure' && ready && mode === 'local' ? (
-            <iframe
-              title={t`Local server configuration`}
-              src={`${origin}${configurePath}`}
-              className="h-full w-full border-0 bg-[#101014]"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <section className="mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-6 p-8">
-              <div>
-                <p className="mb-3 text-sm font-medium uppercase tracking-widest text-gray-400">
-                  <Trans>AIOStreams Desktop</Trans>
-                </p>
-                <h1 className="text-3xl font-semibold">
-                  {statusLabel(state.state)}
-                </h1>
-                <p
-                  className="mt-3 whitespace-pre-wrap text-gray-300"
-                  role={state.state === 'failed' ? 'alert' : 'status'}
-                >
-                  {state.message ||
-                    (state.state === 'starting'
-                      ? t`Preparing your saved settings and checking the server. This can take a moment on the first launch.`
-                      : ready
-                        ? t`Your settings and server data stay on this computer.`
-                        : t`Open the logs for details, then restart the backend to try again.`)}
-                </p>
-              </div>
-              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-sm text-gray-400">
-                <dt>
-                  <Trans>AIOStreams Integrated</Trans>
-                </dt>
-                <dd>{appBridge()?.integratedVersion ?? '?'}</dd>
-                <dt>
-                  <Trans>Desktop client (upstream)</Trans>
-                </dt>
-                <dd>{appBridge()?.version ?? '?'}</dd>
-                <dt>
-                  <Trans>Server (upstream)</Trans>
-                </dt>
-                <dd>{__SERVER_VERSION__}</dd>
-                {origin && (
-                  <>
-                    <dt>
-                      <Trans>Local server</Trans>
-                    </dt>
-                    <dd className="break-all">{origin}</dd>
-                  </>
-                )}
-              </dl>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  intent="white"
-                  onClick={restart}
-                  disabled={state.state === 'starting'}
-                >
-                  <Trans>Restart backend</Trans>
-                </Button>
-                <Button intent="gray-outline" onClick={openLogs}>
-                  <Trans>Open logs</Trans>
-                </Button>
-                <Button
-                  intent="gray-outline"
-                  onClick={() => void readDiagnostics()}
-                  loading={readingDiagnostics}
-                >
-                  <Trans>Read diagnostics</Trans>
-                </Button>
-              </div>
-              {ready && (
-                <a
-                  href={`${origin}/__desktop/source`}
-                  download
-                  className="text-sm text-gray-300 underline underline-offset-4 hover:text-white"
-                >
-                  <Trans>Download source code</Trans>
-                </a>
-              )}
-              {diagnostics && (
-                <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-black/30 p-4 text-xs text-gray-300">
-                  {diagnostics}
-                </pre>
-              )}
-              <label className="flex flex-col gap-2 text-sm">
-                <span>
-                  <Trans>Server connection</Trans>
-                </span>
-                <select
-                  aria-label={t`Server connection`}
-                  value={mode}
-                  onChange={(event) => chooseMode(event.target.value as Mode)}
-                  className="rounded-lg border border-white/20 bg-[#18181d] p-3"
-                >
-                  <option value="local">{t`Embedded server on this computer`}</option>
-                  <option value="remote">{t`Remote AIOStreams or Jellyfin server`}</option>
-                </select>
-              </label>
-              {mode === 'remote' && (
-                <p className="text-sm text-gray-400">
-                  <Trans>
-                    Choose Browse to select a remote server. Only the server you
-                    select receives its requests.
-                  </Trans>
-                </p>
-              )}
-            </section>
-          )}
-        </main>
+      {mode === 'remote' ? (
+        remote
+      ) : ready ? (
+        <React.Fragment key={sessionKey}>
+          {browse(base, () => chooseMode('remote'))}
+        </React.Fragment>
+      ) : (
+        <StartupScreen
+          state={state}
+          onRestart={restart}
+          onUseRemote={() => chooseMode('remote')}
+        />
       )}
-      {(!playing || showPane) && (
-        <nav
-          aria-label={t`Desktop navigation`}
-          className="fixed bottom-4 left-1/2 z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/15 bg-[#1b1b22] p-2 shadow-xl"
-        >
-          <button
-            type="button"
-            onClick={() => chooseTab('browse')}
-            aria-current={tab === 'browse' ? 'page' : undefined}
-            className={`whitespace-nowrap rounded-xl px-4 py-3 text-sm ${tab === 'browse' ? 'bg-white/15 text-white' : 'text-gray-300 hover:bg-white/5'}`}
-          >
-            <Trans>Browse</Trans>
-          </button>
-          {mode === 'local' && (
-            <button
-              type="button"
-              onClick={() => chooseTab('configure')}
-              aria-current={tab === 'configure' ? 'page' : undefined}
-              className={`whitespace-nowrap rounded-xl px-4 py-3 text-sm ${tab === 'configure' ? 'bg-white/15 text-white' : 'text-gray-300 hover:bg-white/5'}`}
-            >
-              <Trans>Server settings</Trans>
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => chooseTab('diagnostics')}
-            aria-current={tab === 'diagnostics' ? 'page' : undefined}
-            className={`whitespace-nowrap rounded-xl px-4 py-3 text-sm ${tab === 'diagnostics' ? 'bg-white/15 text-white' : 'text-gray-300 hover:bg-white/5'}`}
-          >
-            <Trans>Diagnostics</Trans>
-          </button>
-        </nav>
+      {local && panel !== null && (
+        <ServerPanel
+          src={`${origin}${panel}`}
+          onKey={(event) => onKey(event, true)}
+        />
       )}
+      {local && state.newCredential && !credentialShown ? (
+        <AccountReady
+          credential={state.newCredential}
+          accounts={accounts}
+          onOpenProviders={() => {
+            finishAccountSetup();
+            openServer(USENET_PROVIDERS_PATH);
+          }}
+          onOpenConfiguration={() => {
+            finishAccountSetup();
+            openServer(CONFIGURE_PATH);
+          }}
+          onBrowse={finishAccountSetup}
+        />
+      ) : local &&
+        !state.accountsError &&
+        (managingAccounts || (accounts.length === 0 && !skippedAccount)) ? (
+        <AccountSetup
+          accounts={managingAccounts ? accounts : []}
+          onCancel={
+            managingAccounts ? () => setManagingAccounts(false) : undefined
+          }
+          onSkip={
+            managingAccounts
+              ? undefined
+              : () => {
+                  storage.set(ACCOUNT_SKIP_KEY, true);
+                  setSkippedAccount(true);
+                }
+          }
+          onUseRemote={
+            managingAccounts ? undefined : () => chooseMode('remote')
+          }
+        />
+      ) : null}
     </>
+  );
+}
+
+/**
+ * Upstream's own dashboard and configuration, over the client so a playing
+ * title keeps its player. Their sidebars' "Browse" entry closes it.
+ */
+function ServerPanel({
+  src,
+  onKey,
+}: {
+  src: string;
+  onKey(event: KeyboardEvent): void;
+}) {
+  const frame = React.useRef<HTMLIFrameElement>(null);
+  const [failed, setFailed] = React.useState(false);
+  const latestKey = React.useRef(onKey);
+  latestKey.current = onKey;
+  React.useEffect(() => frame.current?.focus(), []);
+  const loaded = () => {
+    const win = frame.current?.contentWindow;
+    try {
+      // Same origin: Escape and the shortcuts work while the panel has focus.
+      win?.addEventListener('keydown', (event) => latestKey.current(event), true);
+      // An error answer (JSON, plain text) is not the dashboard page.
+      setFailed(win?.document.contentType !== 'text/html');
+    } catch {
+      setFailed(true);
+    }
+  };
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={t`Server dashboard`}
+      className="fixed inset-0 z-[70] flex flex-col bg-[#101014] pt-10"
+    >
+      {failed && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center gap-3 border-b border-white/10 px-4 py-2 text-sm text-amber-200"
+        >
+          <span>
+            <Trans>The server dashboard did not load.</Trans>
+          </span>
+          <Button size="sm" intent="gray-outline" onClick={() => frame.current?.contentWindow?.location.reload()}>
+            <Trans>Try again</Trans>
+          </Button>
+          <Button
+            size="sm"
+            intent="gray-outline"
+            onClick={() => window.dispatchEvent(new CustomEvent(CLOSE_PANEL_EVENT))}
+          >
+            <Trans>Back to browsing</Trans>
+          </Button>
+        </div>
+      )}
+      <iframe
+        ref={frame}
+        title={t`Server dashboard`}
+        src={src}
+        onLoad={loaded}
+        className="min-h-0 w-full flex-1 border-0 bg-[#101014]"
+        referrerPolicy="no-referrer"
+      />
+    </div>
+  );
+}
+
+/** Before the local server is ready, or when it stopped. */
+function StartupScreen({
+  state,
+  onRestart,
+  onUseRemote,
+}: {
+  state: BackendState;
+  onRestart(): void;
+  onUseRemote(): void;
+}) {
+  const [since] = React.useState(() => Date.now());
+  const [now, setNow] = React.useState(since);
+  React.useEffect(() => {
+    if (state.state !== 'starting') return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [state.state]);
+  const seconds = Math.floor((now - since) / 1000);
+  const elapsed = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+  return (
+    <main className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-[#101014] p-8 text-center text-white">
+      <p className="text-sm font-medium uppercase tracking-widest text-gray-400">
+        <Trans>AIOStreams Integrated</Trans>
+      </p>
+      <h1 className="text-3xl font-semibold">{statusLabel(state.state)}</h1>
+      <p role={state.state === 'failed' ? 'alert' : 'status'} className="max-w-xl text-gray-300">
+        {state.message}
+      </p>
+      {state.state === 'starting' && (
+        <p className="font-mono text-sm text-gray-400" aria-hidden>
+          {elapsed}
+        </p>
+      )}
+      {state.state === 'starting' && seconds >= 45 && (
+        <p className="max-w-xl text-sm text-gray-400">
+          <Trans>The first start can take a few minutes while the server downloads its data. Later starts are faster.</Trans>
+        </p>
+      )}
+      <div className="flex flex-wrap justify-center gap-3">
+        {state.state !== 'starting' && (
+          <Button intent="white" onClick={onRestart}>
+            <Trans>Restart backend</Trans>
+          </Button>
+        )}
+        <Button intent="gray-outline" onClick={openLogs}>
+          <Trans>Open logs</Trans>
+        </Button>
+        {state.state !== 'starting' && (
+          <Button intent="gray-outline" onClick={onUseRemote}>
+            <Trans>Use a remote server instead</Trans>
+          </Button>
+        )}
+      </div>
+    </main>
   );
 }

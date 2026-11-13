@@ -6,6 +6,7 @@ import {
   desktopOptions,
   desktopAuthorised,
   desktopBoundary,
+  sandboxedPath,
   stripDesktopCredentials,
   DESKTOP_COOKIE,
 } from './desktop.js';
@@ -189,5 +190,29 @@ describe('desktop HTTP redirects', () => {
         server.close((err) => (err ? reject(err) : resolve()))
       );
     }
+  });
+});
+
+describe('sandboxedPath', () => {
+  it('sandboxes routes that relay addon, provider and indexer content', () => {
+    for (const path of [
+      '/api/v1/proxy/abc',
+      '/builtins/x',
+      '/webdav/file.mkv',
+      '/jellyfin/Videos/1/stream',
+      '/stremio/u/p/stream/movie/x.json',
+    ])
+      expect(sandboxedPath(path)).toBe(true);
+  });
+  it('leaves the app and configuration pages alone', () => {
+    for (const path of [
+      '/__desktop/client/',
+      '/dashboard/usenet/providers',
+      '/stremio/configure',
+      '/stremio/u/p/configure',
+      '/jellyfin/web/index.html',
+      '/',
+    ])
+      expect(sandboxedPath(path)).toBe(false);
   });
 });

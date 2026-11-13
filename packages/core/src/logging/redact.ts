@@ -1,4 +1,6 @@
 import { config as appConfig, settingsStore } from '../config/index.js';
+// AIOStreams Integrated hook: a no-op outside the desktop app.
+import { isDesktopBackend, redactDesktopSecrets } from '../utils/desktop-env.js';
 
 const REDACT_CENSOR = '<redacted>';
 /**
@@ -22,7 +24,7 @@ export function redactUrlParams(s: string): string {
 }
 
 function sensitiveLoggingEnabled(): boolean {
-  if (process.env.AIOSTREAMS_DESKTOP_TOKEN || !settingsStore.initialised) {
+  if (isDesktopBackend() || !settingsStore.initialised) {
     return false;
   }
   return appConfig.logging.logSensitiveInfo;
@@ -33,15 +35,9 @@ function sensitiveLoggingEnabled(): boolean {
  * errors) before any sink sees it. A no-op when `LOG_SENSITIVE_INFO` is on.
  */
 export function redactForLog(s: string): string {
+  s = redactDesktopSecrets(s);
   if (sensitiveLoggingEnabled()) {
     return s;
-  }
-  const token = process.env.AIOSTREAMS_DESKTOP_TOKEN;
-  const key = process.env.AIOSTREAMS_DESKTOP_TOKEN
-    ? process.env.SECRET_KEY
-    : undefined;
-  for (const secret of [token, key]) {
-    if (secret) s = s.split(secret).join(REDACT_CENSOR);
   }
   return redactUrlParams(s);
 }

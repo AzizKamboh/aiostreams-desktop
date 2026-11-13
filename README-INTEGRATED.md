@@ -5,7 +5,7 @@ from the same upstream monorepo. It keeps the Rust/WebView2 shell, mpv player,
 browsing interface, server configuration dashboard, and existing provider logic.
 The desktop owns a private Node server process; Docker is not used.
 
-**Version 0.1.0** is the first public release of this unofficial integrated
+**Version 0.2.0** is the first public release of this unofficial integrated
 variant, built from upstream `desktop-v0.24.0` (commit `76a5d6da`; desktop
 client 0.24.0, server 2.37.0). Download it from this repository's
 [Releases](https://github.com/AzizKamboh/aiostreams-desktop/releases): run
@@ -26,15 +26,50 @@ archive is an alternative; both variants keep data in your Windows profile.
 The complete package bundles Node, WebView2, mpv and ffprobe. You do not need to
 install Docker, Node.js, Python, or a compiler to use that package.
 
-On first launch the app starts the local server and displays the upstream setup
-interface. Use **Server settings** to configure addons, debrid/Usenet services,
-filters and profiles, or the upstream import/existing-configuration mechanisms.
-Use **Browse** to sign into your configuration and use the existing browsing and
-player features. **Diagnostics** provides backend status, restart, logs and a
-source-code download. The existing player retains subtitles, audio tracks and
-playback controls; external services still need your accounts and configuration.
+On first launch the app starts the local server, asks you to create an
+AIOStreams account (below), then shows the library. Everything else is in the
+upstream interfaces, with native entries added where they belong:
 
-Choose **Remote AIOStreams or Jellyfin server** in Diagnostics to use upstream's
+| Where | Entry |
+| --- | --- |
+| Library sidebar / menu (next to Settings) | **Server dashboard** |
+| Sign-in screens | **Create or edit a configuration**, **Server dashboard** |
+| Player controls (hide with the controls) | **Server dashboard** button |
+| Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, source download, local/remote switch |
+| Dashboard and configuration sidebars | **Browse** returns to the app |
+
+The dashboard opens over the library, so a playing title keeps its player:
+playback pauses, and closing the dashboard offers **Resume**. Keyboard:
+**Ctrl+,** opens the server dashboard, **Ctrl+Shift+,** the configuration, and
+**Escape** returns to the library. Shortcuts never fire while you type in a
+field. Restarting the backend or switching servers asks first while something
+plays.
+
+### AIOStreams account and built-in Usenet
+
+On first launch the app asks you to create an **AIOStreams account**. This is
+what a Docker install sets with `AIOSTREAMS_AUTH` and
+`AIOSTREAMS_AUTH_PERMISSIONS`; the **Environment variables** tab accepts those
+exact values if you want to copy them from an existing install. The account is
+stored with Windows DPAPI and passed to the local server as those two
+variables at every start. The app then checks it with the same test the
+built-in Usenet service uses before streaming, and shows the result.
+
+To stream from your Usenet providers:
+
+1. Add the NNTP providers in **Usenet providers** (linked from the setup screen;
+   also Server settings → dashboard → Usenet → Providers).
+2. In your configuration, add the **AIOStreams** service (built-in Usenet) and
+   paste your `username:password` as its AIOStreams auth token.
+
+The AIOStreams account is not your Usenet provider login, and it is separate
+from a configuration's password. Change accounts later in **Settings → Local
+server → AIOStreams accounts**. Changing a password or removing an account stops
+configurations that use the old `username:password` until you paste the new
+one; unchanged accounts keep working. You can skip the setup; Debrid and
+WebDAV-based services do not need it, and remote-server users are never asked.
+
+Choose **Remote AIOStreams or Jellyfin server** in Settings → Local server to use upstream's
 remote-server picker. That UI is served from the bundled client so a local backend
 failure does not interrupt its native-player bridge. The local backend remains
 owned in the background until app exit. Return to the embedded option to use the
@@ -94,7 +129,7 @@ node scripts/desktop/smoke.mjs --ffprobe /path/to/ffprobe --ffmpeg /path/to/ffmp
    Nothing is published automatically.
 
 Each new release must use a higher version than the last. The in-app updater is
-off in 0.1.0, so users upgrade by running the newer Setup.exe; it upgrades the
+off in 0.2.0, so users upgrade by running the newer Setup.exe; it upgrades the
 existing install in place and keeps all data.
 
 ## Data, upgrades and security

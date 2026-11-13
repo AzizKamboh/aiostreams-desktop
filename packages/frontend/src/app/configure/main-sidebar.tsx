@@ -26,6 +26,8 @@ import {
   BiBarChartAlt2,
 } from 'react-icons/bi';
 import { useCommandPalette } from '@/context/command-palette';
+// AIOStreams Integrated: a "Browse" entry inside the desktop app only.
+import { desktopFooterItems } from '@/lib/desktop-embed';
 import { useRegisterQuickAction } from '@/context/quick-actions';
 import { useDisclosure } from '@aiostreams/ui/hooks/disclosure';
 import { Modal } from '@aiostreams/ui/modal';
@@ -202,6 +204,7 @@ export function MainSidebar() {
   );
 
   const footerItems: VerticalMenuItem[] = [
+    ...desktopFooterItems(),
     {
       name: 'Dashboard',
       iconType: BiGridAlt,

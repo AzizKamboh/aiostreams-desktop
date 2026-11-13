@@ -12,9 +12,12 @@ import {
   port,
   EnvMissingError,
 } from 'envalid';
-import { randomBytes, createHmac } from 'crypto';
+import { randomBytes } from 'crypto';
 import fs from 'fs';
 import { PERMISSION_NAMES } from './permissions.js';
+// AIOStreams Integrated: private-desktop defaults; a no-op unless the desktop
+// shell started this process. Must run before the environment is read below.
+import './desktop-env.js';
 
 /**
  * Bootstrap environment validation.
@@ -29,26 +32,6 @@ try {
   dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 } catch (error) {
   console.error('Error loading .env file', error);
-}
-// Private desktop defaults. Settings still use the upstream configuration store.
-if (process.env.AIOSTREAMS_DESKTOP_TOKEN) {
-  // Stable backend-only credentials keep generated proxy links valid after restart.
-  const adminPassword = createHmac('sha256', process.env.SECRET_KEY || '')
-    .update('aiostreams-desktop-admin-v1')
-    .digest('hex');
-  process.env.AIOSTREAMS_AUTH ??= `desktop:${adminPassword}`;
-  const permissions = process.env.AIOSTREAMS_AUTH_PERMISSIONS || '';
-  process.env.AIOSTREAMS_AUTH_PERMISSIONS = [permissions, 'desktop=admin']
-    .filter(Boolean)
-    .join(',');
-  process.env.ANALYTICS_ENABLED ??= 'false';
-  // Tracker addons may advertise watch_state without the user opting into
-  // scrobbling. Embedded installs keep viewing events local until enabled.
-  process.env.WATCH_STATE_REPORT_ENABLED ??= 'false';
-  process.env.APP_REPORTS_FORWARD_TO ??= '';
-  process.env.COMMUNITY_REMOTE_SOURCES ??= '[]';
-  process.env.LOG_SENSITIVE_INFO = 'false';
-  process.env.SYSTEM_LIFECYCLE_ENABLED = 'false';
 }
 let metadata: any = undefined;
 try {
