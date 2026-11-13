@@ -1,17 +1,29 @@
 name: Integrated Windows desktop
 
-# Builds and tests on every push. A manual run can also create a DRAFT GitHub
-# release from the tested artifacts; publishing it stays a manual step. Only the
-# small release job has write permission, and it never checks out or runs code.
+# Builds the real integrated Windows app and runs every native test on each
+# push to main and each pull request that touches it. A manual run with
+# draft_release also creates a DRAFT GitHub release (installer, portable ZIP,
+# Velopack update packages and feed, source, checksums, build provenance).
+# Publishing that draft is a deliberate manual step; release-publish.yml then
+# verifies it and only then puts it on the update feed. See docs/RELEASE-PROCESS.md.
+#
+# Only the release job has write permission. It runs the repository's own
+# release scripts (Node built-ins only, no dependency install) from the
+# reviewed commit, and only for runs on main.
 on:
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
       version:
-        description: Integrated app SemVer (also the release tag, prefixed with v)
+        description: 'Release version: X.Y.Z (stable) or X.Y.Z-preview.N (preview). X.Y.Z must equal integrated-version.json. Leave empty for a test build.'
         type: string
-        default: '0.1.0'
+        default: ''
+      channel:
+        description: Release channel
+        type: choice
+        options: [stable, preview]
+        default: stable
       draft_release:
         description: Create a draft GitHub release from the tested build
         type: boolean
@@ -27,46 +39,89 @@ on:
       - 'packages/core/**'
       - 'packages/web/**'
       - 'packages/frontend/**'
+      - 'packages/ui/**'
+      - 'packages/crypto/**'
       - 'scripts/desktop/**'
+      - 'scripts/release/**'
       - 'pnpm-lock.yaml'
+      - 'integrated-version.json'
+      - '.github/upstream-sync.json'
       - '.github/workflows/embedded-desktop.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: embedded-desktop-${{ github.ref }}
+  group: embedded-desktop-${{ github.ref }}-${{ inputs.draft_release && 'release' || 'ci' }}
   # Finish expensive native builds; GitHub keeps only the newest pending run.
   cancel-in-progress: false
 
 jobs:
+  # Cheap checks first, so a wrong version never costs a 90-minute build.
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      feed: ${{ steps.plan.outputs.feed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: plan
+        env:
+          VERSION: ${{ inputs.version }}
+          RELEASE_CHANNEL: ${{ inputs.channel || 'stable' }}
+          RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.draft_release }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          committed=$(jq -r .version integrated-version.json)
+          if [ "$RELEASE" = true ]; then
+            [ "$GITHUB_REF" = refs/heads/main ] || { echo "::error::Releases are made from main only."; exit 1; }
+            [ -n "$VERSION" ] || { echo "::error::A release needs a version."; exit 1; }
+            # Published releases and tags (drafts are checked again by the release job).
+            { gh api "repos/$GITHUB_REPOSITORY/tags" --paginate --jq '.[].name'; gh release list --limit 200 --json tagName --jq '.[].tagName'; } | sort -u > existing.txt
+            node scripts/release/release.mjs validate --version "$VERSION" --channel "$RELEASE_CHANNEL" --existing existing.txt
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "feed=https://github.com/$GITHUB_REPOSITORY/releases/download/updates-$RELEASE_CHANNEL/" >> "$GITHUB_OUTPUT"
+          else
+            # Test builds are never released: a CI prerelease of the next version.
+            echo "version=${VERSION:-$committed-ci.$GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+            echo "feed=" >> "$GITHUB_OUTPUT"
+          fi
+
   windows-x64:
+    needs: plan
     if: github.event_name != 'workflow_dispatch' || inputs.reuse_run_id == ''
     runs-on: windows-2025
-    timeout-minutes: 90
+    timeout-minutes: 120
     defaults:
       run:
         shell: pwsh
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
           version: 11.0.8
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.18.1
           cache: pnpm
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: 9.0.x
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
           toolchain: 1.99.1
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
-          workspaces: packages/desktop
+          workspaces: |
+            packages/desktop
+            scripts/release/feed-check
           cache-on-failure: true
-      - uses: msys2/setup-msys2@v2
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
         with:
           msystem: MINGW64
           update: true
@@ -81,8 +136,11 @@ jobs:
         run: bash scripts/desktop/build-ffprobe.sh
       - name: Build, test, stage, and package
         env:
-          PACKAGE_VERSION: ${{ inputs.version || '0.1.0' }}
-        run: ./scripts/desktop/package-windows.ps1 -Version $env:PACKAGE_VERSION
+          PACKAGE_VERSION: ${{ needs.plan.outputs.version }}
+          RELEASE_CHANNEL: ${{ inputs.channel || 'stable' }}
+          FEED: ${{ needs.plan.outputs.feed }}
+          UPDATE_REPOSITORY: ${{ github.repository }}
+        run: ./scripts/desktop/package-windows.ps1 -Version $env:PACKAGE_VERSION -Channel $env:RELEASE_CHANNEL -FeedUrl $env:FEED -UpdateRepository $env:UPDATE_REPOSITORY
       - name: Backend with runtime-discovery paths removed
         run: |
           $node = Join-Path $PWD '.embedded-build/stage/backend/node.exe'
@@ -91,33 +149,48 @@ jobs:
           $env:PATH = "$env:SystemRoot/system32;$env:SystemRoot"
           & $node scripts/desktop/smoke.mjs --app-root $runtime --node $node --ffprobe $probe
           if ($LASTEXITCODE -ne 0) { throw 'Packaged runtime smoke test failed.' }
-      - name: Install, play through native WebView2 and mpv, and upgrade
+      - name: Verify the update feed and checksums
+        env:
+          PACKAGE_VERSION: ${{ needs.plan.outputs.version }}
+          RELEASE_CHANNEL: ${{ inputs.channel || 'stable' }}
+        run: |
+          node scripts/release/release.mjs verify-checksums --dir .embedded-releases
+          if ($LASTEXITCODE -ne 0) { throw 'Checksums do not match.' }
+          node scripts/release/release.mjs verify-feed --dir .embedded-releases --version $env:PACKAGE_VERSION --channel $env:RELEASE_CHANNEL
+          if ($LASTEXITCODE -ne 0) { throw 'The Velopack feed is not valid.' }
+      - name: Install, play through native WebView2 and mpv, upgrade, and update
         run: ./scripts/desktop/test-windows.ps1
       - name: Upload native test evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: aiostreams-native-evidence
           path: .embedded-build/native-evidence
           include-hidden-files: true
           if-no-files-found: ignore
-      - name: Upload installer, portable build, source, and hashes
-        uses: actions/upload-artifact@v7
+      - name: Upload installer, portable build, update feed, source, and hashes
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: aiostreams-integrated-windows-x64
           include-hidden-files: true
           path: |
             .embedded-releases/*Setup.exe
             .embedded-releases/*Portable.zip
+            .embedded-releases/*.nupkg
+            .embedded-releases/releases.*.json
+            .embedded-releases/assets.*.json
+            .embedded-releases/RELEASES*
             .embedded-releases/*source.tar.gz
+            .embedded-releases/BUILD-INFO.json
             .embedded-releases/SHA256SUMS.txt
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
 
   draft-release:
-    needs: windows-x64
+    needs: [plan, windows-x64]
     if: >-
       always() && github.event_name == 'workflow_dispatch' && inputs.draft_release &&
+      needs.plan.result == 'success' &&
       (needs.windows-x64.result == 'success' ||
        (needs.windows-x64.result == 'skipped' && inputs.reuse_run_id != ''))
     runs-on: ubuntu-latest
@@ -125,10 +198,14 @@ jobs:
     permissions:
       contents: write
       actions: read
+      id-token: write
+      attestations: write
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
-      TAG: v${{ inputs.version }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      RELEASE_CHANNEL: ${{ inputs.channel }}
+      TAG: v${{ needs.plan.outputs.version }}
       BUILD_RUN: ${{ inputs.reuse_run_id || github.run_id }}
     steps:
       - name: Identify the tested build
@@ -148,42 +225,52 @@ jobs:
             case "$file" in .github/workflows/embedded-desktop.yml|*.md) ;; *) echo "::error::$file changed since the tested build"; exit 1;; esac
           done
           echo "BUILD_SHA=$build_sha" >> "$GITHUB_ENV"
-      - uses: actions/download-artifact@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.BUILD_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: aiostreams-integrated-windows-x64
           path: dist
           run-id: ${{ env.BUILD_RUN }}
           github-token: ${{ github.token }}
-      - name: Verify checksums
-        working-directory: dist
-        # The build also checksums Velopack updater files, which are not
-        # released while the in-app updater is off. Publish only what ships.
+      - name: Verify checksums, feed and build identity
         run: |
-          # Written on Windows: drop CRLF line endings and any byte-order mark.
-          sed -e 's/\r$//' -e '1s/^\xEF\xBB\xBF//' SHA256SUMS.txt > all.txt
-          grep -E '  aiostreams-integrated-(win-x64-Setup\.exe|win-x64-Portable\.zip|source\.tar\.gz)$' all.txt > released.txt || true
-          [ "$(wc -l < released.txt)" -eq 3 ] || { cat SHA256SUMS.txt; echo "::error::Expected checksums for the installer, portable ZIP and source"; exit 1; }
-          sha256sum -c released.txt
-          mv released.txt SHA256SUMS.txt
-          rm all.txt
+          node scripts/release/release.mjs verify-checksums --dir dist
+          node scripts/release/release.mjs verify-feed --dir dist --version "$VERSION" --channel "$RELEASE_CHANNEL"
+          info=dist/BUILD-INFO.json
+          [ "$(jq -r .version $info)" = "$VERSION" ] || { echo "::error::The build is version $(jq -r .version $info), not $VERSION"; exit 1; }
+          [ "$(jq -r .channel $info)" = "$RELEASE_CHANNEL" ] || { echo "::error::The build is channel $(jq -r .channel $info), not $RELEASE_CHANNEL"; exit 1; }
+          [ "$(jq -r .commit $info)" = "$BUILD_SHA" ] || { echo "::error::The build is from $(jq -r .commit $info), not $BUILD_SHA"; exit 1; }
+          [ "$(jq -r .packageId $info)" = aiostreams-integrated ] || { echo "::error::Wrong package identity"; exit 1; }
+          [ "$(jq -r .updateRepository $info)" = "$GH_REPO" ] || { echo "::error::The build updates from $(jq -r .updateRepository $info), not $GH_REPO"; exit 1; }
+      - name: Check the version again, including drafts
+        run: |
+          { gh api "repos/$GH_REPO/tags" --paginate --jq '.[].name'; gh release list --limit 200 --json tagName --jq '.[].tagName'; } | sort -u > existing.txt
+          node scripts/release/release.mjs validate --version "$VERSION" --channel "$RELEASE_CHANNEL" --existing existing.txt
+      - name: Record build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.nupkg
+            dist/*.tar.gz
       - name: Create draft release (not published)
         run: |
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "::error::Release $TAG already exists. Delete the draft or choose a new version."
-            exit 1
-          fi
+          # The newest published release this one follows: any for preview, stable for stable.
+          gh release list --exclude-drafts --limit 100 --json tagName,isPrerelease > releases.json
+          previous=$(jq -r --arg channel "$RELEASE_CHANNEL" '[.[] | select(.tagName | test("^v[0-9]+[.][0-9]+[.][0-9]+(-preview[.][0-9]+)?$"))
+            | select($channel == "preview" or (.isPrerelease | not))][0].tagName // empty' releases.json)
+          node scripts/release/release.mjs notes --version "$VERSION" --channel "$RELEASE_CHANNEL" --commit "$BUILD_SHA" \
+            --run "$BUILD_RUN" --repository "$GH_REPO" --dir dist ${previous:+--previous-tag "$previous"} > notes.md
+          prerelease=(); [ "$RELEASE_CHANNEL" = preview ] && prerelease=(--prerelease)
+          gh release create "$TAG" --draft "${prerelease[@]}" --target "$BUILD_SHA" \
+            --title "AIOStreams $VERSION" --notes-file notes.md dist/*
           {
-            echo "Unofficial integrated Windows build of [AIOStreams](https://github.com/Viren070/AIOStreams) by Viren070 (AGPL-3.0-only)."
-            echo
-            echo "Built and tested from commit ${BUILD_SHA} by [workflow run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${BUILD_RUN})."
-            echo "Installer and portable ZIP are **unsigned**. Complete corresponding source is attached."
-            echo
-            echo "See RELEASE-NOTES.md and README-INTEGRATED.md in the repository for details and known limitations."
-            echo
-            echo '```'
-            cat dist/SHA256SUMS.txt
-            echo '```'
-          } > notes.md
-          gh release create "$TAG" --draft --target "$BUILD_SHA" \
-            --title "AIOStreams Integrated $TAG" --notes-file notes.md dist/*
-
+            echo "### Draft release $TAG created"
+            echo "Built from \`$BUILD_SHA\` (run $BUILD_RUN). Review and edit the notes, test the files, then **Publish**."
+            echo "Publishing runs *Release publishing*, which verifies the release and only then updates the $RELEASE_CHANNEL update feed."
+          } >> "$GITHUB_STEP_SUMMARY"

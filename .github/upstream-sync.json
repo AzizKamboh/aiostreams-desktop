@@ -1,0 +1,23 @@
+{
+  "$comment": "Upstream tracking for AIOStreams Integrated. Written by scripts/upstream/sync.mjs in upstream-sync pull requests; edit 'channel' and 'blocked' by hand. See docs/UPSTREAM-SYNC.md.",
+  "upstream": {
+    "repository": "https://github.com/Viren070/AIOStreams",
+    "channel": "stable",
+    "serverTagPattern": "^v(\\d+\\.\\d+\\.\\d+)$",
+    "desktopTagPattern": "^desktop-v(\\d+\\.\\d+\\.\\d+)$"
+  },
+  "baseline": {
+    "ref": "desktop-v0.24.0",
+    "commit": "76a5d6da6d1babf885c7f65a2e19bbd55401a26d",
+    "commitTime": "2026-11-12T12:30:57Z",
+    "serverVersion": "2.37.0",
+    "desktopVersion": "0.24.0",
+    "integratedAt": "2026-11-12T15:50:04Z",
+    "status": "integrated",
+    "changelogs": [
+      "https://github.com/Viren070/AIOStreams/releases/tag/desktop-v0.24.0",
+      "https://github.com/Viren070/AIOStreams/releases/tag/v2.37.0"
+    ]
+  },
+  "blocked": []
+}

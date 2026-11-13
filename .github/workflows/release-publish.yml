@@ -1,0 +1,139 @@
+name: Release publishing
+
+# Runs when a maintainer publishes a draft made by "Integrated Windows desktop".
+# Verifies the published release (checksums, Velopack feed, package identity,
+# build commit, build provenance) and only then puts it on the update feed its
+# channel's apps read: release "updates-stable" or "updates-preview". Stable
+# releases are also offered on the preview feed. A release that fails any check
+# never reaches the feed. See docs/RELEASE-PROCESS.md and docs/AUTO-UPDATE.md.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published release tag (vX.Y.Z or vX.Y.Z-preview.N) to verify and put on its feed again
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-feed
+  cancel-in-progress: false
+
+jobs:
+  publish-feed:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Optional approval gate: add required reviewers to this environment in
+    # Settings → Environments to approve each feed update separately.
+    environment: update-feed
+    permissions:
+      contents: write
+      attestations: read
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      channel: ${{ steps.release.outputs.channel }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Identify the release
+        id: release
+        env:
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: |
+          if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then channel=stable
+          elif [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-preview\.[1-9][0-9]*$ ]]; then channel=preview
+          else echo "::error::$TAG is not an integrated release tag"; exit 1; fi
+          read -r draft prerelease <<< "$(gh release view "$TAG" --json isDraft,isPrerelease --jq '"\(.isDraft) \(.isPrerelease)"')"
+          [ "$draft" = false ] || { echo "::error::$TAG is still a draft"; exit 1; }
+          if [ "$channel" = stable ] && [ "$prerelease" = true ]; then echo "::error::A stable version is marked pre-release"; exit 1; fi
+          if [ "$channel" = preview ] && [ "$prerelease" = false ]; then echo "::error::A preview version must be marked pre-release"; exit 1; fi
+          velopack=win-x64; [ "$channel" = preview ] && velopack=win-x64-preview
+          { echo "tag=$TAG"; echo "version=${TAG#v}"; echo "channel=$channel"; echo "velopack=$velopack"; } >> "$GITHUB_OUTPUT"
+          echo "commit=$(gh api "repos/$GH_REPO/commits/$TAG" --jq .sha)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.release.outputs.commit }}
+          sparse-checkout: |
+            scripts/release
+            integrated-version.json
+          persist-credentials: false
+      - name: Download and verify the release
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+          CHANNEL: ${{ steps.release.outputs.channel }}
+          COMMIT: ${{ steps.release.outputs.commit }}
+        run: |
+          gh release download "$TAG" -D dist
+          node scripts/release/release.mjs verify-checksums --dir dist
+          node scripts/release/release.mjs verify-feed --dir dist --version "$VERSION" --channel "$CHANNEL"
+          info=dist/BUILD-INFO.json
+          for check in "version:$VERSION" "channel:$CHANNEL" "commit:$COMMIT" "packageId:aiostreams-integrated" "updateRepository:$GH_REPO"; do
+            key=${check%%:*}; want=${check#*:}; got=$(jq -r ".$key" "$info")
+            [ "$got" = "$want" ] || { echo "::error::BUILD-INFO $key is '$got', expected '$want'"; exit 1; }
+          done
+          # Proves the files were built by this repository's release workflow.
+          for file in dist/*.exe dist/*.zip dist/*.nupkg dist/*.tar.gz; do
+            gh attestation verify "$file" --repo "$GH_REPO" --signer-workflow "$GH_REPO/.github/workflows/embedded-desktop.yml" >/dev/null \
+              || { echo "::error::No valid build provenance for $(basename "$file")"; exit 1; }
+          done
+          echo "Verified $TAG ($CHANNEL) built from $COMMIT." >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish to the update feed
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+          CHANNEL: ${{ steps.release.outputs.channel }}
+          VELOPACK: ${{ steps.release.outputs.velopack }}
+        run: |
+          publish() { # feed-tag velopack-channel json-file files...
+            local feed=$1 channel=$2 json=$3; shift 3
+            if ! gh release view "$feed" >/dev/null 2>&1; then
+              {
+                echo "Update feed for AIOStreams Integrated ($channel). Apps read this release; do not edit it by hand."
+                echo "Downloads for people are on the versioned releases, for example the [latest release](https://github.com/$GH_REPO/releases/latest)."
+              } > feed-notes.md
+              gh release create "$feed" --prerelease --latest=false --title "Update feed: ${feed#updates-}" --notes-file feed-notes.md
+            fi
+            # Packages first, the feed file last: an app never sees a version whose package is missing.
+            [ "$#" -gt 0 ] && gh release upload "$feed" "$@" --clobber
+            cp "$json" "releases.$channel.json"
+            gh release upload "$feed" "releases.$channel.json" --clobber
+            # Only this version's packages stay: an app further behind takes the full package.
+            local kept; kept=$(for f in "$@"; do basename "$f"; done)
+            gh release view "$feed" --json assets --jq '.assets[].name' | while read -r asset; do
+              if [[ "$asset" == *.nupkg ]] && ! grep -qxF "$asset" <<< "$kept"; then gh release delete-asset "$feed" "$asset" --yes; fi
+            done
+          }
+          # Refuse to move a feed backwards.
+          if gh release download "updates-$CHANNEL" -p "releases.$VELOPACK.json" -D current 2>/dev/null; then
+            node scripts/release/release.mjs check-forward --feed "current/releases.$VELOPACK.json" --version "$VERSION"
+          fi
+          shopt -s nullglob
+          packages=(dist/*-"$VERSION"-*.nupkg)
+          [ "${#packages[@]}" -gt 0 ] || { echo "::error::No packages for $VERSION"; exit 1; }
+          extra=(); for f in "dist/assets.$VELOPACK.json" "dist/RELEASES-$VELOPACK"; do [ -f "$f" ] && extra+=("$f"); done
+          publish "updates-$CHANNEL" "$VELOPACK" "dist/releases.$VELOPACK.json" "${packages[@]}" "${extra[@]}"
+          if [ "$CHANNEL" = stable ]; then
+            rm -rf preview; mkdir preview
+            gh release download updates-preview -p releases.win-x64-preview.json -D preview 2>/dev/null || true
+            result=$(node scripts/release/release.mjs merge-feed --base preview/releases.win-x64-preview.json \
+              --add "dist/releases.$VELOPACK.json" --version "$VERSION" --out preview/releases.win-x64-preview.json)
+            if [ "$result" = merged ]; then
+              node scripts/release/release.mjs verify-feed --dir preview --version "$VERSION" --channel preview --metadata-only
+              publish updates-preview win-x64-preview preview/releases.win-x64-preview.json dist/*-"$VERSION"-*-full.nupkg
+              echo "Also offered $VERSION to Preview users." >> "$GITHUB_STEP_SUMMARY"
+            fi
+            gh release edit "v$VERSION" --latest
+          fi
+          echo "Feed updates-$CHANNEL now offers $VERSION." >> "$GITHUB_STEP_SUMMARY"
+
+  validate:
+    needs: publish-feed
+    uses: ./.github/workflows/post-release-validation.yml
+    with:
+      tag: ${{ needs.publish-feed.outputs.tag }}

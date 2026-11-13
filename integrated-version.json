@@ -1,0 +1,4 @@
+{
+  "$comment": "The next stable AIOStreams Integrated version (SemVer). Independent of the upstream server and desktop versions. Preview releases are <version>-preview.N. See docs/RELEASE-PROCESS.md.",
+  "version": "0.3.0"
+}

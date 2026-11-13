@@ -1,5 +1,28 @@
 # AIOStreams (integrated Windows app) release notes
 
+## 0.3.0
+
+Upgrades 0.2.2 and earlier in place; data, keys, accounts and settings are kept.
+Built from upstream `desktop-v0.24.0` (server 2.37.0, desktop client 0.24.0).
+
+- **Automatic updates.** The app now updates itself from this repository's
+  releases: it checks shortly after starting and every six hours, downloads
+  in the background, and installs when you close the app or choose
+  **Install and restart**. It never restarts while something plays. Updates
+  come only from this project's own feed, never from upstream's client-only
+  app, and an offer of any other package is refused. Settings → Updates shows
+  the version, channel, progress, last check and any error, with Check now,
+  Retry and release notes. Choose **Preview** there for earlier, less tested
+  builds; Stable stays the default. Because 0.2.2 had no updater, install
+  0.3.0 once by running its Setup; later versions arrive automatically.
+- Portable copies update the same way (Velopack supports portable updates);
+  this is covered by the Windows CI update test.
+- Release downloads now carry a build provenance attestation
+  (`gh attestation verify <file> -R AzizKamboh/aiostreams-desktop`) besides
+  `SHA256SUMS.txt`.
+- Behind the scenes: upstream AIOStreams releases are now detected daily and
+  prepared as reviewed pull requests; see docs/UPSTREAM-SYNC.md.
+
 ## 0.2.2
 
 Upgrades 0.2.1 and earlier in place; data, keys, accounts and settings are kept.

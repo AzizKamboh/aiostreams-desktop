@@ -62,6 +62,8 @@ Use supported configuration import/export and sign-in mechanisms rather than
 inventing a second configuration schema. Keep remote-server selection available.
 Disable the upstream automatic updater in this build: its hardcoded release feed
 would replace the integrated application with the original client-only build.
+(From 0.3.0 an integrated updater with its own feed replaces it; see
+docs/AUTO-UPDATE.md.)
 
 ## Licensing and privacy
 

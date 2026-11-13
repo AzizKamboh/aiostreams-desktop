@@ -6187,3 +6187,111 @@ msgstr ""
 #: src/components/shell/embedded-desktop.tsx
 msgid "Reset client settings and start"
 msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "AIOStreams (this app)"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Check for updates"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Checking for updates…"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Download progress"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Downloading {version}… {progress}%"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Install and restart"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Installing now stops what is playing. It also installs by itself when you close the app."
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Last checked"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Last error"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Last successful check"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Latest available"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "portable"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Preview builds pass the same tests but arrive earlier and are more likely to have problems. Switching back to Stable waits for the next stable version; it never installs an older one."
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Reading update status…"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Release notes"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Stop and install"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "This copy does not update itself ({reason}). Install the app with Setup to get updates."
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Unknown"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Update failed: {error}. The app keeps working; it tries again later."
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Updates come only from this app's own releases, never from upstream's separate desktop app."
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Upstream desktop client"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Upstream server"
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Version {version} is downloaded and verified. It installs when you close the app, or now with Install and restart."
+msgstr ""
+
+#: src/components/shell/embedded-updates.tsx
+msgid "Waiting for the first check."
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "An unofficial integrated build of AIOStreams, created by Viren070 and the AIOStreams contributors. It is not affiliated with or endorsed by the AIOStreams project. Licensed AGPL-3.0-only."
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "This build"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Upstream project"
+msgstr ""

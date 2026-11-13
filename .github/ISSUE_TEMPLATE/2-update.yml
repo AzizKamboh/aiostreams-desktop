@@ -1,0 +1,49 @@
+name: '🔄 Update problem'
+description: 'Automatic update, download, install-and-restart or channel problems'
+labels: ['update', 'integrated']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This tracker is for the **unofficial integrated Windows build** only. If the same problem happens in the official AIOStreams server or apps, report it to [Viren070/AIOStreams](https://github.com/Viren070/AIOStreams/issues) instead. Never report integrated-build problems upstream.
+  - type: input
+    id: version
+    attributes:
+      label: Integrated app version
+      description: Settings → Updates or Settings → Local server → Versions (for example 0.3.0).
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Install type
+      options: [Installer (Setup.exe), Portable ZIP]
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2 x64
+    validations:
+      required: true
+  - type: textarea
+    id: state
+    attributes:
+      label: "Settings → Updates"
+      description: "Channel, status, last error, last checked and latest available, as shown."
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: "What happened?"
+      description: "For example: never finds updates, the download fails, the app did not restart, data missing after an update."
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Settings → Local server → Read diagnostics, or the log from Open logs. Remove passwords, API keys, tokens and private URLs first.
+      render: text

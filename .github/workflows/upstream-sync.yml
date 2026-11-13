@@ -1,0 +1,159 @@
+name: Upstream Sync
+
+# Daily: looks for a new stable Viren070/AIOStreams server or desktop release
+# and, if there is one, merges it into a branch upstream-sync/<tag> and opens a
+# pull request for review. It never pushes to main, never merges, never
+# force-pushes and never touches the upstream repository. See docs/UPSTREAM-SYNC.md.
+#
+# Credentials: by default GITHUB_TOKEN. Two limits apply to it, so a GitHub App
+# is recommended (docs/UPSTREAM-SYNC.md, "GitHub App"):
+#  - Pull requests it opens do not start pull_request workflows. This workflow
+#    therefore starts Pull Request CI and Integrated Windows desktop on the
+#    branch with workflow_dispatch; their checks appear on the pull request.
+#  - It cannot push commits that change .github/workflows. When an upstream
+#    release does, the workflow opens an issue instead of a pull request.
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Optional. A specific stable upstream tag (vX.Y.Z or desktop-vX.Y.Z); default is the newest
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      status: ${{ steps.detect.outputs.status }}
+      ref: ${{ steps.detect.outputs.ref }}
+      branch: ${{ steps.detect.outputs.branch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.1
+      - id: detect
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          set -o pipefail
+          node scripts/upstream/sync.mjs detect ${REF:+--ref "$REF"} | tee detect.json
+          {
+            echo "status=$(jq -r .status detect.json)"
+            echo "ref=$(jq -r .target.ref detect.json)"
+            echo "branch=$(jq -r .branch detect.json)"
+          } >> "$GITHUB_OUTPUT"
+          jq -r '"Upstream \(.target.ref) (\(.target.commit)): server \(.target.serverVersion), desktop \(.target.desktopVersion). Integrated: \(.baseline.ref) (\(.baseline.commit)). Status: \(.status)."' detect.json >> "$GITHUB_STEP_SUMMARY"
+
+  sync:
+    needs: detect
+    if: needs.detect.outputs.status == 'available'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
+    env:
+      BRANCH: ${{ needs.detect.outputs.branch }}
+      REF: ${{ needs.detect.outputs.ref }}
+    steps:
+      - name: GitHub App token (optional)
+        id: app
+        if: vars.UPSTREAM_SYNC_APP_ID != ''
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.UPSTREAM_SYNC_APP_ID }}
+          private-key: ${{ secrets.UPSTREAM_SYNC_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token || github.token }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.1
+      - name: Skip if this release already has a branch
+        id: existing
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+        run: |
+          pr=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+            if [ -n "$pr" ]; then
+              echo "Pull request #$pr already tracks $REF; nothing to do." | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::warning::Branch $BRANCH exists without an open pull request. It is left untouched; delete it to prepare $REF again."
+            fi
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Merge the upstream release into a sync branch
+        if: steps.existing.outputs.skip != 'true'
+        run: |
+          git config user.name 'aiostreams-integrated-sync[bot]'
+          git config user.email 'aiostreams-integrated-sync@users.noreply.github.com'
+          node scripts/upstream/sync.mjs prepare --ref "$REF" --out "$RUNNER_TEMP/sync"
+          cat "$RUNNER_TEMP/sync/result.json"
+      - name: Push and open the pull request
+        if: steps.existing.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          USING_APP: ${{ steps.app.outputs.token != '' }}
+        run: |
+          result="$RUNNER_TEMP/sync/result.json"
+          status=$(jq -r .status "$result"); title=$(jq -r .title "$result"); base=$(jq -r .base "$result")
+          body="$RUNNER_TEMP/sync/report.md"
+          # A pull request body is limited to 65536 characters.
+          if [ "$(wc -c < "$body")" -gt 60000 ]; then head -c 60000 "$body" > "$body.cut"; printf '\n\n…report truncated; run scripts/upstream/sync.mjs report locally.\n' >> "$body.cut"; mv "$body.cut" "$body"; fi
+          if [ "$USING_APP" != true ] && [ -n "$(git diff --name-only "$base" HEAD -- .github/workflows)" ]; then
+            # GITHUB_TOKEN may not push workflow changes. Report instead of dropping them.
+            issue_title="Upstream $REF changes workflows: sync needs the GitHub App or a manual merge"
+            existing=$(gh issue list --state open --search "in:title \"$issue_title\"" --json number --jq '.[0].number // empty')
+            {
+              echo "Upstream $REF changes files under .github/workflows, which GITHUB_TOKEN cannot push."
+              echo "Configure the sync GitHub App (docs/UPSTREAM-SYNC.md) and re-run **Upstream Sync**, or run locally:"
+              echo; echo '```sh'; echo "node scripts/upstream/sync.mjs prepare --ref $REF"; echo "git push -u origin $BRANCH"; echo '```'; echo
+              cat "$body"
+            } > issue.md
+            if [ -n "$existing" ]; then gh issue edit "$existing" --body-file issue.md; else gh issue create --title "$issue_title" --body-file issue.md; fi
+            echo "::warning::Opened an issue instead of a pull request: upstream changes workflows."
+            exit 0
+          fi
+          git push origin "HEAD:refs/heads/$BRANCH"
+          gh label create upstream-sync --color 0e8a16 --description 'Automated upstream synchronisation' 2>/dev/null || true
+          draft=(); [ "$status" = conflicted ] && draft=(--draft)
+          gh pr create --base main --head "$BRANCH" --title "$title" --body-file "$body" --label upstream-sync "${draft[@]}"
+          if [ "$USING_APP" != true ]; then
+            # Pull requests opened with GITHUB_TOKEN start no pull_request workflows.
+            gh workflow run pr-ci.yml --ref "$BRANCH"
+            gh workflow run embedded-desktop.yml --ref "$BRANCH"
+          fi
+          {
+            echo "### $title"
+            echo "Status: **$status**. Branch: \`$BRANCH\`."
+            [ "$status" = conflicted ] && echo "Conflicted files: $(jq -r '.conflicts | join(", ")' "$result")"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Note superseded sync pull requests
+        if: steps.existing.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+        run: |
+          gh pr list --label upstream-sync --state open --json number,headRefName \
+            --jq ".[] | select(.headRefName != \"$BRANCH\") | .number" | while read -r old; do
+            gh pr comment "$old" --body "Superseded by the sync to upstream $REF (branch \`$BRANCH\`). Close this pull request once that one is reviewed; nothing was closed automatically."
+          done

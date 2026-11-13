@@ -24,7 +24,12 @@ bash scripts/desktop/build-ffprobe.sh
 Then in PowerShell 7:
 
 ```powershell
-./scripts/desktop/package-windows.ps1 -Version 0.1.0
+./scripts/desktop/package-windows.ps1 -Version 0.3.0-dev.1
+# Release builds also pass the channel, the published feed (for a delta) and
+# the repository the app updates from:
+./scripts/desktop/package-windows.ps1 -Version 0.3.0 -Channel stable `
+  -FeedUrl https://github.com/AzizKamboh/aiostreams-desktop/releases/download/updates-stable/ `
+  -UpdateRepository AzizKamboh/aiostreams-desktop
 ```
 
 The script uses the repository's frozen pnpm and Cargo lockfiles, builds the
@@ -38,11 +43,16 @@ deterministic because Windows toolchains, signing and archives can encode
 timestamps, and MSYS2 build packages receive updates.
 
 Outputs are in `.embedded-releases/`: a per-user Setup.exe, a portable zip,
-the corresponding modified application source, and SHA-256 checksums. One
+Velopack update packages (full, and delta when `-FeedUrl` is given) with the
+channel's `releases.<channel>.json` feed, the corresponding modified
+application source, `BUILD-INFO.json` and SHA-256 checksums. One
 Start-menu shortcut is installed. Builds are unsigned unless the maintainer
 adds code signing. Installer identity is `aiostreams-integrated`, separate
 from upstream's desktop client. Upgrades must keep this identity and use an
-increasing version. The integrated app does not use upstream's update feed.
+increasing version. Stable packages use Velopack channel `win-x64`, preview
+packages `win-x64-preview`. The app updates only from the repository given
+by `-UpdateRepository` (the script refuses upstream's), never from upstream's
+update feed; see [AUTO-UPDATE.md](AUTO-UPDATE.md).
 No packaging command publishes artifacts or uploads user data.
 
 `-SkipBuild` reuses already built files; it is for local iteration only.

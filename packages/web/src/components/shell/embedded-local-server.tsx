@@ -168,6 +168,18 @@ export function LocalServerSection() {
             <span className="break-all font-mono text-sm text-[--muted]">{origin}</span>
           </SettingsRow>
         )}
+        <p className="text-sm text-[--muted]">
+          <Trans>
+            An unofficial integrated build of AIOStreams, created by Viren070 and the AIOStreams contributors. It is not affiliated with or endorsed by the AIOStreams project. Licensed AGPL-3.0-only.
+          </Trans>{' '}
+          <a href="https://github.com/Viren070/AIOStreams" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+            <Trans>Upstream project</Trans>
+          </a>
+          {' · '}
+          <a href="https://github.com/AzizKamboh/aiostreams-desktop" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+            <Trans>This build</Trans>
+          </a>
+        </p>
       </SettingsCard>
 
       <SettingsCard title={t`Shortcuts`}>

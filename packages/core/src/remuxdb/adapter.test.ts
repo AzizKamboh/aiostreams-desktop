@@ -219,15 +219,27 @@ describe('toWireMediaInfo', () => {
     });
     const wire = toWireMediaInfo(v);
     assert.equal(wire.audio?.length, 1);
-    assert.deepEqual(wire.audio?.[0], {
-      codec: 'eac3',
-      profile: undefined,
-      lang: 'eng',
-      title: undefined,
-      ch_layout: '5.1',
-      ch: 6,
-    });
-    assert.deepEqual(wire.subtitle?.[0], { lang: 'fre', title: 'French' });
+    // AIOStreams Integrated: compatibility patch. The shared wire format
+    // (media-info/wire.ts) gained index, default and accessibility fields
+    // upstream; this test still pinned the whole old object. Check the
+    // fields it is about. Offered upstream; drop once upstream fixes it.
+    const { codec, profile, lang, title, ch_layout, ch } = wire.audio![0];
+    assert.deepEqual(
+      { codec, profile, lang, title, ch_layout, ch },
+      {
+        codec: 'eac3',
+        profile: undefined,
+        lang: 'eng',
+        title: undefined,
+        ch_layout: '5.1',
+        ch: 6,
+      }
+    );
+    const subtitle = wire.subtitle![0];
+    assert.deepEqual(
+      { lang: subtitle.lang, title: subtitle.title },
+      { lang: 'fre', title: 'French' }
+    );
   });
 
   test('converts duration from seconds to nanoseconds', () => {

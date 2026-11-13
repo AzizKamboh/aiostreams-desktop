@@ -43,6 +43,11 @@ pub fn receive(body: &str, send: &dyn Fn(crate::UserEvent)) -> bool {
     let Some(kind) = value["type"].as_str() else {
         return false;
     };
+    if kind.starts_with("integrated-update-") {
+        let reply = crate::updates::page_message(kind, &value, send);
+        send(crate::UserEvent::Emit(format!("window.__aiostreamsAppReceive?.({reply})")));
+        return true;
+    }
     if !kind.starts_with("backend-") {
         return false;
     }

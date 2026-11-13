@@ -38,6 +38,7 @@ import {
   saveMpvConfig,
 } from '@/lib/hosts/shell/android';
 import { appBridge, type VideoOutput } from '@/lib/hosts/shell/bridge';
+import { IntegratedUpdatesCard } from '@/components/shell/embedded-updates';
 import {
   settings,
   useSetting,
@@ -242,7 +243,8 @@ function VideoOutputRows() {
 export function DesktopSection() {
   return (
     <>
-      <UpdatesCard />
+      {/* AIOStreams Integrated: its own updater replaces upstream's card. */}
+      {appBridge()?.backend ? <IntegratedUpdatesCard /> : <UpdatesCard />}
       <DiscordCard />
       <SettingsCard name="mpv" title="mpv">
         <VideoOutputRows />

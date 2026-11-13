@@ -1,0 +1,14 @@
+name: '💡 Integration or packaging idea'
+description: 'Ideas for the Windows integration, packaging or updates. AIOStreams features belong upstream.'
+labels: ['enhancement', 'integrated']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Features of AIOStreams itself (addons, providers, sorting, the player, the interface) are decided upstream: suggest them at [Viren070/AIOStreams](https://github.com/Viren070/AIOStreams). This tracker takes ideas about the integrated Windows build.
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+    validations:
+      required: true

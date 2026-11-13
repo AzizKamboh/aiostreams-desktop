@@ -1,0 +1,99 @@
+name: Post-release validation
+
+# Proves a published release works from the outside: every file downloads
+# anonymously from its public URL and matches SHA256SUMS.txt, the update feed is
+# reachable and valid, and Velopack's own client code (the version the app
+# uses, with the app's update rules) finds and downloads the update as an
+# installed older copy would. Read-only. Called by release-publish.yml after
+# each feed update, runnable by hand, and weekly for the latest stable release.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag; empty for the latest stable release
+        type: string
+        default: ''
+  schedule:
+    - cron: '41 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Identify the release
+        id: release
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          tag=${TAG:-$(gh release view --json tagName --jq .tagName)}
+          version=${tag#v}
+          if [[ "$version" == *-preview.* ]]; then channel=preview; velopack=win-x64-preview; else channel=stable; velopack=win-x64; fi
+          { echo "tag=$tag"; echo "version=$version"; echo "channel=$channel"; echo "velopack=$velopack"; } >> "$GITHUB_OUTPUT"
+      - name: Download every file anonymously and check it
+        id: files
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          base="https://github.com/$GH_REPO/releases/download/$TAG"
+          mkdir public && cd public
+          curl -fsSL --retry 3 -o SHA256SUMS.txt "$base/SHA256SUMS.txt"
+          sed -e 's/\r$//' -e '1s/^\xEF\xBB\xBF//' SHA256SUMS.txt | awk '{print $2}' | sed 's/^\*//' | while read -r name; do
+            curl -fsSL --retry 3 -o "$name" "$base/$name" || { echo "::error::$name is not downloadable from $base"; exit 1; }
+          done
+          cd .. && node scripts/release/release.mjs verify-checksums --dir public
+          for required in Setup.exe Portable.zip source.tar.gz; do
+            ls public/*"$required" >/dev/null 2>&1 || { echo "::error::The release has no *$required"; exit 1; }
+          done
+          # Releases before 0.3.0 had no update feed.
+          if ls public/releases.*.json >/dev/null 2>&1; then echo "feed=true" >> "$GITHUB_OUTPUT"
+          else echo "::notice::$TAG predates the update feed; only its downloads were checked."; fi
+      - name: Check the public update feed
+        if: steps.files.outputs.feed == 'true'
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+          CHANNEL: ${{ steps.release.outputs.channel }}
+          VELOPACK: ${{ steps.release.outputs.velopack }}
+        run: |
+          feed="https://github.com/$GH_REPO/releases/download/updates-$CHANNEL"
+          mkdir feed
+          curl -fsSL --retry 3 -o "feed/releases.$VELOPACK.json" "$feed/releases.$VELOPACK.json"
+          jq -r --arg v "$VERSION" '.Assets[] | select(.Version == $v) | .FileName' "feed/releases.$VELOPACK.json" | while read -r name; do
+            curl -fsSL --retry 3 -o "feed/$name" "$feed/$name" || { echo "::error::$name is listed in the feed but not downloadable"; exit 1; }
+          done
+          node scripts/release/release.mjs verify-feed --dir feed --version "$VERSION" --channel "$CHANNEL"
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        if: steps.files.outputs.feed == 'true'
+        with:
+          toolchain: 1.99.1
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        if: steps.files.outputs.feed == 'true'
+        with:
+          workspaces: scripts/release/feed-check
+      - name: An older installed copy discovers and downloads the update
+        if: steps.files.outputs.feed == 'true'
+        working-directory: scripts/release/feed-check
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+          CHANNEL: ${{ steps.release.outputs.channel }}
+        run: |
+          cargo build --locked --release
+          check=target/release/aiostreams-integrated-feed-check
+          feed="https://github.com/$GH_REPO/releases/download/updates-$CHANNEL/"
+          $check --feed "$feed" --channel "$CHANNEL" --installed 0.0.1 --expect "$VERSION" --download
+          $check --feed "$feed" --channel "$CHANNEL" --installed "$VERSION" --expect-none
+          echo "Release ${{ steps.release.outputs.tag }} and its $CHANNEL update feed verified from public URLs." >> "$GITHUB_STEP_SUMMARY"
