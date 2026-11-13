@@ -685,6 +685,9 @@ impl OwnedChild {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .env("NODE_ENV", "production")
+            // Node keeps compiled module code here, so later starts skip most
+            // of the parse/compile work for the server's large bundle.
+            .env("NODE_COMPILE_CACHE", root.join("compile-cache"))
             .env("PORT", port.to_string())
             .env("BASE_URL", &base)
             .env("INTERNAL_URL", &base)

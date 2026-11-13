@@ -38,7 +38,7 @@ git diff --stat 76a5d6da HEAD -- packages
 | `core/src/logging/redact.ts` | 1 import, 2 lines | Always redact desktop secrets; never log sensitive data in desktop mode |
 | `core/src/utils/http.ts` | 1 line | Compare origins, not string prefixes, before sending the internal secret (security fix worth offering upstream) |
 | `server/src/app.ts` | 1 import, 1 call | `installDesktop()` before upstream middleware; 2 `sendFile` options for install paths containing a dot-folder |
-| `server/src/server.ts` | 3 calls | Loopback-only listen, ready event, WebSocket gate, stdin shutdown |
+| `server/src/server.ts` | 5 calls | Loopback-only listen, ready event, WebSocket gate, stdin shutdown; online datasets and Prowlarr indexers refresh in the background (`deferInDesktop`) instead of delaying startup |
 | `server/src/routes/api/proxy.ts` | ~18 lines | Never forward desktop cookies/auth or the internal secret to media providers; never relay a provider's Set-Cookie or CSP onto the private origin |
 | `server/src/routes/stremio/configure.ts` | 1 option | `dotfiles: 'allow'` for install paths |
 | `web/src/app.tsx` | ~15 lines | Mount the embedded shell in the desktop build |

@@ -5,6 +5,11 @@
 - The app is now called **AIOStreams** (window, Start menu, Windows Apps
   list). Data folders and the install identity are unchanged, so updates keep
   all data and settings.
+- **Much faster starts.** The local server no longer waits for its online
+  datasets (anime database, SeaDex, scene and ID mappings, Prowlarr indexer
+  list) before opening; they refresh in the background, using the previous
+  run's data meanwhile. On the very first run, anime matching fills in once
+  the download finishes. Node also keeps a compile cache between starts.
 - Startup keeps the AIOStreams launch splash, with the server's current stage
   underneath instead of a separate screen and timer. A hint appears only when
   a first start runs long; failures show restart, logs and remote options.

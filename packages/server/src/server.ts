@@ -2,6 +2,7 @@
 // AIOStreams Integrated hooks; each is a no-op outside the desktop app.
 import {
   announceDesktopReady,
+  deferInDesktop,
   secureDesktopUpgrades,
   watchDesktopStdin,
 } from './desktop.js';
@@ -429,13 +430,17 @@ async function start() {
     await initialiseTemplates();
     logStartupInfo();
     await initialiseRedis();
-    await initialiseAnimeDatabase();
-    await initialiseSeaDexDataset();
-    await initialiseSceneMappingDataset();
-    await initialiseIdMappingDataset();
+    // AIOStreams Integrated: the desktop app listens at once and refreshes
+    // these online datasets in the background; elsewhere they are awaited.
+    await deferInDesktop(embeddedDesktop, async () => {
+      await initialiseAnimeDatabase();
+      await initialiseSeaDexDataset();
+      await initialiseSceneMappingDataset();
+      await initialiseIdMappingDataset();
+    });
     RegexAccess.initialise();
     SelAccess.initialise();
-    await initialiseProwlarr();
+    await deferInDesktop(embeddedDesktop, initialiseProwlarr);
     registerPruneTask();
     registerConfigSessionTask();
     registerAppReportTask();

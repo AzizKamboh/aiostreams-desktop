@@ -287,3 +287,21 @@ export function watchDesktopStdin(
   process.stdin.on('error', requestStop);
   process.stdin.resume();
 }
+
+/**
+ * Upstream awaits its online datasets (anime database, SeaDex, scene and ID
+ * mappings, Prowlarr indexers) before it listens: a network check per source
+ * on every start, and full downloads on the first. The desktop app starts
+ * listening at once instead and lets them finish in the background. Lookups
+ * read the index from the previous run meanwhile, and their cache is cleared
+ * when a refresh publishes. Outside the desktop app the task is awaited.
+ */
+export async function deferInDesktop(
+  options: DesktopOptions | undefined,
+  task: () => Promise<void>
+): Promise<void> {
+  if (!options) return task();
+  void task().catch(() => {
+    /* Each initialiser logs its own failure; startup must not depend on it. */
+  });
+}
