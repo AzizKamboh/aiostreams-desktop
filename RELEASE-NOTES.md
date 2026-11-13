@@ -1,6 +1,8 @@
 # AIOStreams (integrated Windows app) release notes
 
-## Unreleased
+## 0.2.2
+
+Upgrades 0.2.1 and earlier in place; data, keys, accounts and settings are kept.
 
 - **Much smaller download.** The app now uses the WebView2 that Windows keeps
   up to date instead of shipping its own pinned copy, so the browser engine
