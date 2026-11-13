@@ -2,6 +2,16 @@
 # Run on Windows x64 in PowerShell 7 after building ffprobe with build-ffprobe.sh.
 param(
   [string]$Version = '0.1.0',
+  # Integrated release channel: stable (Velopack channel win-x64) or preview
+  # (win-x64-preview). Each has its own update feed; see docs/AUTO-UPDATE.md.
+  [ValidateSet('stable', 'preview')]
+  [string]$Channel = 'stable',
+  # Optional. The published feed of this channel; its newest full package is
+  # downloaded so Velopack can also build a delta (smaller update) package.
+  [string]$FeedUrl = '',
+  # GitHub owner/repository whose updates-<channel> releases the app updates
+  # from. Compiled into the app; never the upstream client-only feed.
+  [string]$UpdateRepository = 'AzizKamboh/aiostreams-desktop',
   [switch]$SkipBuild,
   # Ship a pinned WebView2 inside the package instead of using the one Windows
   # keeps up to date. Larger, and only patched when a new release is published.
@@ -20,6 +30,9 @@ if (-not $IsWindows -or [System.Runtime.InteropServices.RuntimeInformation]::OSA
   throw 'Build this payload on native Windows x64 (native addons must match the bundled Node runtime).'
 }
 if ($Version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw 'Version must be a SemVer.' }
+if ($UpdateRepository -notmatch '^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$') { throw 'UpdateRepository must be owner/name.' }
+if ($UpdateRepository -ieq 'Viren070/AIOStreams') { throw 'The integrated app must never update from the upstream client-only feed.' }
+$velopackChannel = if ($Channel -eq 'preview') { 'win-x64-preview' } else { 'win-x64' }
 function Checked([scriptblock]$Command) {
   & $Command
   if ($LASTEXITCODE -ne 0) { throw "Command failed with exit code $LASTEXITCODE" }
@@ -54,6 +67,7 @@ try {
     Checked { & (Join-Path $root 'packages/desktop/scripts/fetch-libs.ps1') -Arch x86_64 }
     # Shown in About/Diagnostics beside the separate upstream client/server versions.
     $env:AIOSTREAMS_INTEGRATED_VERSION = $Version
+    $env:AIOSTREAMS_INTEGRATED_UPDATE_REPOSITORY = $UpdateRepository
     Push-Location (Join-Path $root 'packages/desktop')
     try { Checked { cargo test --locked }; Checked { cargo build --release --locked } } finally { Pop-Location }
   }
@@ -135,15 +149,27 @@ try {
   if (-not (Test-Path "$tools/vpk/vpk.exe")) {
     Checked { dotnet tool install vpk --version $pins.velopack --tool-path "$tools/vpk" }
   }
+  if ($FeedUrl) {
+    # The previous release of this channel, for a delta. A channel's first release has none.
+    & "$tools/vpk/vpk.exe" download http --url $FeedUrl --channel $velopackChannel -o $releases
+    if ($LASTEXITCODE -ne 0) { Write-Host "No earlier $velopackChannel release to build a delta from." }
+  }
   Checked {
     & "$tools/vpk/vpk.exe" pack --packId aiostreams-integrated --packVersion $Version `
       --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams' `
       --packAuthors 'AIOStreams contributors; integrated desktop contributors' `
-      --icon packages/desktop/app/icons/aiostreams.ico --channel win-x64 `
+      --icon packages/desktop/app/icons/aiostreams.ico --channel $velopackChannel `
       --runtime win-x64 --shortcuts StartMenuRoot --instLocation PerUser --outputDir $releases `
       @(if (-not $BundleWebView2) { '--framework', 'webview2' })
   }
-  Get-ChildItem $releases -File | ForEach-Object {
+  # Only this version's packages ship; the downloaded previous full package was input for the delta.
+  Get-ChildItem $releases -Filter '*.nupkg' | Where-Object { $_.Name -notmatch "-$([regex]::Escape($Version))-" } | Remove-Item
+  Set-Content "$releases/BUILD-INFO.json" (@{
+    version = $Version; channel = $Channel; velopackChannel = $velopackChannel; packageId = 'aiostreams-integrated'
+    updateRepository = $UpdateRepository; commit = (git rev-parse HEAD).Trim()
+    upstream = (Get-Content .github/upstream-sync.json -Raw | ConvertFrom-Json).baseline
+  } | ConvertTo-Json -Depth 5)
+  Get-ChildItem $releases -File | Where-Object Name -ne 'SHA256SUMS.txt' | ForEach-Object {
     $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     "$hash  $($_.Name)"
   } | Set-Content "$releases/SHA256SUMS.txt"

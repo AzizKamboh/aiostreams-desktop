@@ -1,0 +1,121 @@
+name: Pull Request CI
+
+# Fast Linux checks for every pull request and push to main. Read-only: it
+# never publishes anything. The real Windows build, installer, update and
+# playback tests are in embedded-desktop.yml. The upstream-sync workflow also
+# starts this with workflow_dispatch on its branch, because pull requests a
+# workflow opens with GITHUB_TOKEN do not start other workflows by themselves.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      typescript: ${{ steps.diff.outputs.typescript }}
+      rust: ${{ steps.diff.outputs.rust }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # Without a usable base (manual runs, new branches), check everything.
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null || [ "$BASE" = 0000000000000000000000000000000000000000 ]; then
+            echo "typescript=true" >> "$GITHUB_OUTPUT"; echo "rust=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          files=$(git diff --name-only "$(git merge-base "$BASE" HEAD)" HEAD)
+          printf '%s\n' "$files"
+          grep -qE '^(packages/(core|server|web|frontend|ui|crypto)/|pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|patches/|tsconfig)' <<< "$files" \
+            && echo "typescript=true" >> "$GITHUB_OUTPUT" || echo "typescript=false" >> "$GITHUB_OUTPUT"
+          grep -qE '^packages/desktop/' <<< "$files" \
+            && echo "rust=true" >> "$GITHUB_OUTPUT" || echo "rust=false" >> "$GITHUB_OUTPUT"
+
+  repository:
+    name: Repository checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.1
+      - name: Conflict markers
+        run: node scripts/upstream/sync.mjs check-markers
+      - name: Upstream workflow guards
+        run: node scripts/upstream/sync.mjs check-guards
+      - name: Upstream sync and release tooling tests
+        run: node --test scripts/upstream/*.test.mjs scripts/release/*.test.mjs
+      - name: Version consistency
+        run: node scripts/release/release.mjs check
+
+  typescript:
+    name: TypeScript build and tests
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: 11.0.8
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.1
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build server, dashboard and web app
+        env:
+          APTABASE_APP_KEY: ''
+          APTABASE_HOST: ''
+        run: |
+          node scripts/desktop/generate-metadata.mjs
+          pnpm run build
+          AIOSTREAMS_DESKTOP_BUILD=1 pnpm -F @aiostreams/web build:standalone
+      - name: Integration tests (private boundary, accounts, storage)
+        run: pnpm exec vitest run packages/server/src/desktop.test.ts packages/web/tests/embedded-storage.test.ts packages/web/tests/embedded-accounts.test.ts
+      - name: Workspace tests
+        run: pnpm test
+      - name: Backend smoke test (real server process, fixtures only)
+        run: node scripts/desktop/smoke.mjs
+
+  rust:
+    name: Rust tests
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: GTK 4 and WebKitGTK headers for the Linux shell
+        run: sudo apt-get update && sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: 1.99.1
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: packages/desktop
+      - name: cargo test
+        working-directory: packages/desktop
+        run: cargo test --locked --workspace

@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Checks a published (or local) Velopack feed with the same Velopack version and
+# integrated update rules as the app. Not shipped; used by the release workflows.
+[package]
+name = "aiostreams-integrated-feed-check"
+version = "0.0.0"
+edition = "2024"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+# Must match packages/desktop/Cargo.lock (release.mjs check enforces it).
+velopack = "=1.2.161"
+
+[workspace]
