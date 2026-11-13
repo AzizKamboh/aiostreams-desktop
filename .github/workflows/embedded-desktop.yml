@@ -159,10 +159,13 @@ jobs:
         # The build also checksums Velopack updater files, which are not
         # released while the in-app updater is off. Publish only what ships.
         run: |
-          grep -E '  aiostreams-integrated-(win-x64-Setup\.exe|win-x64-Portable\.zip|source\.tar\.gz)$' SHA256SUMS.txt > released.txt
+          # Written on Windows: drop CRLF line endings and any byte-order mark.
+          sed -e 's/\r$//' -e '1s/^\xEF\xBB\xBF//' SHA256SUMS.txt > all.txt
+          grep -E '  aiostreams-integrated-(win-x64-Setup\.exe|win-x64-Portable\.zip|source\.tar\.gz)$' all.txt > released.txt || true
           [ "$(wc -l < released.txt)" -eq 3 ] || { cat SHA256SUMS.txt; echo "::error::Expected checksums for the installer, portable ZIP and source"; exit 1; }
           sha256sum -c released.txt
           mv released.txt SHA256SUMS.txt
+          rm all.txt
       - name: Create draft release (not published)
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
