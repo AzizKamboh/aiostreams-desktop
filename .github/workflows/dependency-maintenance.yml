@@ -1,0 +1,79 @@
+name: Dependency maintenance
+
+# Weekly: proposes updates to the pins this repository owns (bundled Node.js
+# runtime with its official checksum, GitHub Actions in integration-owned
+# workflows) as a reviewable pull request. Never merges. Upstream's npm and
+# Cargo dependencies are not touched here: they arrive with upstream syncs.
+# Major versions are never changed automatically. See docs/CONTRIBUTING.md.
+on:
+  schedule:
+    - cron: '17 7 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-maintenance
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
+    env:
+      BRANCH: deps/integration-pins
+    steps:
+      - name: GitHub App token (optional)
+        id: app
+        if: vars.UPSTREAM_SYNC_APP_ID != ''
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.UPSTREAM_SYNC_APP_ID }}
+          private-key: ${{ secrets.UPSTREAM_SYNC_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          token: ${{ steps.app.outputs.token || github.token }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.1
+      - id: deps
+        run: node scripts/release/deps.mjs --write | tee "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Open or update the pull request
+        if: steps.deps.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          USING_APP: ${{ steps.app.outputs.token != '' }}
+          WORKFLOWS: ${{ steps.deps.outputs.workflows }}
+        run: |
+          body="$RUNNER_TEMP/summary.md"
+          printf '\n\nThe Windows build rebuilds native modules for the new runtime and runs every native test. Review, wait for **Pull Request CI** and **Integrated Windows desktop**, then merge.\n' >> "$body"
+          if [ "$USING_APP" != true ] && [ "$WORKFLOWS" = true ]; then
+            # GITHUB_TOKEN may not push workflow changes: report them instead.
+            title='Integration dependency updates need the GitHub App or a manual pull request'
+            existing=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number // empty')
+            { cat "$body"; echo; echo 'Apply with `node scripts/release/deps.mjs --write` and open a pull request.'; } > issue.md
+            if [ -n "$existing" ]; then gh issue edit "$existing" --body-file issue.md; else gh issue create --title "$title" --body-file issue.md; fi
+            exit 0
+          fi
+          git config user.name 'aiostreams-integrated-maintenance[bot]'
+          git config user.email 'aiostreams-integrated-maintenance@users.noreply.github.com'
+          git switch -C "$BRANCH"
+          git commit -qam 'chore(deps): update integration-owned runtime and action pins'
+          # This bot-owned branch only ever holds the latest proposal.
+          git push --force-with-lease origin "HEAD:refs/heads/$BRANCH"
+          if [ -z "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')" ]; then
+            gh pr create --base main --head "$BRANCH" --title 'chore(deps): update integration-owned runtime and action pins' --body-file "$body"
+          else
+            gh pr edit "$BRANCH" --body-file "$body"
+          fi
+          if [ "$USING_APP" != true ]; then
+            gh workflow run pr-ci.yml --ref "$BRANCH"
+            gh workflow run embedded-desktop.yml --ref "$BRANCH"
+          fi

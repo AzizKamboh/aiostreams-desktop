@@ -92,7 +92,7 @@ jobs:
           pnpm run build
           AIOSTREAMS_DESKTOP_BUILD=1 pnpm -F @aiostreams/web build:standalone
       - name: Integration tests (private boundary, accounts, storage)
-        run: pnpm exec vitest run packages/server/src/desktop.test.ts packages/web/tests/embedded-storage.test.ts packages/web/tests/embedded-accounts.test.ts
+        run: pnpm exec vitest run packages/server/src/desktop.test.ts packages/web/tests/embedded-storage.test.ts packages/web/tests/embedded-accounts.test.ts packages/web/tests/embedded-updates.test.ts
       - name: Workspace tests
         run: pnpm test
       - name: Backend smoke test (real server process, fixtures only)

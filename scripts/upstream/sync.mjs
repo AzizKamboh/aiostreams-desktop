@@ -122,7 +122,7 @@ function detect() {
   return result;
 }
 
-function buildReport(baseline, target, conflicts, tags) {
+function buildReport(baseline, target, conflicts, tags, keptOurs = []) {
   const config = tracking();
   const files = git(['diff', '--name-only', baseline.commit, target.commit]).split('\n').filter(Boolean);
   const subjects = git(['log', '--no-merges', '--format=%s', `${baseline.commit}..${target.commit}`]).split('\n').filter(Boolean);
@@ -135,6 +135,7 @@ function buildReport(baseline, target, conflicts, tags) {
     baseline,
     target,
     conflicts,
+    keptOurs,
     hooks: hooks(),
     classification: classifyChanges(files, hooks()),
     commits: groupCommits(subjects),
@@ -165,12 +166,26 @@ function prepare() {
   git(['checkout', '-B', found.branch, base], { quiet: true });
   const title = `chore(upstream): sync AIOStreams server ${target.serverVersion} and desktop ${target.desktopVersion} (${target.ref})`;
   let conflicts = [];
+  let keptOurs = [];
   if (!gitOk(['merge', '--no-ff', '--no-commit', '--no-edit', target.commit])) {
     conflicts = git(['diff', '--name-only', '--diff-filter=U']).split('\n').filter(Boolean);
     if (conflicts.length === 0) {
       git(['merge', '--abort']);
       throw new Error('git merge failed without reporting conflicted files');
     }
+    // Only files this repository deliberately replaces keep its version; the
+    // report lists them. Every other conflict is left for a person.
+    const replaced = Object.keys(hooks().integrationReplacedFiles ?? {});
+    keptOurs = conflicts.filter((file) => isReplaced(file, replaced));
+    for (const file of keptOurs) {
+      if (gitOk(['cat-file', '-e', `HEAD:${file}`])) {
+        git(['checkout', '--ours', '--', file]);
+        git(['add', '--', file]);
+      } else {
+        git(['rm', '-q', '--', file]);
+      }
+    }
+    conflicts = conflicts.filter((file) => !keptOurs.includes(file));
   }
   // Tracking files describe what this branch integrates.
   const config = tracking();
@@ -196,13 +211,19 @@ function prepare() {
   const body = [
     `Merges upstream ${target.ref} (${target.commit}) into the integrated app.`,
     `Previous upstream baseline: ${baseline.ref} (${baseline.commit}).`,
+    keptOurs.length ? `\nKept this repository's version of replaced files: ${keptOurs.join(', ')}` : '',
     conflicts.length ? `\nUNRESOLVED CONFLICTS (committed with markers for manual resolution):\n${conflicts.map((f) => `  ${f}`).join('\n')}` : '',
   ].join('\n');
   git(['commit', '--no-verify', '-m', title, '-m', body], { quiet: true });
-  const report = buildReport(baseline, target, conflicts, found.tags);
-  const result = { status: conflicts.length ? 'conflicted' : 'merged', branch: found.branch, title, base, head: git(['rev-parse', 'HEAD']), conflicts, target, baseline };
+  const report = buildReport(baseline, target, conflicts, found.tags, keptOurs);
+  const result = { status: conflicts.length ? 'conflicted' : 'merged', branch: found.branch, title, base, head: git(['rev-parse', 'HEAD']), conflicts, keptOurs, target, baseline };
   writeOut(out, report, result);
   return result;
+}
+
+/** Whether a path is one this repository replaces wholesale (scripts/upstream/hooks.json). */
+export function isReplaced(file, patterns) {
+  return patterns.some((pattern) => (pattern.endsWith('/') ? file.startsWith(pattern) : file === pattern));
 }
 
 function checkMarkers() {

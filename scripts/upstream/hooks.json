@@ -37,7 +37,6 @@
     "packages/desktop/core/src/downloads.rs": "authorises local download URLs",
     "packages/desktop/core/src/logs.rs": "log redaction",
     ".github/workflows/": "upstream release/publish workflows are guarded to run only in Viren070/AIOStreams",
-    "README.md": "integrated landing page replaces upstream's README (upstream's is kept as docs/UPSTREAM-README.md)",
     ".gitignore": "integration build directories"
   },
   "shadowedUpstreamFiles": {
@@ -108,5 +107,9 @@
     "release-publish.yml",
     "post-release-validation.yml",
     "dependency-maintenance.yml"
-  ]
+  ],
+  "integrationReplacedFiles": {
+    "README.md": "the integrated project's landing page; upstream's README is linked from it",
+    ".github/ISSUE_TEMPLATE/": "issue forms for this distribution; upstream-only bugs are sent to Viren070/AIOStreams"
+  }
 }

@@ -106,7 +106,7 @@ export function classifyChanges(files, hooks) {
 
 /** Explanation shown for a hooked or contract path. */
 export function describePath(file, hooks) {
-  for (const group of [hooks.hookedUpstreamFiles, hooks.shadowedUpstreamFiles ?? {}, hooks.contracts]) {
+  for (const group of [hooks.hookedUpstreamFiles, hooks.integrationReplacedFiles ?? {}, hooks.shadowedUpstreamFiles ?? {}, hooks.contracts]) {
     for (const [pattern, why] of Object.entries(group)) if (matches(file, pattern)) return why;
   }
   return '';
@@ -176,6 +176,10 @@ Upstream commits: ${r.commitCount} · changed files: ${c.total} (${c.shipped.len
 ${list(r.releases, (link) => `- [${link.name}](${link.url})`)}
 ${conflicted ? `## Conflicts (${r.conflicts.length})
 ${list(r.conflicts, describe, 200)}
+` : ''}${r.keptOurs?.length ? `## Integration-replaced files (this repository's version kept)
+Upstream changed these files, which this repository replaces wholesale. Check whether anything in upstream's change should be carried over by hand.
+
+${list(r.keptOurs, describe)}
 ` : ''}## Integration hooks affected
 Upstream changed files that carry integration hooks. Check that each hook still applies and still does its job.
 
