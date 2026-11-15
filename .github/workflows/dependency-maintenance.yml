@@ -57,10 +57,19 @@ jobs:
           if [ "$USING_APP" != true ] && [ "$WORKFLOWS" = true ]; then
             # GITHUB_TOKEN may not push workflow changes: report them instead.
             title='Integration dependency updates need the GitHub App or a manual pull request'
-            existing=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number // empty')
             { cat "$body"; echo; echo 'Apply with `node scripts/release/deps.mjs --write` and open a pull request.'; } > issue.md
-            if [ -n "$existing" ]; then gh issue edit "$existing" --body-file issue.md; else gh issue create --title "$title" --body-file issue.md; fi
-            exit 0
+            # The run summary first: the report must survive even when the issue cannot be filed.
+            { echo "## $title"; cat issue.md; } >> "$GITHUB_STEP_SUMMARY"
+            filed=false
+            existing=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number // empty' || true)
+            if [ -n "$existing" ]; then
+              if gh issue edit "$existing" --body-file issue.md; then filed=true; fi
+            else
+              if gh issue create --title "$title" --body-file issue.md; then filed=true; fi
+            fi
+            if [ "$filed" = true ]; then exit 0; fi
+            echo "::error::These updates change workflow files, which GITHUB_TOKEN may not push, and the Actions token was refused when filing an issue. The proposal is in this run's summary. Configure the sync GitHub App (docs/UPSTREAM-SYNC.md), or apply it locally."
+            exit 1
           fi
           git config user.name 'aiostreams-integrated-maintenance[bot]'
           git config user.email 'aiostreams-integrated-maintenance@users.noreply.github.com'
