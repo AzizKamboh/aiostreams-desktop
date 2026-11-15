@@ -123,16 +123,27 @@ jobs:
           if [ "$USING_APP" != true ] && [ -n "$(git diff --name-only "$base" HEAD -- .github/workflows)" ]; then
             # GITHUB_TOKEN may not push workflow changes. Report instead of dropping them.
             issue_title="Upstream $REF changes workflows: sync needs the GitHub App or a manual merge"
-            existing=$(gh issue list --state open --search "in:title \"$issue_title\"" --json number --jq '.[0].number // empty')
             {
               echo "Upstream $REF changes files under .github/workflows, which GITHUB_TOKEN cannot push."
               echo "Configure the sync GitHub App (docs/UPSTREAM-SYNC.md) and re-run **Upstream Sync**, or run locally:"
               echo; echo '```sh'; echo "node scripts/upstream/sync.mjs prepare --ref $REF"; echo "git push -u origin $BRANCH"; echo '```'; echo
               cat "$body"
             } > issue.md
-            if [ -n "$existing" ]; then gh issue edit "$existing" --body-file issue.md; else gh issue create --title "$issue_title" --body-file issue.md; fi
-            echo "::warning::Opened an issue instead of a pull request: upstream changes workflows."
-            exit 0
+            # The run summary first: the report must survive even when the issue cannot be filed.
+            { echo "## $issue_title"; cat issue.md; } >> "$GITHUB_STEP_SUMMARY"
+            filed=false
+            existing=$(gh issue list --state open --search "in:title \"$issue_title\"" --json number --jq '.[0].number // empty' || true)
+            if [ -n "$existing" ]; then
+              if gh issue edit "$existing" --body-file issue.md; then filed=true; fi
+            else
+              if gh issue create --title "$issue_title" --body-file issue.md; then filed=true; fi
+            fi
+            if [ "$filed" = true ]; then
+              echo "::warning::Opened an issue instead of a pull request: upstream changes workflows."
+              exit 0
+            fi
+            echo "::error::Upstream $REF changes workflows, so this run may not push the merge, and the Actions token was refused when filing an issue. The full report is in this run's summary. Configure the sync GitHub App (docs/UPSTREAM-SYNC.md), or merge locally: node scripts/upstream/sync.mjs prepare --ref $REF && git push -u origin $BRANCH"
+            exit 1
           fi
           git push origin "HEAD:refs/heads/$BRANCH"
           gh label create upstream-sync --color 0e8a16 --description 'Automated upstream synchronisation' 2>/dev/null || true

@@ -169,8 +169,14 @@ limits apply:
   and satisfy required checks of the same name. After you push conflict
   resolutions yourself, the normal `pull_request` triggers run.
 - GITHUB_TOKEN cannot push commits that change `.github/workflows/*`. When an
-  upstream release changes workflows, the run opens an issue with the report
-  and the two commands to prepare and push the branch yourself.
+  upstream release changes workflows, the run writes the report to the run
+  summary, then opens an issue with it and the two commands to prepare and
+  push the branch yourself. If the Actions token is also refused when filing
+  the issue, the run fails with an error pointing at that summary, so the
+  report is never lost. (Seen on 15 November 2026 for upstream `v2.38.1`:
+  `GraphQL: Resource not accessible by integration (createIssue)`, with
+  `Issues: write` granted and issues enabled — check Settings → Actions and
+  Settings → Moderation options if it recurs.)
 
 Repository setting required: Settings → Actions → General → Workflow
 permissions → **Allow GitHub Actions to create and approve pull requests**
