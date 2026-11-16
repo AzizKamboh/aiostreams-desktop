@@ -124,11 +124,13 @@ export function usePlayer(
   const [engine, setEngine] = React.useState(() => make(0));
   const active = React.useRef(engine);
   const engineAt = React.useRef(0);
+  const inPip = React.useRef(false);
   const use = (at: number) => {
     const made = make(at);
     active.current = made;
     engineAt.current = at;
     setEngine(made);
+    if (inPip.current) made.setPictureInPicture?.(true);
     return made;
   };
   // The picks a version keeps when it moves to the next engine mid-play.
@@ -461,25 +463,37 @@ export function usePlayer(
   }, [engine, statsPage, statsRows]);
 
   const [thumbnailsOn] = useSetting(settings.controls.thumbnails);
+  const { pictures } = opts;
   React.useEffect(() => {
+    const read = engine.thumbnails;
     // A live stream has no seek bar, and opening it again can take the
     // provider's only connection from the player.
     if (
-      !engine.thumbnails ||
+      (!pictures && !read) ||
       !thumbnailsOn ||
       liveSource ||
       opts.thumbnails === false
     )
       return;
-    const feed = thumbnailFeed((onThumbnail) =>
-      engine.thumbnails!({ url, headers: latest.current.headers }, onThumbnail)
+    const feed = thumbnailFeed(
+      pictures ??
+        ((onThumbnail) =>
+          read!({ url, headers: latest.current.headers }, onThumbnail))
     );
     setThumbnails(feed);
     return () => {
       feed.stop();
       setThumbnails(undefined);
     };
-  }, [engine, latest, url, thumbnailsOn, liveSource, opts.thumbnails]);
+  }, [
+    engine,
+    latest,
+    url,
+    thumbnailsOn,
+    liveSource,
+    opts.thumbnails,
+    pictures,
+  ]);
 
   React.useEffect(() => {
     if (!thumbnails || !state.started) return;
@@ -553,8 +567,12 @@ export function usePlayer(
       engine.toggleFullscreen && (() => engine.toggleFullscreen!()),
     togglePictureInPicture:
       engine.togglePictureInPicture && (() => engine.togglePictureInPicture!()),
+    setPictureInPicture: (open) => {
+      inPip.current = open;
+      active.current.setPictureInPicture?.(open);
+    },
     setFrame: engine.setFrame && ((frame) => engine.setFrame!(frame)),
-    chapters,
+    chapters: chapters?.length ? chapters : opts.chapters,
     stats: stats && {
       pages: stats.pages,
       page: statsPage,

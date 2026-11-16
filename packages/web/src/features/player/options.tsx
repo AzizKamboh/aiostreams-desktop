@@ -25,6 +25,7 @@ import {
   LuPictureInPicture,
   LuPlus,
   LuRatio,
+  LuSignalHigh,
   LuSlidersHorizontal,
   LuStretchHorizontal,
   LuTimer,
@@ -73,6 +74,7 @@ import { ControlButton } from './buttons';
 import { useParty } from '@/lib/party/party';
 import { RATES, rateLabel } from './keys';
 import { useLatest } from '@/hooks/use-latest';
+import { qualityOptions } from '@/lib/playback/quality';
 
 /** Opens in the menu's place from a row under its list. */
 interface MenuPage {
@@ -554,6 +556,12 @@ function SubtitleTiming({
   );
 }
 
+/** Where the server converts a version, the most it may stream at, which starts it again. */
+export interface Quality {
+  value: number;
+  select(bitrate: number): void;
+}
+
 export function OptionButtons({
   player,
   onMenu,
@@ -566,6 +574,7 @@ export function OptionButtons({
   onSyncByEar,
   onSyncToLine,
   onParty,
+  quality,
   notice,
 }: {
   player: PlayerController;
@@ -579,6 +588,7 @@ export function OptionButtons({
   onAddFile(): void;
   onSyncByEar(): void;
   onSyncToLine(): void;
+  quality?: Quality;
   notice(text: string): void;
 }) {
   const { state } = player;
@@ -738,6 +748,19 @@ export function OptionButtons({
           value={String(state.rate)}
           onSelect={(id) => id && player.setRate?.(Number(id))}
           {...menuState('speed')}
+        />
+      )}
+      {quality && (
+        <Menu
+          name="quality"
+          label={t`Quality`}
+          icon={<LuSignalHigh />}
+          options={qualityOptions()}
+          value={String(quality.value)}
+          onSelect={(id) =>
+            id && Number(id) !== quality.value && quality.select(Number(id))
+          }
+          {...menuState('quality')}
         />
       )}
       {player.fit && <FitButton notice={notice} />}

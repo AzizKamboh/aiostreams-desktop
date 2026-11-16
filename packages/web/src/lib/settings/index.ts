@@ -86,8 +86,8 @@ export type TopBar = (typeof TOP_BARS)[number];
 export const TAB_NAMES = ['shown', 'hidden'] as const;
 export type TabNames = (typeof TAB_NAMES)[number];
 
-export const BAR_BACKGROUNDS = ['solid', 'frosted', 'liquid'] as const;
-export type BarBackground = (typeof BAR_BACKGROUNDS)[number];
+export const GLASS_SURFACES = ['solid', 'frosted', 'liquid'] as const;
+export type GlassSurface = (typeof GLASS_SURFACES)[number];
 
 const POSTER_LINES: PosterLine[] = ['title', 'year'];
 
@@ -191,6 +191,9 @@ export const PLAYER_ENGINES = [
   'browser',
 ] as const;
 export type PlayerEngine = (typeof PLAYER_ENGINES)[number];
+/** A browser's picture-in-picture: a window with the player in it, or its own of the video alone. */
+export const PIP_WINDOWS = ['player', 'video'] as const;
+export type PipWindow = (typeof PIP_WINDOWS)[number];
 /** What Back does in the player: stop, or play on in the mini player. */
 export const PLAYER_BACKS = ['stop', 'minimise'] as const;
 export type PlayerBack = (typeof PLAYER_BACKS)[number];
@@ -206,6 +209,11 @@ export const PARTY_REACTIONS = ['👍', '😂', '😮', '😢', '❤️', '🔥'
 
 export const CACHE_SIZES = ['auto', '128', '256', '512', '1000'] as const;
 export type CacheSize = (typeof CACHE_SIZES)[number];
+
+/** The most a stream may take in bits per second, which a server converts down to; 0 is the file as it is. */
+export const QUALITIES = [
+  0, 20_000_000, 10_000_000, 8_000_000, 4_000_000, 2_000_000, 1_000_000,
+] as const;
 
 /** `auto` asks the output what it decodes, which only the Android app can. */
 export const PASSTHROUGH = ['off', 'auto', 'always'] as const;
@@ -465,13 +473,6 @@ export const settings = {
       'shown',
       TAB_NAMES
     ),
-    /** What the navigation bars over the page sit on. */
-    barBackground: device<BarBackground>(
-      'aiostreams-web-interface-bar-background',
-      'frosted',
-      BAR_BACKGROUNDS,
-      ['aiostreams-web-bar-background']
-    ),
   },
   theme: {
     /** Unset colours keep the stylesheet's own. */
@@ -485,6 +486,18 @@ export const settings = {
       (value) => (value.trim() ? value.slice(0, MAX_CUSTOM_CSS) : undefined)
     ),
     serverCss: syncedFlag('serverCss', true),
+    /** What the navigation bars and glass panels sit on. */
+    glassSurface: device<GlassSurface>(
+      'aiostreams-web-theme-glass-surface',
+      'frosted',
+      GLASS_SURFACES,
+      [
+        'aiostreams-web-interface-bar-background',
+        'aiostreams-web-bar-background',
+      ]
+    ),
+    artBackground: syncedFlag('artBackground'),
+    artGlass: device<boolean>('aiostreams-web-theme-art-glass', false),
   },
   playback: {
     autoPlayFirst: syncedFlag('autoPlayFirst', false, [
@@ -593,10 +606,16 @@ export const settings = {
       'auto',
       CACHE_SIZES
     ),
+    quality: device<number>('aiostreams-web-player-quality', 0, QUALITIES),
     back: device<PlayerBack>(
       'aiostreams-web-player-back',
       'stop',
       PLAYER_BACKS
+    ),
+    pictureInPicture: device<PipWindow>(
+      'aiostreams-web-player-picture-in-picture',
+      'player',
+      PIP_WINDOWS
     ),
     /** Where the mini player was left. */
     miniCorner: device<MiniCorner>(
