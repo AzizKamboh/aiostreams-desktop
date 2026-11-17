@@ -146,9 +146,29 @@ jobs:
             exit 1
           fi
           git push origin "HEAD:refs/heads/$BRANCH"
-          gh label create upstream-sync --color 0e8a16 --description 'Automated upstream synchronisation' 2>/dev/null || true
           draft=(); [ "$status" = conflicted ] && draft=(--draft)
-          gh pr create --base main --head "$BRANCH" --title "$title" --body-file "$body" --label upstream-sync "${draft[@]}"
+          # The label is cosmetic and needs issue-scope write, which the token may
+          # not have. Never let it stop the pull request from being opened.
+          label=()
+          if gh label create upstream-sync --color 0e8a16 --description 'Automated upstream synchronisation' >/dev/null 2>&1 \
+            || gh label list --search upstream-sync --json name --jq '.[].name' 2>/dev/null | grep -qx upstream-sync; then
+            label=(--label upstream-sync)
+          else
+            echo "::warning::Could not create or find the upstream-sync label; opening the pull request without it."
+          fi
+          if ! gh pr create --base main --head "$BRANCH" --title "$title" --body-file "$body" "${label[@]}" "${draft[@]}"; then
+            # The branch is already pushed, so the report must not die with this step.
+            {
+              echo "## $title"
+              echo
+              echo "Branch \`$BRANCH\` was pushed, but opening its pull request failed."
+              echo "Open it by hand: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/main...$BRANCH"
+              echo
+              cat "$body"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Pushed $BRANCH but could not open its pull request. The full report is in this run's summary; open the pull request from that branch."
+            exit 1
+          fi
           if [ "$USING_APP" != true ]; then
             # Pull requests opened with GITHUB_TOKEN start no pull_request workflows.
             gh workflow run pr-ci.yml --ref "$BRANCH"
@@ -157,7 +177,7 @@ jobs:
           {
             echo "### $title"
             echo "Status: **$status**. Branch: \`$BRANCH\`."
-            [ "$status" = conflicted ] && echo "Conflicted files: $(jq -r '.conflicts | join(", ")' "$result")"
+            if [ "$status" = conflicted ]; then echo "Conflicted files: $(jq -r '.conflicts | join(", ")' "$result")"; fi
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Note superseded sync pull requests
         if: steps.existing.outputs.skip != 'true'
