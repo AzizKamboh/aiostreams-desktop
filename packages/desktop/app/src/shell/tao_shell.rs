@@ -466,17 +466,12 @@ pub fn run(app: App) {
                     return;
                 }
                 log::info!("closing");
-<<<<<<< HEAD
                 if let Some(backend) = crate::embedded::get() {
                     backend.stop();
                 }
                 crate::updates::on_exit();
-                match pip {
-                    Some(_) => Pip::record(&window, &mut placement),
-=======
                 match &pip {
                     Some(small) => small.record(&window, &mut placement),
->>>>>>> 113ab6bfd5888f494f78370e2b7fe5ee39897e1d
                     None => record(&window, &mut placement),
                 }
                 placement::save(&data_dir, &placement);
