@@ -14,7 +14,7 @@ import {
   useSchedules,
 } from '@/features/live-tv/live-tv';
 import { useInView } from '@/hooks/use-in-view';
-import { navigate, to } from '@/lib/paths';
+import { useSearchParam } from '@/hooks/use-search-param';
 import { PageBody } from '@/components/shell/page';
 import { PillTabs } from '@/components/pill-tabs';
 import { MixedGrid } from '@/components/media/mixed-grid';
@@ -22,6 +22,12 @@ import { CardGrid } from '@/components/media/media-row';
 import { ChannelCard } from '@/features/live-tv/channel-card';
 import { BATCH } from '@/features/live-tv/channel-list';
 import { openRandom } from '@/components/media/random-pick';
+import {
+  SORTS,
+  SortPicker,
+  useSortParam,
+  type SortKey,
+} from '@/components/media/sort-picker';
 
 const KINDS = [
   {
@@ -47,6 +53,8 @@ const KINDS = [
 /* eslint-disable-next-line lingui/no-unlocalized-strings -- Jellyfin's item type */
 const CHANNELS = 'TvChannel';
 
+const FAVOURITE_SORTS: SortKey[] = ['added', 'name', 'released', 'rating'];
+
 export function FavouritesPage({ kind }: { kind?: string }) {
   const { client } = useSession();
   const live = !!useLiveTvView().data;
@@ -55,11 +63,15 @@ export function FavouritesPage({ kind }: { kind?: string }) {
     : KINDS;
   const types = kinds.find((k) => k.value === kind)?.value ?? KINDS[0].value;
   const channels = types === CHANNELS;
+  const [, setKind] = useSearchParam('kind');
+  const [sort, setSort] = useSortParam(FAVOURITE_SORTS, 'added');
   const pages = useItemPages('', {
     filter: 'favorite',
     types,
     recursive: true,
     enabled: !channels,
+    sortBy: SORTS[sort.key],
+    descending: sort.descending,
   });
   const items = pages.data?.pages.flatMap((p) => p.Items ?? []) ?? [];
   const sentinel = useInView<HTMLDivElement>(
@@ -77,26 +89,28 @@ export function FavouritesPage({ kind }: { kind?: string }) {
         <h1 data-ui="page-title" className="text-3xl font-bold">
           <Trans>Favourites</Trans>
         </h1>
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <PillTabs
             name="kind"
             options={kinds}
             value={types}
             onChange={(next) =>
-              navigate(
-                to.favourites(next === KINDS[0].value ? undefined : next),
-                {
-                  replace: true,
-                }
-              )
+              setKind(next === KINDS[0].value ? undefined : next)
             }
           />
+          {!channels && (
+            <SortPicker
+              keys={FAVOURITE_SORTS}
+              value={sort}
+              onChange={setSort}
+            />
+          )}
           {!!items.length && !channels && (
             <Button
               data-ui="random-pick"
               size="sm"
               intent="gray-subtle"
-              className="rounded-full"
+              className="ms-auto rounded-full"
               leftIcon={<BiShuffle />}
               onClick={() => openRandom({ kind: 'favourite', types })}
             >

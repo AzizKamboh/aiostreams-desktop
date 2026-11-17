@@ -19,7 +19,14 @@ import { useInView } from '@/hooks/use-in-view';
 import { libraryLabel } from '@/lib/format';
 import { navigate, to } from '@/lib/paths';
 import { lastCatalog, rememberCatalog } from '@/lib/settings';
-import { useFeature } from '@/lib/jellyfin/server-info';
+import { useFeature, useServerInfo } from '@/lib/jellyfin/server-info';
+import {
+  SORTS,
+  SortPicker,
+  useSortParam,
+  type SortKey,
+} from '@/components/media/sort-picker';
+import { useSearchParam } from '@/hooks/use-search-param';
 import { tab, tabList } from '@/lib/input';
 import { fitsAsPills, PillTabs } from '@/components/pill-tabs';
 import { MixedGrid } from '@/components/media/mixed-grid';
@@ -40,6 +47,36 @@ const FILTERS: { value: ItemFilter | undefined; label: string }[] = [
       return t`Unwatched`;
     },
   },
+  {
+    value: 'resumable',
+    get label() {
+      return t`In progress`;
+    },
+  },
+  {
+    value: 'played',
+    get label() {
+      return t`Watched`;
+    },
+  },
+  {
+    value: 'favorite',
+    get label() {
+      return t`Favourites`;
+    },
+  },
+];
+
+/** A catalog finds their few matches only by reading page after page. */
+const STOCK_FILTERS: ItemFilter[] = ['resumable', 'played', 'favorite'];
+
+/** A catalog keeps its own order; a server's own library sorts as asked. */
+const LIBRARY_SORTS: SortKey[] = [
+  'name',
+  'added',
+  'released',
+  'rating',
+  'runtime',
 ];
 
 export type Kind = 'Movie' | 'Series' | 'BoxSet';
@@ -188,7 +225,15 @@ export function DiscoverPage({
   const genres = useGenres(viewId);
   const all = views.data?.Items ?? [];
   const view = all.find((v) => v.Id === viewId);
-  const [filter, setFilter] = React.useState<ItemFilter | undefined>();
+  const { stock } = useServerInfo();
+  const filters = stock
+    ? FILTERS
+    : FILTERS.filter((f) => !f.value || !STOCK_FILTERS.includes(f.value));
+  const [filterParam, setFilterParam] = useSearchParam('filter');
+  const filter = filters.find((f) => f.value === filterParam)?.value;
+  const [sort, setSort] = useSortParam(LIBRARY_SORTS, 'name');
+  const [sortParam] = useSearchParam('sort');
+  const kept = { filter: filterParam, sort: sortParam };
 
   const current: Kind = (KINDS.find((k) => k.kind === kind)?.kind ??
     kindOf(view) ??
@@ -226,9 +271,14 @@ export function DiscoverPage({
     genreId: genreItem?.Id,
     recursive: true,
     enabled: !!view && !genres.isLoading,
+    ...(stock && { sortBy: SORTS[sort.key], descending: sort.descending }),
   });
   const items = pages.data?.pages.flatMap((p) => p.Items ?? []) ?? [];
-  const total = pages.data?.pages[0]?.TotalRecordCount;
+  // A catalog's total is a guess until it has been read to the end.
+  const total =
+    stock || !pages.hasNextPage
+      ? pages.data?.pages.at(-1)?.TotalRecordCount
+      : undefined;
   const label = view ? libraryLabel(view) : undefined;
 
   React.useEffect(() => {
@@ -238,8 +288,19 @@ export function DiscoverPage({
   // A genre carried from another catalog is dropped when this one lacks it.
   React.useEffect(() => {
     if (genre && genres.isSuccess && !genreItem)
-      navigate(to.discover(viewId, { kind }), { replace: true });
-  }, [genre, genres.isSuccess, genreItem, viewId, kind]);
+      navigate(
+        to.discover(viewId, { kind, filter: filterParam, sort: sortParam }),
+        { replace: true }
+      );
+  }, [
+    genre,
+    genres.isSuccess,
+    genreItem,
+    viewId,
+    kind,
+    filterParam,
+    sortParam,
+  ]);
 
   // Collections excepted, which a catalog with no kind rarely holds.
   const kindFor = (target: BaseItemDto | undefined): Kind =>
@@ -250,6 +311,7 @@ export function DiscoverPage({
       to.discover(id, {
         genre: genre ?? undefined,
         kind: kindOf(all.find((v) => v.Id === id)) === next ? undefined : next,
+        ...(id === viewId && kept),
       })
     );
 
@@ -330,6 +392,7 @@ export function DiscoverPage({
                 to.discover(viewId, {
                   genre: name ?? undefined,
                   kind: kindOf(view) === current ? undefined : current,
+                  ...kept,
                 })
               )
             }
@@ -337,10 +400,13 @@ export function DiscoverPage({
         )}
         <PillTabs
           name="filter"
-          options={FILTERS}
+          options={filters}
           value={filter}
-          onChange={setFilter}
+          onChange={setFilterParam}
         />
+        {stock && (
+          <SortPicker keys={LIBRARY_SORTS} value={sort} onChange={setSort} />
+        )}
       </div>
 
       {pages.isError ? (

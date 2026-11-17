@@ -59,7 +59,7 @@ import {
 import { usePlayerKeys } from './keys';
 import { ScreenLock } from './lock';
 import { PauseScreen } from './pause-screen';
-import { fitLabel, OptionButtons } from './options';
+import { fitLabel, OptionButtons, type Quality } from './options';
 import { ScrubStrip } from './scrub-strip';
 import { SeekBar } from './seek-bar';
 import { skipLabel, type Segment, type SegmentSkip } from './segments';
@@ -102,6 +102,7 @@ export function PlayerControls({
   steps,
   playlist,
   onParty,
+  quality,
   live = false,
   showAtOpen = false,
 }: {
@@ -122,6 +123,7 @@ export function PlayerControls({
   steps?: 'episode' | 'trailer' | 'playlist';
   playlist?: { id: string; onPlay(entry: BaseItemDto, playlist: string): void };
   onParty?: () => void;
+  quality?: Quality;
   /** A channel: the programme in place of the seek bar, and zapping. */
   live?: boolean;
   showAtOpen?: boolean;
@@ -725,7 +727,7 @@ export function PlayerControls({
             <ControlButton
               name="play"
               label={state.paused ? t`Play` : t`Pause`}
-              onClick={togglePlay}
+              onClick={() => endScrub(true) || togglePlay()}
             >
               {state.paused ? <LuPlay /> : <LuPause />}
             </ControlButton>
@@ -751,6 +753,7 @@ export function PlayerControls({
             onSyncByEar={() => setByEar(true)}
             onSyncToLine={pickLine}
             onParty={onParty}
+            quality={quality}
             notice={showNotice}
           />
         </div>
@@ -954,31 +957,33 @@ function useFocusInside(
   }, [wake, root]);
 }
 
-function useLiftSubtitles(
+export function useLiftSubtitles(
   player: PlayerController,
   bottomBar: React.RefObject<HTMLElement | null>,
   visible: boolean
 ) {
   const latest = useLatest(player);
   React.useEffect(() => {
+    // The bar's own window, which can be a picture-in-picture one.
+    const view = bottomBar.current?.ownerDocument.defaultView ?? window;
     const lift = () => {
       const tops = Array.from(bottomBar.current?.children ?? [])
         .map((child) => child.getBoundingClientRect())
         .filter((r) => r.height > 0)
         .map((r) => r.top);
       latest.current.liftSubtitles?.(
-        visible && tops.length ? 1 - Math.min(...tops) / innerHeight : 0
+        visible && tops.length ? 1 - Math.min(...tops) / view.innerHeight : 0
       );
     };
     lift();
     if (!visible) return;
     // The bar grows with what opens in it, such as a remote's scrub.
-    const grows = new ResizeObserver(lift);
+    const grows = new view.ResizeObserver(lift);
     if (bottomBar.current) grows.observe(bottomBar.current);
-    window.addEventListener('resize', lift);
+    view.addEventListener('resize', lift);
     return () => {
       grows.disconnect();
-      window.removeEventListener('resize', lift);
+      view.removeEventListener('resize', lift);
     };
   }, [visible, latest, bottomBar]);
   React.useEffect(() => () => latest.current.liftSubtitles?.(0), [latest]);
