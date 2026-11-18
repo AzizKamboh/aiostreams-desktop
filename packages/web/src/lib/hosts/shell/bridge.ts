@@ -141,6 +141,8 @@ export type ShellMessage =
       player?: string;
       /** Whether the app can re-encode sound to Dolby Digital. */
       ac3Encoder?: boolean;
+      /** Whether the graphics card can upscale video itself. */
+      superResolution?: boolean;
     }
   | {
       type: 'video-output';
