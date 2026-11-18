@@ -55,7 +55,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.18.1
+          node-version: 24.22.3
       - name: Conflict markers
         run: node scripts/upstream/sync.mjs check-markers
       - name: Upstream workflow guards
@@ -80,7 +80,7 @@ jobs:
           version: 11.0.8
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.18.1
+          node-version: 24.22.3
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build server, dashboard and web app
