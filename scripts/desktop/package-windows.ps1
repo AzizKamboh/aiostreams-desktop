@@ -93,8 +93,12 @@ try {
   $nodeZip = Download-Pinned $pins.node "node-$($pins.node.version)-x64.zip"
   $nodeOut = Join-Path $work 'node'
   if (Test-Path $nodeOut) { Remove-Item $nodeOut -Recurse -Force }
-  Expand-Archive $nodeZip $nodeOut
+  # .NET rather than Expand-Archive, whose bundled module raises non-terminating
+  # errors that would leave $nodeOut empty and fail further down the script.
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
+  [System.IO.Compression.ZipFile]::ExtractToDirectory($nodeZip, $nodeOut)
   $nodeDir = Join-Path $nodeOut "node-v$($pins.node.version)-win-x64"
+  if (-not (Test-Path (Join-Path $nodeDir 'node.exe'))) { throw "Extracting $nodeZip produced no $nodeDir/node.exe." }
   Copy-Item "$nodeDir/node.exe" "$stage/backend/node.exe"
   Copy-Item "$nodeDir/LICENSE" "$stage/licenses/NODE-LICENSE"
   # Visual C++ app-local deployment avoids installing a system-wide runtime or
