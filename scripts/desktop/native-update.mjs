@@ -141,6 +141,30 @@ class CDP {
     return result.result.value;
   }
 }
+/** PowerShell 7 (the shell the CI jobs use) when present, Windows PowerShell otherwise. */
+const shell = (() => {
+  try { execFileSync('pwsh', ['-NoProfile', '-Command', 'exit 0'], { stdio: 'ignore' }); return 'pwsh'; }
+  catch { return 'powershell'; }
+})();
+const psString = (value) => `'${value.replace(/'/g, "''")}'`;
+/** Runs `script` with errors terminating, and surfaces PowerShell's own message on failure. */
+function powershell(script, label) {
+  try {
+    return execFileSync(shell, ['-NoProfile', '-NonInteractive', '-Command', `$ErrorActionPreference = 'Stop'\n${script}`],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (error) {
+    const output = [error.stdout, error.stderr].map((part) => String(part ?? '').trim()).filter(Boolean).join('\n');
+    throw new Error(`${label} failed: ${output || error.message}`);
+  }
+}
+/**
+ * Unpacks a zip with .NET rather than Expand-Archive, whose bundled module
+ * raises non-terminating errors that would leave the destination empty and the
+ * failure to surface several steps later.
+ */
+function extractZip(zip, destination, label) {
+  powershell(`Add-Type -AssemblyName System.IO.Compression.FileSystem\n[System.IO.Compression.ZipFile]::ExtractToDirectory(${psString(zip)}, ${psString(destination)})`, label);
+}
 function installedVersion(root) {
   const manifest = path.join(root, 'current', 'sq.version');
   if (!existsSync(manifest)) return null;
@@ -148,8 +172,9 @@ function installedVersion(root) {
 }
 /** Processes started from an install root (Velopack's restart starts one). */
 function processesUnder(root) {
-  const out = execFileSync('powershell', ['-NoProfile', '-Command',
-    `Get-CimInstance Win32_Process -Filter "Name='aiostreams-desktop.exe'" | Where-Object { $_.ExecutablePath -and $_.ExecutablePath.StartsWith('${root.replace(/'/g, "''")}', 'OrdinalIgnoreCase') } | ForEach-Object { $_.ProcessId }`]).toString();
+  const out = powershell(
+    `Get-CimInstance Win32_Process -Filter "Name='aiostreams-desktop.exe'" | Where-Object { $_.ExecutablePath -and $_.ExecutablePath.StartsWith(${psString(root)}, 'OrdinalIgnoreCase') } | ForEach-Object { $_.ProcessId }`,
+    'Listing app processes');
   return out.split(/\s+/).filter(Boolean).map(Number);
 }
 async function launch(appDir) {
@@ -307,9 +332,9 @@ try {
   if (portableZip) {
     phase = 'portable';
     const portableRoot = path.join(await mkdtemp(path.join(tmpdir(), 'AIOStreams portable 空間 ')), 'AIOStreams');
-    await mkdir(portableRoot, { recursive: true });
-    execFileSync('powershell', ['-NoProfile', '-Command', `Expand-Archive -LiteralPath '${portableZip.replace(/'/g, "''")}' -DestinationPath '${portableRoot.replace(/'/g, "''")}'`]);
+    extractZip(portableZip, portableRoot, `Extracting ${path.basename(portableZip)} to ${portableRoot}`);
     const before = installedVersion(portableRoot);
+    assert.ok(before, `Extracting ${path.basename(portableZip)} left no ${path.join('current', 'sq.version')} under ${portableRoot}`);
     mode = 'good';
     await launch(path.join(portableRoot, 'current'));
     const portable = await updateState('integrated-update-check', (s) => s.state === 'ready', 'portable update download', {}, 300000);
