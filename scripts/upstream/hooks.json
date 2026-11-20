@@ -4,7 +4,7 @@
     "packages/core/src/utils/env.ts": "imports desktop-env.ts before the environment is parsed; AIOSTREAMS_AUTH syntax",
     "packages/core/src/logging/redact.ts": "always redacts desktop secrets",
     "packages/core/src/utils/http/request.ts": "origin comparison before sending the internal secret",
-    "packages/core/src/utils/http.test.ts": "test for the origin comparison",
+    "packages/core/src/utils/http/cooldown.test.ts": "test for the origin comparison",
     "packages/server/src/app.ts": "installDesktop() before upstream middleware; sendFile dotfiles options",
     "packages/server/src/server.ts": "loopback listen, ready event, WebSocket gate, stdin shutdown, deferred datasets",
     "packages/server/src/routes/api/proxy.ts": "never forwards desktop cookies/auth or relays Set-Cookie/CSP",
