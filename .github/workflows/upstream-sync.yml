@@ -72,6 +72,10 @@ jobs:
     env:
       BRANCH: ${{ needs.detect.outputs.branch }}
       REF: ${{ needs.detect.outputs.ref }}
+      # sync.mjs adds a git remote named 'upstream' (Viren070/AIOStreams), and
+      # gh prefers a remote with that name as its default repository, so pull
+      # requests, labels and issues would be sent there. Pin gh to this repo.
+      GH_REPO: ${{ github.repository }}
     steps:
       - name: GitHub App token (optional)
         id: app
