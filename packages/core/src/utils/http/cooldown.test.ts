@@ -6,14 +6,9 @@ import {
   MockAgent,
   setGlobalDispatcher,
 } from 'undici';
-<<<<<<< HEAD:packages/core/src/utils/http.test.ts
-import { settingsStore, config as appConfig } from '../config/index.js';
-import { INTERNAL_SECRET_HEADER } from './constants.js';
-import { SettingsRepository } from '../db/repositories/settings.js';
-=======
-import { settingsStore } from '../../config/index.js';
+import { settingsStore, config as appConfig } from '../../config/index.js';
+import { INTERNAL_SECRET_HEADER } from '../constants.js';
 import { SettingsRepository } from '../../db/repositories/settings.js';
->>>>>>> d3a285c94b8b6896bb86f0e40ed69c848134e131:packages/core/src/utils/http/cooldown.test.ts
 import {
   makeRequest,
   parseRetryAfter,

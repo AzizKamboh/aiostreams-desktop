@@ -195,15 +195,6 @@ function sections(): Section[] {
       group: 'app' as const,
       Content: CacheSection,
     },
-<<<<<<< HEAD
-    {
-      id: 'account',
-      label: t`Account`,
-      description: t`Who you are signed in as`,
-      icon: LuUser,
-      group: 'app' as const,
-      Content: AccountSection,
-    },
     // AIOStreams Integrated: the local server; absent outside the desktop app.
     ...(appBridge()?.backend
       ? [
@@ -217,8 +208,6 @@ function sections(): Section[] {
           },
         ]
       : []),
-=======
->>>>>>> d3a285c94b8b6896bb86f0e40ed69c848134e131
     ...(host.name === 'desktop'
       ? [
           {

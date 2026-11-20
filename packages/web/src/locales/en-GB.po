@@ -3158,17 +3158,10 @@ msgstr "Open playlist"
 msgid "Open the app's downloads"
 msgstr "Open the app's downloads"
 
-<<<<<<< HEAD
 #: src/components/shell/embedded-desktop.tsx
 msgid "Open the logs for details, then restart the backend to try again."
 msgstr "Open the logs for details, then restart the backend to try again."
 
-#: src/app/settings/interface.tsx
-msgid "Opens out to its details"
-msgstr "Opens out to its details"
-
-=======
->>>>>>> d3a285c94b8b6896bb86f0e40ed69c848134e131
 #: src/lib/input/actions.ts
 msgid "Opens the menu of what is selected, as a right click does."
 msgstr "Opens the menu of what is selected, as a right click does."
@@ -3832,15 +3825,11 @@ msgstr "React with {emoji}"
 msgid "Reactions"
 msgstr "Reactions"
 
-<<<<<<< HEAD
 #: src/components/shell/embedded-desktop.tsx
 msgid "Read diagnostics"
 msgstr "Read diagnostics"
 
-#: src/app/settings/playback.tsx
-=======
 #: src/app/settings/player.tsx
->>>>>>> d3a285c94b8b6896bb86f0e40ed69c848134e131
 msgid "Reads and decodes the file itself and draws it on the graphics card, so it also plays formats this browser can't, such as HEVC, Dolby Vision, AC-3, E-AC-3, TrueHD and DTS. A version it can't play goes to this browser's own player."
 msgstr "Reads and decodes the file itself and draws it on the graphics card, so it also plays formats this browser can't, such as HEVC, Dolby Vision, AC-3, E-AC-3, TrueHD and DTS. A version it can't play goes to this browser's own player."
 
@@ -5132,7 +5121,6 @@ msgstr "the link returned something other than a video"
 msgid "the live stream stopped"
 msgstr "the live stream stopped"
 
-<<<<<<< HEAD
 #: src/components/shell/embedded-desktop.tsx
 msgid "The local configuration could not be opened. Check Server settings."
 msgstr "The local configuration could not be opened. Check Server settings."
@@ -5141,10 +5129,7 @@ msgstr "The local configuration could not be opened. Check Server settings."
 msgid "The local server could not run"
 msgstr "The local server could not run"
 
-#: src/app/settings/playback.tsx
-=======
 #: src/app/settings/player.tsx
->>>>>>> d3a285c94b8b6896bb86f0e40ed69c848134e131
 msgid "The mini player keeps the video going over the pages while you look around. Tap it to open the player again, or close it with its cross."
 msgstr "The mini player keeps the video going over the pages while you look around. Tap it to open the player again, or close it with its cross."
 

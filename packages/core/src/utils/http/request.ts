@@ -130,7 +130,8 @@ export async function makeRequest(url: string, options: RequestOptions) {
 
     // Re-evaluated per hop so the secret never travels to a redirect target
     // outside the internal origin.
-    if (urlObj.toString().startsWith(appConfig.bootstrap.internalUrl)) {
+    // AIOStreams Integrated: compare origins, not string prefixes (port 3000 vs 30001).
+    if (urlObj.origin === new URL(appConfig.bootstrap.internalUrl).origin) {
       headers.set(INTERNAL_SECRET_HEADER, appConfig.bootstrap.internalSecret);
     } else {
       headers.delete(INTERNAL_SECRET_HEADER);

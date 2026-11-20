@@ -19,11 +19,8 @@ import {
 import { useAction } from '@/lib/input';
 import { configureUrl } from '@/lib/paths';
 import { useServerInfo } from '@/lib/jellyfin/server-info';
-<<<<<<< HEAD
 import { useDesktopSignInLinks } from '@/components/shell/embedded-nav';
-=======
 import type { SavedServer } from '@/lib/jellyfin/servers';
->>>>>>> d3a285c94b8b6896bb86f0e40ed69c848134e131
 import type {
   PickableUser,
   QuickConnectResult,

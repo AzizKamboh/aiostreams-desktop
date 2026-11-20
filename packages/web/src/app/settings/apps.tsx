@@ -26,19 +26,8 @@ import {
   useDiscordStatus,
   type DiscordStatus,
 } from '@/lib/hosts/shell/desktop';
-<<<<<<< HEAD
-import {
-  addMpvShader,
-  readMpvConfig,
-  readMpvShaders,
-  removeMpvShader,
-  saveMpvConfig,
-} from '@/lib/hosts/shell/android';
-import { appBridge, type VideoOutput } from '@/lib/hosts/shell/bridge';
-import { IntegratedUpdatesCard } from '@/components/shell/embedded-updates';
-=======
 import { appBridge } from '@/lib/hosts/shell/bridge';
->>>>>>> d3a285c94b8b6896bb86f0e40ed69c848134e131
+import { IntegratedUpdatesCard } from '@/components/shell/embedded-updates';
 import {
   settings,
   useSetting,
