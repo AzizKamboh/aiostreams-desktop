@@ -16,7 +16,6 @@ import {
   useLibraryHeads,
   useNextUp,
   useResume,
-  useLiveTvView,
   useUpcoming,
   useViews,
 } from '@/lib/jellyfin/queries';
@@ -49,6 +48,7 @@ import {
   FAVOURITES,
   RECENT,
   useChannelPages,
+  useLiveTvShown,
   useNow,
   useSchedules,
 } from '@/features/live-tv/live-tv';
@@ -59,7 +59,7 @@ import {
   useVersionPicker,
 } from '@/features/versions/version-picker';
 import { NoCatalogs } from '@/components/media/no-catalogs';
-import { FILL_WINDOW } from '@/components/shell/page';
+import { FILL_WINDOW, PAGE_TOP } from '@/components/shell/page';
 import type { BaseItemDto } from '@/lib/jellyfin/types';
 import { currentHost } from '@/lib/hosts';
 import { Anchor } from '@/components/anchor';
@@ -215,7 +215,7 @@ export function HomePage() {
         className={cn(
           heroItems.length || heroLoading
             ? 'relative z-[1] space-y-10 px-4 pt-2 lg:ps-0 lg:pe-10'
-            : 'relative z-[1] space-y-10 px-4 pt-[calc(1.5rem+env(safe-area-inset-top))] lg:ps-0 lg:pe-10 lg:pt-[calc(2.5rem+env(safe-area-inset-top))]',
+            : ['relative z-[1] space-y-10 px-4 lg:ps-0 lg:pe-10', PAGE_TOP],
           noCatalogs && 'flex flex-1 flex-col'
         )}
       >
@@ -333,8 +333,7 @@ const ROW_PAGE = 20;
 
 /** Favourite channels, then those played here lately, with what is on. */
 function LiveRow() {
-  const view = useLiveTvView();
-  const enabled = !!view.data;
+  const enabled = useLiveTvShown(true);
   const favourites = useChannelPages(FAVOURITES, {
     pageSize: ROW_PAGE,
     enabled,
