@@ -7,24 +7,23 @@
     "desktopTagPattern": "^desktop-v(\\d+\\.\\d+\\.\\d+)$"
   },
   "baseline": {
-    "ref": "v2.38.1",
-    "commit": "113ab6bfd5888f494f78370e2b7fe5ee39897e1d",
-    "commitTime": "2026-11-14T23:44:49Z",
+    "ref": "desktop-v0.27.0",
+    "commit": "d3a285c94b8b6896bb86f0e40ed69c848134e131",
+    "commitTime": "2026-11-19T19:38:28Z",
     "serverVersion": "2.38.1",
-    "desktopVersion": "0.25.0",
-    "integratedAt": "2026-11-16T05:47:15Z",
+    "desktopVersion": "0.27.0",
+    "integratedAt": "2026-11-20T17:41:46Z",
     "status": "conflicted",
     "changelogs": [
-      "https://github.com/Viren070/AIOStreams/releases/tag/desktop-v0.25.0",
-      "https://github.com/Viren070/AIOStreams/releases/tag/v2.38.0",
-      "https://github.com/Viren070/AIOStreams/releases/tag/v2.38.1"
+      "https://github.com/Viren070/AIOStreams/releases/tag/desktop-v0.26.0",
+      "https://github.com/Viren070/AIOStreams/releases/tag/desktop-v0.27.0"
     ]
   },
   "blocked": [],
   "previous": {
-    "ref": "desktop-v0.24.0",
-    "commit": "76a5d6da6d1babf885c7f65a2e19bbd55401a26d",
-    "serverVersion": "2.37.0",
-    "desktopVersion": "0.24.0"
+    "ref": "v2.38.1",
+    "commit": "113ab6bfd5888f494f78370e2b7fe5ee39897e1d",
+    "serverVersion": "2.38.1",
+    "desktopVersion": "0.25.0"
   }
 }

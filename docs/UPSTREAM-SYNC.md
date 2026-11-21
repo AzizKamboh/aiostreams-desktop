@@ -212,6 +212,6 @@ branch-protection bypass lists. Never use a personal access token.
 ## Contributing fixes upstream
 
 Integration-independent bug fixes (for example the origin comparison in
-`core/src/utils/http.ts`) are kept as small, separate commits so they can be
+`core/src/utils/http/request.ts`) are kept as small, separate commits so they can be
 offered to Viren070/AIOStreams as ordinary pull requests from a fork. Do not
 open issues or pull requests upstream for integrated-build-only behaviour.

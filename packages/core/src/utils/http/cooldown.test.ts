@@ -6,15 +6,15 @@ import {
   MockAgent,
   setGlobalDispatcher,
 } from 'undici';
-import { settingsStore, config as appConfig } from '../config/index.js';
-import { INTERNAL_SECRET_HEADER } from './constants.js';
-import { SettingsRepository } from '../db/repositories/settings.js';
+import { settingsStore, config as appConfig } from '../../config/index.js';
+import { INTERNAL_SECRET_HEADER } from '../constants.js';
+import { SettingsRepository } from '../../db/repositories/settings.js';
 import {
   makeRequest,
   parseRetryAfter,
   RateLimitedError,
   cooldownKey,
-} from './http.js';
+} from './index.js';
 
 describe('parseRetryAfter', () => {
   test('parses delay-seconds', () => {
