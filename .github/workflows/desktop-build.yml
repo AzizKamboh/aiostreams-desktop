@@ -454,7 +454,7 @@ jobs:
   appimage:
     name: Linux AppImage ${{ matrix.arch }}
     needs: [web, feed, licences]
-    if: inputs.platforms == 'all' || inputs.platforms == 'linux'
+    if: "${{ github.repository == 'Viren070/AIOStreams' && (inputs.platforms == 'all' || inputs.platforms == 'linux') }}"
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     strategy:
@@ -545,7 +545,7 @@ jobs:
   deb:
     name: Linux .deb ${{ matrix.arch }}
     needs: [web, feed, licences]
-    if: inputs.platforms == 'all' || inputs.platforms == 'linux'
+    if: "${{ github.repository == 'Viren070/AIOStreams' && (inputs.platforms == 'all' || inputs.platforms == 'linux') }}"
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     strategy:
@@ -617,7 +617,7 @@ jobs:
   # Arch's recipe for this release's .debs, as the AUR would hold it.
   pkgbuild:
     needs: deb
-    if: inputs.release != '' && (inputs.platforms == 'all' || inputs.platforms == 'linux')
+    if: "${{ github.repository == 'Viren070/AIOStreams' && inputs.release != '' && (inputs.platforms == 'all' || inputs.platforms == 'linux') }}"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

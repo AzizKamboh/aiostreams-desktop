@@ -56,6 +56,9 @@ let child;
 let connection;
 let phase = 'test setup';
 const results = [];
+// The account-ready screen as served by the restarted local server, not the bundled
+// startup page (http://aiostreams.localhost) that briefly shows it first.
+const accountReadyOnServer = 'location.hostname !== "aiostreams.localhost" && location.pathname.startsWith("/__desktop/client") && document.readyState === "complete" && document.body.innerText.includes("Your account is ready")';
 function pass(message) { results.push(message); console.log(`PASS ${message}`); }
 function redact(value, limit = 4096) {
   return String(value ?? '')
@@ -234,7 +237,10 @@ try {
   await connection.evaluate('document.getElementById("account-password-0").form.querySelector("button[type=submit]").click(), true');
   pass('native WebView2 client shows first-run account setup and refuses mismatched passwords');
   // Saving restarts the backend with AIOSTREAMS_AUTH, which reloads the page.
-  await until(() => connection.evaluate('document.body.innerText.includes("Your account is ready")'), 'account accepted by the built-in Usenet check', 240000);
+  // The ready state reaches the bundled startup page first, which shows this screen
+  // for a moment before the shell navigates to the restarted server. Wait for the
+  // server's own client page, then for its button, or the click lands mid-navigation.
+  await until(() => connection.evaluate(accountReadyOnServer), 'account accepted by the built-in Usenet check', 240000);
   base = await connection.evaluate('location.origin');
   await connection.evaluate('window.__nativeEvents=[]; window.aiostreamsApp.subscribe(message=>window.__nativeEvents.push(message)); true');
   const created = await connection.evaluate("fetch('/__desktop/accounts').then(r=>r.json())");
@@ -243,7 +249,7 @@ try {
   assert.equal(accepted.success, true);
   pass('account saved with DPAPI, applied as AIOSTREAMS_AUTH after restart and accepted by the Usenet service check');
   // "Open Usenet providers" opens upstream's dashboard over the library.
-  await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Open Usenet providers")).click(), true');
+  await until(() => connection.evaluate('(() => { const b = [...document.querySelectorAll("button")].find(b => b.innerText.includes("Open Usenet providers")); b?.click(); return !!b; })()'), '"Open Usenet providers" on the account-ready screen');
   const browseEntry = 'document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelector("[data-vertical-menu-item-button=Home]")';
   await until(() => connection.evaluate(`!!${browseEntry}`), 'dashboard panel with Home entry', 60000);
   pass('real dashboard opens in the panel with its Home sidebar entry');
