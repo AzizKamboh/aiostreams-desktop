@@ -209,8 +209,10 @@ async function createAccount() {
   await fill('#account-password-0', 'update-pass-1');
   await fill('#account-confirm-0', 'update-pass-1');
   await connection.evaluate('document.getElementById("account-password-0").form.querySelector("button[type=submit]").click(), true');
-  await until(() => connection.evaluate('document.body.innerText.includes("Your account is ready")'), 'account accepted', 240000);
-  await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Ready to browse"))?.click(), true');
+  // Same race as native-smoke.mjs: the bundled startup page shows this screen briefly
+  // before the shell navigates to the restarted server.
+  await until(() => connection.evaluate('location.hostname !== "aiostreams.localhost" && location.pathname.startsWith("/__desktop/client") && document.readyState === "complete" && document.body.innerText.includes("Your account is ready")'), 'account accepted', 240000);
+  await until(() => connection.evaluate('(() => { const b = [...document.querySelectorAll("button")].find(b => b.innerText.includes("Ready to browse")); b?.click(); return !!b; })()'), '"Ready to browse" on the account-ready screen');
   await subscribeEvents();
   return connection.evaluate('location.origin');
 }
