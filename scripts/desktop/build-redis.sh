@@ -34,10 +34,13 @@ sed 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h > "$build/include/dlfcn.h"
 
 cd "$build/src"
 # Only the server: no TLS (loopback only), libc malloc (jemalloc does not build
-# on this runtime), no optional modules.
+# on this runtime), no optional modules. Cygwin's <ctype.h> macros index an
+# array, so isprint(char) warns under -Wchar-subscripts, which hiredis's -Werror
+# turns into a failure; Cygwin's table is built to accept signed-char indices,
+# so the warning does not apply here.
 make -j"$(nproc)" -C src redis-server \
   BUILD_TLS=no MALLOC=libc USE_SYSTEMD=no \
-  CFLAGS="-I$build/include" OPTIMIZATION=-O2
+  CFLAGS="-I$build/include -Wno-char-subscripts" OPTIMIZATION=-O2
 strip src/redis-server.exe
 ./src/redis-server.exe --version
 
