@@ -131,9 +131,18 @@ jobs:
             tar
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-zlib
+            gcc
+            pkgconf
       - name: Build bundled ffprobe from verified source
         shell: msys2 {0}
         run: bash scripts/desktop/build-ffprobe.sh
+      # AIOMetadata needs Redis 8, which has no Windows port: it is compiled
+      # against the MSYS2 POSIX runtime (MSYS, not MINGW64).
+      - name: Build bundled Redis for AIOMetadata from verified source
+        shell: msys2 {0}
+        env:
+          MSYSTEM: MSYS
+        run: bash scripts/desktop/build-redis.sh
       - name: Build, test, stage, and package
         env:
           PACKAGE_VERSION: ${{ needs.plan.outputs.version }}
@@ -149,6 +158,8 @@ jobs:
           $env:PATH = "$env:SystemRoot/system32;$env:SystemRoot"
           & $node scripts/desktop/smoke.mjs --app-root $runtime --node $node --ffprobe $probe
           if ($LASTEXITCODE -ne 0) { throw 'Packaged runtime smoke test failed.' }
+          & $node scripts/desktop/aiometadata/smoke.mjs --stage (Join-Path $PWD '.embedded-build/stage') --node $node
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged AIOMetadata smoke test failed.' }
       - name: Verify the update feed and checksums
         env:
           PACKAGE_VERSION: ${{ needs.plan.outputs.version }}

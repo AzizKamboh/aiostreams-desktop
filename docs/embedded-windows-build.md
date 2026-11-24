@@ -21,6 +21,13 @@ In an MSYS2 MINGW64 terminal, from the repository root:
 bash scripts/desktop/build-ffprobe.sh
 ```
 
+and in an MSYS2 **MSYS** terminal (Redis 8 for the bundled AIOMetadata; it
+needs the POSIX runtime, so not MINGW64; packages `gcc make pkgconf`):
+
+```sh
+MSYSTEM=MSYS bash scripts/desktop/build-redis.sh
+```
+
 Then in PowerShell 7:
 
 ```powershell
@@ -77,8 +84,11 @@ backend/app/packages/frontend/dist/
 backend/app/packages/web/dist/
 backend/app/node_modules/         production dependencies; no junctions
 backend/app/resources/
+aiometadata/app/                 AIOMetadata (dist, public, server dependencies)
+aiometadata/desktop/preload.cjs  loopback/data-folder adapter
+aiometadata/redis/               redis-server.exe and msys-2.0.dll
 licenses/
-source/                          modified application and ffprobe source
+source/                          modified application, ffprobe, AIOMetadata and Redis source
 ```
 
 SQLite, configuration, credentials, WebView storage, caches and logs live in

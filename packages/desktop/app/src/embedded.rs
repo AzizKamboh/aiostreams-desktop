@@ -57,6 +57,7 @@ pub fn receive(body: &str, send: &dyn Fn(crate::UserEvent)) -> bool {
     match kind {
         "backend-status" => send(crate::UserEvent::BackendState(backend.status())),
         "backend-restart" => backend.restart(),
+        "backend-aiometadata-restart" => backend.restart_aiometadata(),
         "backend-storage-reset" => {
             if let Err(error) = backend.reset_storage() {
                 log::warn!("could not reset the desktop browser settings: {error}");

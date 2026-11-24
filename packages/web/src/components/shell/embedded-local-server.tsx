@@ -22,6 +22,7 @@ import {
   SettingsRow,
 } from '@/app/settings/_components/settings-card';
 import { AccountsSummary } from './embedded-accounts';
+import { AioMetadataCard } from './embedded-aiometadata';
 
 /** Restart and switching servers stop playback, so they ask first. */
 type Pending = { kind: 'restart' } | { kind: 'mode'; mode: BackendMode };
@@ -144,6 +145,12 @@ export function LocalServerSection() {
           </pre>
         )}
       </SettingsCard>
+
+      <AioMetadataCard
+        status={state.aiometadata}
+        local={local}
+        openServer={shell.openServer}
+      />
 
       {local && (
         <AccountsSummary

@@ -38,6 +38,7 @@ upstream interfaces, with native entries added where they belong:
 | Sign-in screens | **Create or edit a configuration**, **AIOStreams Dashboard** |
 | Player controls (hide with the controls) | **AIOStreams Dashboard** button |
 | Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, source download, local/remote switch |
+| Settings → Local server → **AIOMetadata** | the bundled AIOMetadata: status, address, **Configure AIOMetadata**, restart |
 | Dashboard and configuration sidebars | **Home** returns to the app |
 
 The dashboard opens over the library, so a playing title keeps its player:
@@ -46,6 +47,14 @@ playback pauses, and closing the dashboard offers **Resume**. Keyboard:
 **Escape** returns to the library. Shortcuts never fire while you type in a
 field. Restarting the backend or switching servers asks first while something
 plays.
+
+### AIOMetadata
+
+The app also runs [AIOMetadata](https://github.com/cedya77/aiometadata) on your
+computer at `http://127.0.0.1:3232`, with the Redis 8 it needs. Configure it from
+**Settings → Local server → AIOMetadata** (it opens in your browser), then add
+the manifest URL it gives you to your AIOStreams configuration as a **Custom**
+addon. See [docs/AIOMETADATA.md](docs/AIOMETADATA.md).
 
 ### AIOStreams account and built-in Usenet
 
@@ -86,6 +95,11 @@ points are:
 ```sh
 # MSYS2 MINGW64, in the repository root
 bash scripts/desktop/build-ffprobe.sh
+```
+
+```sh
+# MSYS2 MSYS (Redis 8 for the bundled AIOMetadata), in the repository root
+MSYSTEM=MSYS bash scripts/desktop/build-redis.sh
 ```
 
 ```powershell
@@ -147,6 +161,7 @@ Windows paths are separate from installed application files:
 | Protected server key and browser snapshot | Protected files in the backend directory |
 | Native diagnostics and WebView profile | `%LOCALAPPDATA%\AIOStreams Integrated` |
 | Player settings and native preferences | `%APPDATA%\AIOStreams Integrated` |
+| AIOMetadata database, caches and Redis data | `%LOCALAPPDATA%\AIOStreams Integrated\aiometadata` ([details](docs/AIOMETADATA.md#data-and-privacy)) |
 
 Keep both application-data directories when upgrading. Never delete the backend
 key to repair startup: existing encrypted configuration depends on it. Back up

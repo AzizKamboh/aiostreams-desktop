@@ -3,6 +3,8 @@
 
 #[path = "backend/accounts.rs"]
 mod accounts;
+#[path = "backend/aiometadata.rs"]
+mod aiometadata;
 #[path = "backend/secure.rs"]
 mod secure;
 #[cfg(windows)]
@@ -52,6 +54,8 @@ struct State {
     /// The primary credential the user just saved, for the setup screen's copy
     /// step after the restart. Memory only; cleared when acknowledged.
     new_credential: Option<(String, Instant)>,
+    /// Status of the bundled AIOMetadata server (backend/aiometadata.rs).
+    aiometadata: Value,
 }
 
 /// Held by the native shell, never by the worker it owns.
@@ -61,6 +65,7 @@ pub struct Backend {
     state: Arc<Mutex<State>>,
     storage_path: PathBuf,
     root: PathBuf,
+    aiometadata: aiometadata::AioMetadata,
 }
 
 impl Backend {
@@ -95,10 +100,20 @@ impl Backend {
             accounts: saved_accounts,
             accounts_error,
             new_credential: None,
+            aiometadata: json!({ "state": "starting", "message": "Starting AIOMetadata…" }),
         }));
         let (commands, received) = mpsc::channel();
         let shared = state.clone();
         let emit: Emit = Arc::new(emit);
+        // Independent of the AIOStreams server: either can restart or fail alone.
+        let aiometadata = aiometadata::AioMetadata::start(&data_dir, {
+            let state = state.clone();
+            let emit = emit.clone();
+            move |status| {
+                state.lock().unwrap().aiometadata = status;
+                emit(snapshot(&state));
+            }
+        });
         let worker_root = root.clone();
         let worker = thread::Builder::new()
             .name("embedded-backend".into())
@@ -134,7 +149,12 @@ impl Backend {
             state,
             storage_path,
             root,
+            aiometadata,
         })
+    }
+
+    pub fn restart_aiometadata(&self) {
+        self.aiometadata.restart();
     }
 
     /// Save the setup screen's accounts, then restart the backend so upstream
@@ -269,6 +289,7 @@ impl Backend {
     /// Explicitly called on window close. Drop is a second line of defence.
     pub fn stop(&self) {
         let _ = self.commands.send(Control::Stop);
+        self.aiometadata.stop();
         if let Ok(mut worker) = self.worker.lock() {
             if let Some(worker) = worker.take() {
                 let _ = worker.join();
@@ -397,6 +418,7 @@ fn snapshot(state: &Mutex<State>) -> Value {
         "accountsError": s.accounts_error,
         "storageLocked": !s.storage_writable,
         "newCredential": s.new_credential.as_ref().map(|(c, _)| c),
+        "aiometadata": s.aiometadata,
     })
 }
 
@@ -895,7 +917,8 @@ fn drain(
 }
 
 fn classify(text: &str) -> Option<&'static str> {
-    if text.contains("EADDRINUSE") {
+    // Node reports EADDRINUSE; the bundled Redis reports the C library's text.
+    if text.contains("EADDRINUSE") || text.contains("Address already in use") {
         Some("port-conflict")
     } else if text.contains("ERR_MODULE_NOT_FOUND") || text.contains("Cannot find module") {
         Some("A bundled server module is missing. Reinstall the integrated app.")

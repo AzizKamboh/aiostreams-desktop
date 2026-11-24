@@ -6565,3 +6565,35 @@ msgstr ""
 #: src/components/shell/embedded-local-server.tsx
 msgid "Upstream project"
 msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOMetadata"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Configure AIOMetadata"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOStreams addons"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Restart AIOMetadata"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Open Configure AIOMetadata. It opens in your browser. Add your API keys and catalogs, then save. AIOMetadata shows your install (manifest) URL."
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "In AIOStreams addons, add a Custom addon and paste that manifest URL. It looks like {example}."
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOMetadata runs only on this computer, separately from the AIOStreams server, and keeps its settings in your user folder. It is a separate project by cedya77, licensed AGPL-3.0 and FSL-1.1; this build is not endorsed by it."
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOMetadata project"
+msgstr ""

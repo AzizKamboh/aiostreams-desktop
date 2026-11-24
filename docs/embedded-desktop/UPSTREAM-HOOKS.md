@@ -36,7 +36,9 @@ exists. Process: [UPSTREAM-SYNC.md](../UPSTREAM-SYNC.md).
 | `packages/web/src/lib/embedded-shell.ts` | Shell state shared with those hooks; active player registry; shortcuts |
 | `packages/frontend/src/lib/desktop-embed.ts` | "Home" entry in the dashboard/configuration sidebars, only inside the app |
 | `packages/web/src/lib/embedded-*.ts` | Local origin handling, settings persistence across ports, account rules |
-| `packages/desktop/app/src/backend.rs`, `backend/*.rs`, `embedded.rs` | Node supervisor, DPAPI storage, accounts, Job Object |
+| `packages/desktop/app/src/backend.rs`, `backend/*.rs`, `embedded.rs` | Node supervisor, DPAPI storage, accounts, Job Object; `backend/aiometadata.rs` supervises the bundled AIOMetadata and Redis |
+| `packages/web/src/components/shell/embedded-aiometadata.tsx` | Settings → Local server → AIOMetadata |
+| `scripts/desktop/stage-aiometadata.mjs`, `build-redis.sh`, `aiometadata/*` | Build, stage, adapt (preload) and smoke-test the bundled AIOMetadata ([AIOMETADATA.md](../AIOMETADATA.md)) |
 | `packages/desktop/app/src/updates_integrated.rs`, `update_policy.rs` | Integrated updater: own feeds, package-identity check, backoff, playback-safe install |
 | `packages/web/src/lib/embedded-updates.ts`, `embedded-update-state.ts`, `components/shell/embedded-updates.tsx` | Settings → Updates for the integrated updater |
 | `scripts/desktop/*`, `.github/workflows/embedded-desktop.yml` | Build, packaging, native tests (`native-update.mjs`: real updates) |
@@ -55,7 +57,7 @@ exists. Process: [UPSTREAM-SYNC.md](../UPSTREAM-SYNC.md).
 | `server/src/routes/api/proxy.ts` | ~18 lines | Never forward desktop cookies/auth or the internal secret to media providers; never relay a provider's Set-Cookie or CSP onto the private origin |
 | `server/src/routes/stremio/configure.ts` | 1 option | `dotfiles: 'allow'` for install paths |
 | `web/src/app.tsx` | ~15 lines | Mount the embedded shell in the desktop build |
-| `web/src/lib/hosts/shell/bridge.ts` | types only | Backend-state and account messages |
+| `web/src/lib/hosts/shell/bridge.ts` | types only | Backend-state (including AIOMetadata status) and account messages |
 | `web/src/components/shell/layout.tsx` | 1 hook, footer lists | "AIOStreams Dashboard" next to Settings in every navigation layout |
 | `web/src/app/settings/page.tsx` | 1 section entry | Settings → Local server |
 | `web/src/app/sign-in/page.tsx` | 1 hook in `LinkRow` | Configuration/dashboard links (or "use this computer's server") on sign-in screens |

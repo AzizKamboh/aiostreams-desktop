@@ -17,6 +17,12 @@ aiostreams-desktop.exe  (upstream Rust shell: tao/wry → WebView2, libmpv)
 │    · readiness event + /api/v1/health; stdin shutdown; Windows Job Object
 │    · restarts once after an unexpected exit
 │
+├─ backend/aiometadata.rs (integration) ── redis-server.exe (Redis 8, MSYS2 build)
+│    │                                    └─ node.exe -r preload.cjs aiometadata/app/dist/server/server.js
+│    · AIOMetadata, unmodified; 127.0.0.1:3232 (stable), Redis on a random port with a per-start password
+│    · data in %LOCALAPPDATA%\AIOStreams Integrated\aiometadata; added to AIOStreams as a custom addon
+│    · see AIOMETADATA.md
+│
 ├─ WebView2 page: upstream web client (packages/web, standalone build) served by the local server
 │    · integration UI: account setup, Local server, Updates, dashboard panel (embedded-*.tsx)
 │    · upstream dashboard/configuration (packages/frontend) in an in-app panel
