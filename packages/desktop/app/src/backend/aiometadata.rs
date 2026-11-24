@@ -174,6 +174,19 @@ impl AioMetadata {
     }
 
     pub fn restart(&self) {
+        // Reported now, not when the worker gets to it: stopping can take a few
+        // seconds, and until then the page (or a caller waiting for "ready")
+        // would still see the old server as ready.
+        let restartable = !matches!(self.status.lock().unwrap().phase, "unavailable" | "stopped");
+        if restartable {
+            report(
+                &self.status,
+                &self.changed,
+                "starting",
+                "Restarting AIOMetadata…",
+                None,
+            );
+        }
         let _ = self.commands.send(Control::Restart);
     }
 
@@ -964,6 +977,11 @@ mod tests {
         service
             .set_admin_key(Some("Lifecycle-Admin_Key#1"))
             .unwrap();
+        assert_ne!(
+            service.status()["state"],
+            "ready",
+            "a restart is reported at once"
+        );
         let deadline = Instant::now() + Duration::from_secs(300);
         thread::sleep(Duration::from_millis(500));
         while service.status()["state"] != "ready" {
