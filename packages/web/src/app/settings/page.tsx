@@ -67,6 +67,7 @@ import { AccountSection } from './account';
 import { AppSection, DesktopSection, AndroidSection } from './apps';
 import { AboutSection } from './about';
 import { LuServer } from 'react-icons/lu';
+import { appBridge } from '@/lib/hosts/shell/bridge';
 import { LocalServerSection } from '@/components/shell/embedded-local-server';
 
 type Group = 'watching' | 'look' | 'app';
