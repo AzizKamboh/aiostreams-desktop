@@ -139,6 +139,11 @@ node scripts/desktop/smoke.mjs --ffprobe /path/to/ffprobe --ffmpeg /path/to/ffmp
 
 ## Making a release
 
+Releases are automatic: new AIOStreams and AIOMetadata releases are synced
+daily, merged when every check (including the real Windows build and its
+tests) passes, published as a **Preview**, and promoted to **Stable** after
+three days unless an issue labelled `release-blocker` is open
+([details](docs/RELEASE-PROCESS.md#automatic-releases)). To release by hand:
 See [docs/RELEASE-PROCESS.md](docs/RELEASE-PROCESS.md): set
 `integrated-version.json` and the release notes in a reviewed pull request,
 run **Integrated Windows desktop** with **version**, **channel** and

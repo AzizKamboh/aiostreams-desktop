@@ -192,3 +192,83 @@ jobs:
             --jq ".[] | select(.headRefName != \"$BRANCH\") | .number" | while read -r old; do
             gh pr comment "$old" --body "Superseded by the sync to upstream $REF (branch \`$BRANCH\`). Close this pull request once that one is reviewed; nothing was closed automatically."
           done
+
+  # The bundled AIOMetadata (scripts/desktop/runtime-pins.json) follows its
+  # author's Latest release. Independent of the AIOStreams sync above.
+  aiometadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
+    env:
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: GitHub App token (optional)
+        id: app
+        if: vars.UPSTREAM_SYNC_APP_ID != ''
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.UPSTREAM_SYNC_APP_ID }}
+          private-key: ${{ secrets.UPSTREAM_SYNC_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          token: ${{ steps.app.outputs.token || github.token }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.1
+      - name: Look for a newer AIOMetadata release
+        id: detect
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          node scripts/upstream/aiometadata.mjs detect | tee detect.json
+          {
+            echo "status=$(jq -r .status detect.json)"
+            echo "tag=$(jq -r '.target.tag // empty' detect.json)"
+            echo "branch=$(jq -r '.branch // empty' detect.json)"
+          } >> "$GITHUB_OUTPUT"
+          jq -r '"AIOMetadata: \(.reason)"' detect.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Skip if this release already has a branch
+        id: existing
+        if: steps.detect.outputs.status == 'available'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          BRANCH: ${{ steps.detect.outputs.branch }}
+        run: |
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+            echo "Branch $BRANCH already exists; nothing to do." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Update the pin and open the pull request
+        if: steps.detect.outputs.status == 'available' && steps.existing.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          USING_APP: ${{ steps.app.outputs.token != '' }}
+          TAG: ${{ steps.detect.outputs.tag }}
+          BRANCH: ${{ steps.detect.outputs.branch }}
+        run: |
+          git config user.name 'aiostreams-integrated-sync[bot]'
+          git config user.email 'aiostreams-integrated-sync@users.noreply.github.com'
+          git switch -c "$BRANCH"
+          node scripts/upstream/aiometadata.mjs prepare --tag "$TAG" --out "$RUNNER_TEMP/aiometadata"
+          title=$(jq -r .title "$RUNNER_TEMP/aiometadata/result.json")
+          git add -A scripts/desktop/runtime-pins.json docs
+          git commit -m "$title"
+          git push origin "HEAD:refs/heads/$BRANCH"
+          label=()
+          if gh label create upstream-sync --color 0e8a16 --description 'Automated upstream synchronisation' >/dev/null 2>&1 \
+            || gh label list --search upstream-sync --json name --jq '.[].name' 2>/dev/null | grep -qx upstream-sync; then
+            label=(--label upstream-sync)
+          fi
+          gh pr create --base main --head "$BRANCH" --title "$title" --body-file "$RUNNER_TEMP/aiometadata/report.md" "${label[@]}"
+          if [ "$USING_APP" != true ]; then
+            # Pull requests opened with GITHUB_TOKEN start no pull_request workflows.
+            gh workflow run pr-ci.yml --ref "$BRANCH"
+            gh workflow run embedded-desktop.yml --ref "$BRANCH"
+          fi
+          echo "### $title" >> "$GITHUB_STEP_SUMMARY"

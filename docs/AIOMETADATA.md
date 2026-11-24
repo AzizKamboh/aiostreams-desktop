@@ -83,6 +83,10 @@ copy from a development build, set `AIOMETADATA_DESKTOP_ROOT` to the staged
 
 ### Updating AIOMetadata or Redis
 
+New AIOMetadata releases are picked up automatically: the daily *Upstream
+Sync* opens a pull request that updates the pin ([UPSTREAM-SYNC.md](UPSTREAM-SYNC.md#aiometadata)).
+By hand:
+
 - AIOMetadata: change `aiometadata.version`, `tag` and `commit` in
   `runtime-pins.json`. The stage script refuses a checkout whose commit or
   `package.json` version differs. Check its release notes for new required

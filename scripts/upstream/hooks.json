@@ -107,7 +107,8 @@
     "upstream-sync.yml",
     "release-publish.yml",
     "post-release-validation.yml",
-    "dependency-maintenance.yml"
+    "dependency-maintenance.yml",
+    "auto-release.yml"
   ],
   "integrationReplacedFiles": {
     "README.md": "the integrated project's landing page; upstream's README is linked from it",
