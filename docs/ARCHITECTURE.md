@@ -17,6 +17,12 @@ aiostreams-desktop.exe  (upstream Rust shell: tao/wry → WebView2, libmpv)
 │    · readiness event + /api/v1/health; stdin shutdown; Windows Job Object
 │    · restarts once after an unexpected exit
 │
+├─ backend/aiometadata.rs (integration) ── redis-server.exe (Redis 8, MSYS2 build)
+│    │                                    └─ node.exe -r preload.cjs aiometadata/app/dist/server/server.js
+│    · AIOMetadata, unmodified; 127.0.0.1:3232 (stable), Redis on a random port with a per-start password
+│    · data in %LOCALAPPDATA%\AIOStreams Integrated\aiometadata; added to AIOStreams as a custom addon
+│    · see AIOMETADATA.md
+│
 ├─ WebView2 page: upstream web client (packages/web, standalone build) served by the local server
 │    · integration UI: account setup, Local server, Updates, dashboard panel (embedded-*.tsx)
 │    · upstream dashboard/configuration (packages/frontend) in an in-app panel
@@ -77,7 +83,8 @@ temporarily ([UPSTREAM-SYNC.md](UPSTREAM-SYNC.md#blocking-an-upstream-release)).
 | Integrated Windows desktop (`embedded-desktop.yml`) | pushes to main, relevant PRs, dispatch | read; release job: contents/attestations write | real Windows build, native installer/upgrade/playback/update tests, feed verification; draft releases |
 | Release publishing (`release-publish.yml`) | a release is published | contents write (feed job only) | verifies a published release, updates its update feed |
 | Post-release validation (`post-release-validation.yml`) | after publishing, weekly, dispatch | read | public downloads, public feed, Velopack update discovery |
-| Upstream Sync (`upstream-sync.yml`) | daily, dispatch | detect read; sync job contents/PR/issues/actions write | merges new upstream releases into reviewed PRs |
+| Upstream Sync (`upstream-sync.yml`) | daily, dispatch | detect read; sync and aiometadata jobs contents/PR/issues/actions write | merges new AIOStreams releases, and bumps the AIOMetadata pin, in pull requests |
+| Auto release (`auto-release.yml`) | hourly, after CI runs, dispatch | contents/PR/actions write | merges green sync PRs, publishes Previews, promotes to Stable after `AUTO_STABLE_AFTER_DAYS`, bumps the version |
 | Dependency maintenance (`dependency-maintenance.yml`) | weekly, dispatch | read; PR job contents/PR write | Node runtime and action pins for integration-owned files |
 
 Upstream's own workflows stay in the repository (they arrive with every

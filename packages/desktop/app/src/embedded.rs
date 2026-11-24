@@ -57,6 +57,18 @@ pub fn receive(body: &str, send: &dyn Fn(crate::UserEvent)) -> bool {
     match kind {
         "backend-status" => send(crate::UserEvent::BackendState(backend.status())),
         "backend-restart" => backend.restart(),
+        "backend-aiometadata-restart" => backend.restart_aiometadata(),
+        "backend-aiometadata-admin-key" => {
+            let result = backend.set_aiometadata_admin_key(&value);
+            let reply = serde_json::json!({
+                "type": "backend-aiometadata-result",
+                "ok": result.is_ok(),
+                "message": result.err(),
+            });
+            send(crate::UserEvent::Emit(format!(
+                "window.__aiostreamsAppReceive?.({reply})"
+            )));
+        }
         "backend-storage-reset" => {
             if let Err(error) = backend.reset_storage() {
                 log::warn!("could not reset the desktop browser settings: {error}");

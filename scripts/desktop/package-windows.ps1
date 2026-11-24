@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Run on Windows x64 in PowerShell 7 after building ffprobe with build-ffprobe.sh.
+# Run on Windows x64 in PowerShell 7 after building ffprobe with build-ffprobe.sh
+# (MSYS2 MINGW64) and Redis with build-redis.sh (MSYS2 MSYS).
 param(
   [string]$Version = '0.1.0',
   # Integrated release channel: stable (Velopack channel win-x64) or preview
@@ -80,6 +81,9 @@ try {
   # nor any path on the build machine.
   Checked { pnpm --dir $runtime install --prod --frozen-lockfile --node-linker=hoisted }
   Checked { node scripts/desktop/stage-runtime.mjs finalize $stage }
+  # AIOMetadata (pinned commit, built with its own npm scripts) and the Redis 8
+  # server it needs, built by build-redis.sh in MSYS2. See docs/AIOMETADATA.md.
+  Checked { node scripts/desktop/stage-aiometadata.mjs $stage }
   Copy-Item packages/desktop/target/release/aiostreams-desktop.exe $stage
   Copy-Item packages/desktop/vendor/x86_64/*.dll $stage
   Copy-Item packages/desktop/vendor/x86_64/licenses "$stage/licenses/mpv" -Recurse
@@ -141,6 +145,7 @@ try {
   Copy-Item "$stage/source/aiostreams-integrated-source.tar.gz" $releases
   if (-not $SkipSmoke) {
     Checked { & "$stage/backend/node.exe" scripts/desktop/smoke.mjs --app-root "$stage/backend/app" --node "$stage/backend/node.exe" --ffprobe "$stage/backend/bin/ffprobe.exe" }
+    Checked { & "$stage/backend/node.exe" scripts/desktop/aiometadata/smoke.mjs --stage $stage --node "$stage/backend/node.exe" }
     $env:AIOSTREAMS_TEST_NODE = Join-Path $stage 'backend/node.exe'
     Push-Location packages/desktop
     try {
@@ -148,6 +153,16 @@ try {
     } finally {
       Pop-Location
       Remove-Item Env:AIOSTREAMS_TEST_NODE
+    }
+    # The AIOMetadata supervisor against the staged Redis and AIOMetadata.
+    $env:AIOSTREAMS_DESKTOP_NODE = Join-Path $stage 'backend/node.exe'
+    $env:AIOMETADATA_DESKTOP_ROOT = Join-Path $stage 'aiometadata'
+    Push-Location packages/desktop
+    try {
+      Checked { cargo test --locked -p aiostreams-desktop aiometadata::tests::lifecycle -- --ignored --test-threads=1 }
+    } finally {
+      Pop-Location
+      Remove-Item Env:AIOSTREAMS_DESKTOP_NODE, Env:AIOMETADATA_DESKTOP_ROOT
     }
   }
   if (-not (Test-Path "$tools/vpk/vpk.exe")) {
@@ -163,7 +178,7 @@ try {
       --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams' `
       --packAuthors 'AIOStreams contributors; integrated desktop contributors' `
       --icon packages/desktop/app/icons/aiostreams.ico --channel $velopackChannel `
-      --runtime win-x64 --shortcuts StartMenuRoot --instLocation PerUser --outputDir $releases `
+      --runtime win-x64 --shortcuts Desktop,StartMenuRoot --instLocation PerUser --outputDir $releases `
       @(if (-not $BundleWebView2) { '--framework', 'webview2' })
   }
   # Only this version's packages ship; the downloaded previous full package was input for the delta.

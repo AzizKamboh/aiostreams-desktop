@@ -1,0 +1,92 @@
+name: Auto release
+
+# Upstream sync → automatic Preview → Stable after a waiting period.
+# See docs/RELEASE-PROCESS.md, "Automatic releases".
+#
+# Every hour, and whenever a CI run finishes:
+#  1. merges open `upstream-sync` (AIOStreams, AIOMetadata) and `release-bump`
+#     pull requests whose every check passed, the real Windows build and its
+#     installer, playback and update tests included. Drafts (upstream merges
+#     with conflicts) and failures wait for a person;
+#  2. after a stable release, opens the pull request that moves
+#     integrated-version.json to the next version (it merges itself in step 1);
+#  3. if main has app changes no release contains, builds a Preview that
+#     publishes itself to the preview update feed;
+#  4. promotes the newest Preview to Stable once it has been out for
+#     AUTO_STABLE_AFTER_DAYS days (repository variable, default 3; 'off' for
+#     manual only) and no issue labelled `release-blocker` is open.
+#     Run this workflow with "promote" to release the newest Preview as Stable now.
+#
+# Set the repository variable AUTO_RELEASE to 'off' to stop all of this; the
+# manual release process keeps working either way.
+on:
+  schedule:
+    - cron: '41 * * * *'
+  workflow_run:
+    workflows: ['Pull Request CI', 'Integrated Windows desktop', 'Release publishing']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      promote:
+        description: Promote the newest published Preview to Stable now (still refused while a release-blocker issue is open)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+jobs:
+  auto:
+    if: vars.AUTO_RELEASE != 'off' && github.repository != 'Viren070/AIOStreams'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+      checks: read
+      actions: write
+    steps:
+      - name: GitHub App token (optional)
+        id: app
+        if: vars.UPSTREAM_SYNC_APP_ID != ''
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.UPSTREAM_SYNC_APP_ID }}
+          private-key: ${{ secrets.UPSTREAM_SYNC_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token || github.token }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.18.1
+      - name: Merge green sync and version pull requests
+        env:
+          # Merging an upstream release that changes workflows needs the App.
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          GH_REPO: ${{ github.repository }}
+          USING_APP: ${{ steps.app.outputs.token != '' }}
+        run: node scripts/release/auto.mjs automerge
+      - name: Move to the next version after a stable release
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          GH_REPO: ${{ github.repository }}
+          USING_APP: ${{ steps.app.outputs.token != '' }}
+        run: node scripts/release/auto.mjs bump
+      - name: Build a Preview of unreleased changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: node scripts/release/auto.mjs preview
+      - name: Promote the newest Preview to Stable
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          AUTO_STABLE_AFTER_DAYS: ${{ vars.AUTO_STABLE_AFTER_DAYS || '3' }}
+        run: node scripts/release/auto.mjs stable ${{ github.event_name == 'workflow_dispatch' && inputs.promote && '--force' || '' }}

@@ -9,6 +9,18 @@ feed and this synchronisation. The goal is to stay as close to upstream as
 practical: every upstream release should merge with as little manual work as
 possible.
 
+## AIOMetadata
+
+The bundled [AIOMetadata](AIOMETADATA.md) is not merged; it is pinned by commit
+in `scripts/desktop/runtime-pins.json`. The same daily workflow's `aiometadata`
+job runs `scripts/upstream/aiometadata.mjs`, which follows the release
+AIOMetadata's author marks **Latest** on GitHub (newer by SemVer and by date,
+so the repository's stray old `v5.0.0` tag is ignored), checks that the tag's
+commit has that version in `package.json`, and opens a pull request
+`upstream-sync/aiometadata-<tag>` that updates the pin and the version named in
+`docs/embedded-third-party.md`. The Windows build then stages and smoke-tests
+it. Merging and releasing follow [automatic releases](RELEASE-PROCESS.md#automatic-releases).
+
 ## What is tracked
 
 [`.github/upstream-sync.json`](../.github/upstream-sync.json) records:

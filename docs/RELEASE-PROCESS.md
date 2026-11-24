@@ -1,9 +1,10 @@
 # Release process
 
-**Reviewed code → Windows CI passes → draft release → human review → publish → feed verified → apps update.**
+**Upstream release → sync pull request → every check passes → merged → Preview published → Stable after 3 days.**
 
-Nothing reaches installed apps until a person publishes a draft and the
-publishing workflow has verified it.
+That chain is automatic (*Auto release*, below). Releases can also be made by
+hand at any time (*Making a release*), and every release, automatic or not,
+reaches installed apps only after *Release publishing* has verified it.
 
 ## Versions
 
@@ -33,6 +34,35 @@ has no section for the committed version.
 The feed releases are machine-only (marked pre-release, never Latest).
 Stable releases are added to the preview feed too, so preview users are
 never left behind a newer stable version. See [AUTO-UPDATE.md](AUTO-UPDATE.md).
+
+## Automatic releases
+
+[`auto-release.yml`](../.github/workflows/auto-release.yml) runs every hour and
+whenever a CI run finishes. Its decisions are pure functions in
+[`scripts/release/auto.mjs`](../scripts/release/auto.mjs), tested in
+`auto.test.mjs`.
+
+| Step | What happens | When it waits for you |
+| --- | --- | --- |
+| 1. Sync | *Upstream Sync* (daily) opens a pull request for a new AIOStreams release (`upstream-sync/<tag>`) and, separately, for a new AIOMetadata release (`upstream-sync/aiometadata-<tag>`), and runs Pull Request CI and the Windows build on it | An upstream merge with conflicts opens as a draft, and an upstream release that changes workflows needs the GitHub App ([UPSTREAM-SYNC.md](UPSTREAM-SYNC.md)) |
+| 2. Merge | A pull request labelled `upstream-sync` or `release-bump` merges itself once `windows-x64` (the real build, installer, playback and update tests), `Repository checks`, `TypeScript build and tests` and `Rust tests` all passed on its head. One that falls behind `main` is updated and re-checked | Any failed check; drafts; branch protection that requires an approval |
+| 3. Preview | When `main` has app changes (anything but Markdown, `docs/`, `.github/`) that no release contains, *Integrated Windows desktop* builds `vX.Y.Z-preview.N`, creates the release and publishes it; *Release publishing* verifies it and puts it on the **preview** feed | A required reviewer on the `update-feed` environment, if you add one |
+| 4. Stable | The newest Preview is rebuilt as `vX.Y.Z` and published to the **stable** feed once it has been out for `AUTO_STABLE_AFTER_DAYS` days (default 3) and `main` has no newer app changes | An open issue labelled **`release-blocker`** stops promotion until it is closed |
+| 5. Next version | After a stable release, a `release-bump` pull request moves `integrated-version.json` to the next patch version and adds its RELEASE-NOTES.md section; it merges itself (step 2) | As step 2 |
+
+Controls (Settings → Secrets and variables → Actions → **Variables**):
+
+- `AUTO_RELEASE` = `off` stops all of it (the manual process below still works).
+- `AUTO_STABLE_AFTER_DAYS` = a number of days, or `off` to promote only by hand.
+- **Promote now**: Actions → *Auto release* → Run workflow with **promote**.
+- **Stop a bad release reaching Stable**: open an issue with the label
+  `release-blocker`. A bad Preview is replaced by fixing `main`: the next
+  Preview follows within the hour (feeds never move backwards, so there is
+  no un-publishing; see [AUTO-UPDATE.md](AUTO-UPDATE.md#rollback-and-recovery)).
+
+Automatic merging uses the Actions token (or the sync GitHub App). If you
+protect `main` with *Require approvals*, it cannot merge: sync pull requests
+then wait for your approval, and everything after merging stays automatic.
 
 ## Making a release
 

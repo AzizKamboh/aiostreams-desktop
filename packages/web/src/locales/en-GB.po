@@ -6566,3 +6566,119 @@ msgstr "This build"
 #: src/components/shell/embedded-local-server.tsx
 msgid "Upstream project"
 msgstr "Upstream project"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOMetadata"
+msgstr "AIOMetadata"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Configure AIOMetadata"
+msgstr "Configure AIOMetadata"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOStreams addons"
+msgstr "AIOStreams addons"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Restart AIOMetadata"
+msgstr "Restart AIOMetadata"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Open Configure AIOMetadata. It opens in your browser. Add your API keys and catalogs, then save. AIOMetadata shows your install (manifest) URL."
+msgstr "Open Configure AIOMetadata. It opens in your browser. Add your API keys and catalogs, then save. AIOMetadata shows your install (manifest) URL."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "In AIOStreams addons, add a Custom addon and paste that manifest URL. It looks like {example}."
+msgstr "In AIOStreams addons, add a Custom addon and paste that manifest URL. It looks like {example}."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOMetadata runs only on this computer, separately from the AIOStreams server, and keeps its settings in your user folder. It is a separate project by cedya77, licensed AGPL-3.0 and FSL-1.1; this build is not endorsed by it."
+msgstr "AIOMetadata runs only on this computer, separately from the AIOStreams server, and keeps its settings in your user folder. It is a separate project by cedya77, licensed AGPL-3.0 and FSL-1.1; this build is not endorsed by it."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOMetadata project"
+msgstr "AIOMetadata project"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Admin key"
+msgstr "Admin key"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Set, protected for your Windows user"
+msgstr "Set, protected for your Windows user"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Not set: AIOMetadata's dashboard is closed"
+msgstr "Not set: AIOMetadata's dashboard is closed"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Set admin key"
+msgstr "Set admin key"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Use at least 12 characters."
+msgstr "Use at least 12 characters."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Use at most 256 characters."
+msgstr "Use at most 256 characters."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Use letters, digits and symbols only, without spaces."
+msgstr "Use letters, digits and symbols only, without spaces."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "The admin key was not saved."
+msgstr "The admin key was not saved."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Change the AIOMetadata admin key"
+msgstr "Change the AIOMetadata admin key"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Set up AIOMetadata"
+msgstr "Set up AIOMetadata"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOMetadata runs on this computer beside AIOStreams. Its admin key opens AIOMetadata's dashboard (statistics, cache and server settings). It is AIOMetadata's ADMIN_KEY setting."
+msgstr "AIOMetadata runs on this computer beside AIOStreams. Its admin key opens AIOMetadata's dashboard (statistics, cache and server settings). It is AIOMetadata's ADMIN_KEY setting."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Generate"
+msgstr "Generate"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Copy it somewhere safe: AIOMetadata's dashboard asks for it. The app keeps it protected for your Windows user and passes it to AIOMetadata at every start."
+msgstr "Copy it somewhere safe: AIOMetadata's dashboard asks for it. The app keeps it protected for your Windows user and passes it to AIOMetadata at every start."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Save and restart AIOMetadata"
+msgstr "Save and restart AIOMetadata"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Save and continue"
+msgstr "Save and continue"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Without a key, AIOMetadata works for catalogs and metadata but its dashboard stays closed. Set one later in Settings → Local server → AIOMetadata."
+msgstr "Without a key, AIOMetadata works for catalogs and metadata but its dashboard stays closed. Set one later in Settings → Local server → AIOMetadata."
+
+#: src/components/shell/embedded-nav.tsx
+msgid "AIOStreams Configuration"
+msgstr "AIOStreams Configuration"
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Watch progress"
+msgstr "Watch progress"
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Sync watch progress with trackers"
+msgstr "Sync watch progress with trackers"
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Sends what you watch to addons that track it, such as AIOMetadata with Simkl, MDBList, AniList or MyAnimeList connected, so other devices using the same tracker see it. What you watched elsewhere appears in Continue watching either way. Changing this restarts the local server."
+msgstr "Sends what you watch to addons that track it, such as AIOMetadata with Simkl, MDBList, AniList or MyAnimeList connected, so other devices using the same tracker see it. What you watched elsewhere appears in Continue watching either way. Changing this restarts the local server."
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon, then turn this on."
+msgstr "To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon, then turn this on."

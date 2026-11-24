@@ -1,6 +1,5 @@
 import { plural, t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
-import { DesktopServerButton } from '@/components/shell/embedded-nav';
 import React from 'react';
 import {
   LuActivity,
@@ -802,8 +801,6 @@ export function OptionButtons({
           {...menuState('statistics')}
         />
       )}
-      {/* AIOStreams Integrated: renders nothing outside the desktop app. */}
-      <DesktopServerButton />
       {player.togglePictureInPicture && !tv && (
         <ControlButton
           name="picture-in-picture"

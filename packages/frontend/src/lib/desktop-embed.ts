@@ -23,9 +23,10 @@ export function inDesktopPanel(): boolean {
   }
 }
 
+/** Close the panel and show the library's home page (unless something plays). */
 export function closeDesktopPanel(): void {
   // postMessage crosses frames reliably; the app checks the sender's origin.
-  window.parent.postMessage({ type: CLOSE_EVENT }, window.location.origin);
+  window.parent.postMessage({ type: CLOSE_EVENT, home: true }, window.location.origin);
 }
 
 /** Footer entries for the dashboard and configuration sidebars. */

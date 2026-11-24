@@ -5,7 +5,7 @@ from the same upstream monorepo. It keeps the Rust/WebView2 shell, mpv player,
 browsing interface, server configuration dashboard, and existing provider logic.
 The desktop owns a private Node server process; Docker is not used.
 
-**Version 0.2.2** is the current release; 0.2.1 was the first public release of this unofficial integrated
+**Version 0.4.0** is the current release; 0.2.1 was the first public release of this unofficial integrated
 variant, built from upstream `desktop-v0.24.0` (commit `76a5d6da`; desktop
 client 0.24.0, server 2.37.0). Download it from this repository's
 [Releases](https://github.com/AzizKamboh/aiostreams-desktop/releases): run
@@ -21,7 +21,7 @@ ticked to turn a tested build into a draft release (see *Making a release*).
 ## Using a Windows package
 
 After building and validating a package, run its Setup.exe as your normal Windows
-user. It installs one AIOStreams Integrated Start-menu shortcut. The portable
+user. It installs an AIOStreams shortcut on the desktop and in the Start menu. The portable
 archive is an alternative; both variants keep data in your Windows profile.
 The complete package bundles Node, mpv and ffprobe, and uses the WebView2 that
 Windows keeps up to date (Setup installs it if missing; the portable ZIP needs
@@ -34,11 +34,11 @@ upstream interfaces, with native entries added where they belong:
 
 | Where | Entry |
 | --- | --- |
-| Library sidebar / menu (next to Settings) | **AIOStreams Dashboard** |
+| Library sidebar / menu (next to Settings) | **AIOStreams Configuration**, **AIOStreams Dashboard** |
 | Sign-in screens | **Create or edit a configuration**, **AIOStreams Dashboard** |
-| Player controls (hide with the controls) | **AIOStreams Dashboard** button |
 | Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, source download, local/remote switch |
-| Dashboard and configuration sidebars | **Home** returns to the app |
+| Settings → Local server → **AIOMetadata** | the bundled AIOMetadata: status, address, admin key, **Configure AIOMetadata**, restart |
+| Dashboard and configuration sidebars (both layouts) | **Home** returns to the library home page |
 
 The dashboard opens over the library, so a playing title keeps its player:
 playback pauses, and closing the dashboard offers **Resume**. Keyboard:
@@ -46,6 +46,16 @@ playback pauses, and closing the dashboard offers **Resume**. Keyboard:
 **Escape** returns to the library. Shortcuts never fire while you type in a
 field. Restarting the backend or switching servers asks first while something
 plays.
+
+### AIOMetadata
+
+The app also runs [AIOMetadata](https://github.com/cedya77/aiometadata) on your
+computer at `http://127.0.0.1:3232`, with the Redis 8 it needs. Configure it from
+**Settings → Local server → AIOMetadata** (it opens in your browser), then add
+the manifest URL it gives you to your AIOStreams configuration as a **Custom**
+addon. At first start the app also asks for AIOMetadata's admin key (its
+`ADMIN_KEY`, which opens AIOMetadata's dashboard), right after the AIOStreams
+account, and keeps it with DPAPI. See [docs/AIOMETADATA.md](docs/AIOMETADATA.md).
 
 ### AIOStreams account and built-in Usenet
 
@@ -88,6 +98,11 @@ points are:
 bash scripts/desktop/build-ffprobe.sh
 ```
 
+```sh
+# MSYS2 MSYS (Redis 8 for the bundled AIOMetadata), in the repository root
+MSYSTEM=MSYS bash scripts/desktop/build-redis.sh
+```
+
 ```powershell
 # Native Windows x64, PowerShell 7
 ./scripts/desktop/package-windows.ps1 -Version 0.3.0-dev.1
@@ -125,6 +140,11 @@ node scripts/desktop/smoke.mjs --ffprobe /path/to/ffprobe --ffmpeg /path/to/ffmp
 
 ## Making a release
 
+Releases are automatic: new AIOStreams and AIOMetadata releases are synced
+daily, merged when every check (including the real Windows build and its
+tests) passes, published as a **Preview**, and promoted to **Stable** after
+three days unless an issue labelled `release-blocker` is open
+([details](docs/RELEASE-PROCESS.md#automatic-releases)). To release by hand:
 See [docs/RELEASE-PROCESS.md](docs/RELEASE-PROCESS.md): set
 `integrated-version.json` and the release notes in a reviewed pull request,
 run **Integrated Windows desktop** with **version**, **channel** and
@@ -147,6 +167,7 @@ Windows paths are separate from installed application files:
 | Protected server key and browser snapshot | Protected files in the backend directory |
 | Native diagnostics and WebView profile | `%LOCALAPPDATA%\AIOStreams Integrated` |
 | Player settings and native preferences | `%APPDATA%\AIOStreams Integrated` |
+| AIOMetadata database, caches and Redis data | `%LOCALAPPDATA%\AIOStreams Integrated\aiometadata` ([details](docs/AIOMETADATA.md#data-and-privacy)) |
 
 Keep both application-data directories when upgrading. Never delete the backend
 key to repair startup: existing encrypted configuration depends on it. Back up

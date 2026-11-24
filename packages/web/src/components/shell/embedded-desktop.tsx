@@ -24,6 +24,7 @@ import { sendRemote } from '@/lib/remote/commands';
 import { party } from '@/lib/party/party';
 import { toast } from 'sonner';
 import { AccountReady, AccountSetup } from './embedded-accounts';
+import { AioMetadataKeySetup } from './embedded-aiometadata';
 import {
   CONFIGURE_PATH,
   DASHBOARD_PATH,
@@ -210,6 +211,8 @@ function EmbeddedContent({
     () => storage.get<boolean>(ACCOUNT_SKIP_KEY) === true
   );
   const [credentialShown, setCredentialShown] = React.useState(false);
+  /** AIOMetadata's admin key screen, opened from Settings. */
+  const [changingAioKey, setChangingAioKey] = React.useState(false);
 
   React.useEffect(() => {
     setEmbeddedOrigin(origin);
@@ -274,7 +277,8 @@ function EmbeddedContent({
     [openServer]
   );
 
-  // "Home" in the dashboard and configuration sidebars closes the panel.
+  // "Home" in the dashboard and configuration sidebars closes the panel and,
+  // unless something is playing, goes to the library's home page.
   React.useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       // Only the local dashboard frame, never another site or frame origin.
@@ -284,8 +288,11 @@ function EmbeddedContent({
         data &&
         typeof data === 'object' &&
         (data as { type?: unknown }).type === CLOSE_PANEL_EVENT
-      )
+      ) {
+        const home = (data as { home?: unknown }).home === true;
         closePanel();
+        if (home && !playbackNow()) navigate(to.home);
+      }
     };
     window.addEventListener(CLOSE_PANEL_EVENT, closePanel);
     window.addEventListener('message', onMessage);
@@ -354,6 +361,7 @@ function EmbeddedContent({
       restart,
       chooseMode,
       manageAccounts: () => setManagingAccounts(true),
+      manageAioMetadataKey: () => setChangingAioKey(true),
       readDiagnostics: () => requestDiagnostics(origin),
     });
   }, [state, mode, local, origin, openServer, restart, chooseMode]);
@@ -436,6 +444,15 @@ function EmbeddedContent({
           onUseRemote={
             managingAccounts ? undefined : () => chooseMode('remote')
           }
+        />
+      ) : changingAioKey ||
+        (local &&
+          state.aiometadata?.adminKey === 'unset' &&
+          state.aiometadata.state !== 'unavailable') ? (
+        // After the AIOStreams account (or its skip), like that step.
+        <AioMetadataKeySetup
+          changing={changingAioKey}
+          onDone={() => setChangingAioKey(false)}
         />
       ) : null}
     </>

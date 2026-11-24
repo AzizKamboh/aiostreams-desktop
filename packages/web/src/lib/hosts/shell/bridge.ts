@@ -40,8 +40,18 @@ export type ShellMessage =
       accountsError?: string | null;
       /** `user:pass` just saved in the setup screen, until acknowledged. */
       newCredential?: string | null;
+      /** The bundled AIOMetadata server (AIOStreams Integrated). */
+      aiometadata?: {
+        state: 'starting' | 'ready' | 'failed' | 'stopped' | 'unavailable';
+        message?: string;
+        url?: string | null;
+        manifestHint?: string | null;
+        /** Whether its ADMIN_KEY was chosen in setup; never the key itself. */
+        adminKey?: 'set' | 'unset' | 'skipped';
+      };
     }
   | { type: 'backend-accounts-result'; ok: boolean; message?: string | null }
+  | { type: 'backend-aiometadata-result'; ok: boolean; message?: string | null }
   | {
       type: 'youtube-resolved';
       request: string;

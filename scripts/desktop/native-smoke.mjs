@@ -4,6 +4,7 @@
 // no renderer/player/backend is mocked. Requires a complete staged payload.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { mkdir, mkdtemp, open, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -272,6 +273,13 @@ try {
   assert.equal(await connection.evaluate('!!document.querySelector("nav[aria-label=\\"Desktop navigation\\"]")'), false, 'Old floating navigation is still present');
   pass('Home, Ctrl+, and Escape navigation; no shortcut while typing; no floating navigation bar');
   await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Ready to browse"))?.click(), true');
+  // The first-run AIOMetadata admin key step follows the account; save the generated key.
+  await until(() => connection.evaluate('document.body.innerText.includes("Set up AIOMetadata")'), 'AIOMetadata admin key step after the account', 120000);
+  assert.equal(await connection.evaluate('document.getElementById("aiometadata-admin-key").value.length'), 32, 'A generated admin key is offered');
+  await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Save and continue"))?.click(), true');
+  await until(() => connection.evaluate('!document.body.innerText.includes("Set up AIOMetadata")'), 'AIOMetadata admin key saved', 60000);
+  assert.ok(existsSync(path.join(data, 'data/aiometadata/admin-key.protected')), 'AIOMetadata admin key not saved with DPAPI');
+  pass('first-run AIOMetadata admin key generated and saved after the account step');
   const duplicate = spawn(path.join(stage, 'aiostreams-desktop.exe'), [], { cwd: stage, stdio: 'ignore', env: { ...process.env, AIOSTREAMS_DESKTOP_DATA_DIR: data } });
   const duplicateCode = await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => { duplicate.kill(); reject(new Error('Second app instance did not exit')); }, 15000);

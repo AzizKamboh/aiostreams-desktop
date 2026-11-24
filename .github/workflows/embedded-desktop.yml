@@ -32,6 +32,10 @@ on:
         description: Optional. Release the tested build from this earlier run of this workflow on the same commit instead of building again
         type: string
         default: ''
+      publish:
+        description: Publish the draft as soon as it is created and put it on its update feed (used by Auto release; leave off to review the draft first)
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'packages/desktop/**'
@@ -131,9 +135,18 @@ jobs:
             tar
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-zlib
+            gcc
+            pkgconf
       - name: Build bundled ffprobe from verified source
         shell: msys2 {0}
         run: bash scripts/desktop/build-ffprobe.sh
+      # AIOMetadata needs Redis 8, which has no Windows port: it is compiled
+      # against the MSYS2 POSIX runtime (MSYS, not MINGW64).
+      - name: Build bundled Redis for AIOMetadata from verified source
+        shell: msys2 {0}
+        env:
+          MSYSTEM: MSYS
+        run: bash scripts/desktop/build-redis.sh
       - name: Build, test, stage, and package
         env:
           PACKAGE_VERSION: ${{ needs.plan.outputs.version }}
@@ -149,6 +162,8 @@ jobs:
           $env:PATH = "$env:SystemRoot/system32;$env:SystemRoot"
           & $node scripts/desktop/smoke.mjs --app-root $runtime --node $node --ffprobe $probe
           if ($LASTEXITCODE -ne 0) { throw 'Packaged runtime smoke test failed.' }
+          & $node scripts/desktop/aiometadata/smoke.mjs --stage (Join-Path $PWD '.embedded-build/stage') --node $node
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged AIOMetadata smoke test failed.' }
       - name: Verify the update feed and checksums
         env:
           PACKAGE_VERSION: ${{ needs.plan.outputs.version }}
@@ -197,7 +212,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
-      actions: read
+      # write: an automatic release starts Release publishing.
+      actions: write
       id-token: write
       attestations: write
     env:
@@ -274,3 +290,11 @@ jobs:
             echo "Built from \`$BUILD_SHA\` (run $BUILD_RUN). Review and edit the notes, test the files, then **Publish**."
             echo "Publishing runs *Release publishing*, which verifies the release and only then updates the $RELEASE_CHANNEL update feed."
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish (automatic releases)
+        if: inputs.publish
+        run: |
+          gh release edit "$TAG" --draft=false
+          # A release published with the Actions token starts no 'release' workflows,
+          # so start the verification and feed update explicitly.
+          gh workflow run release-publish.yml --ref main -f tag="$TAG"
+          echo "Published $TAG; *Release publishing* verifies it and updates the $RELEASE_CHANNEL feed." >> "$GITHUB_STEP_SUMMARY"

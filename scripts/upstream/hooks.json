@@ -16,7 +16,6 @@
     "packages/web/src/app/settings/page.tsx": "Settings -> Local server section",
     "packages/web/src/app/settings/apps.tsx": "update channel labels (Preview instead of Nightly) in the integrated app",
     "packages/web/src/app/sign-in/page.tsx": "configuration/dashboard links on sign-in screens",
-    "packages/web/src/features/player/options.tsx": "dashboard button in the player controls",
     "packages/web/src/features/remote/remote-target.tsx": "registers the active player",
     "packages/web/src/lib/jellyfin/session.tsx": "local sign-in",
     "packages/web/src/lib/settings/index.ts": "Discord presence and tracker reporting default off",
@@ -29,6 +28,7 @@
     "packages/web/src/locales/messages.pot": "integration UI strings",
     "packages/frontend/src/routes/dashboard-layout.tsx": "Home footer entry",
     "packages/frontend/src/app/configure/main-sidebar.tsx": "Home footer entry",
+    "packages/frontend/src/app/configure/new-layout.tsx": "Home footer entry (new configuration layout)",
     "packages/desktop/app/src/main.rs": "backend start, integrated version, integrated updater module",
     "packages/desktop/app/src/shell/tao_shell.rs": "backend origin trust, embedded message routing, shutdown",
     "packages/desktop/app/src/platform/windows.rs": "application identity",
@@ -107,7 +107,8 @@
     "upstream-sync.yml",
     "release-publish.yml",
     "post-release-validation.yml",
-    "dependency-maintenance.yml"
+    "dependency-maintenance.yml",
+    "auto-release.yml"
   ],
   "integrationReplacedFiles": {
     "README.md": "the integrated project's landing page; upstream's README is linked from it",
