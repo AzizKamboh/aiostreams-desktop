@@ -7,6 +7,8 @@ import React from 'react';
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { Button } from '@aiostreams/ui/button';
+import { Switch } from '@aiostreams/ui/switch';
+import { storage } from '@/lib/storage';
 import { openLogs } from '@/lib/hosts/shell';
 import { appBridge } from '@/lib/hosts/shell/bridge';
 import { usePlayback } from '@/lib/playback/session';
@@ -24,6 +26,9 @@ import {
 import { AccountsSummary } from './embedded-accounts';
 import { AioMetadataCard } from './embedded-aiometadata';
 
+/** Read by the native shell at every start (backend.rs, WATCH_SYNC_KEY). */
+const WATCH_SYNC_KEY = 'aiostreams-desktop-watch-sync';
+
 /** Restart and switching servers stop playback, so they ask first. */
 type Pending = { kind: 'restart' } | { kind: 'mode'; mode: BackendMode };
 
@@ -33,6 +38,9 @@ export function LocalServerSection() {
   const [pending, setPending] = React.useState<Pending | null>(null);
   const [diagnostics, setDiagnostics] = React.useState('');
   const [reading, setReading] = React.useState(false);
+  const [watchSync, setWatchSync] = React.useState(
+    () => storage.get<boolean>(WATCH_SYNC_KEY) === true
+  );
   if (!shell) return null;
   const { state, mode, local, origin } = shell;
 
@@ -152,6 +160,27 @@ export function LocalServerSection() {
         openServer={shell.openServer}
         manageKey={shell.manageAioMetadataKey}
       />
+
+      {mode === 'local' && (
+        <SettingsCard title={t`Watch progress`}>
+          <Switch
+            side="right"
+            label={t`Sync watch progress with trackers`}
+            help={t`Sends what you watch to addons that track it, such as AIOMetadata with Simkl, MDBList, AniList or MyAnimeList connected, so other devices using the same tracker see it. What you watched elsewhere appears in Continue watching either way. Changing this restarts the local server.`}
+            value={watchSync}
+            onValueChange={(on) => {
+              storage.set(WATCH_SYNC_KEY, on);
+              setWatchSync(on);
+              request({ kind: 'restart' });
+            }}
+          />
+          <p className="text-sm text-[--muted]">
+            <Trans>
+              To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon, then turn this on.
+            </Trans>
+          </p>
+        </SettingsCard>
+      )}
 
       {local && (
         <AccountsSummary

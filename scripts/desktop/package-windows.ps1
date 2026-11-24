@@ -178,7 +178,7 @@ try {
       --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams' `
       --packAuthors 'AIOStreams contributors; integrated desktop contributors' `
       --icon packages/desktop/app/icons/aiostreams.ico --channel $velopackChannel `
-      --runtime win-x64 --shortcuts StartMenuRoot --instLocation PerUser --outputDir $releases `
+      --runtime win-x64 --shortcuts Desktop,StartMenuRoot --instLocation PerUser --outputDir $releases `
       @(if (-not $BundleWebView2) { '--framework', 'webview2' })
   }
   # Only this version's packages ship; the downloaded previous full package was input for the delta.

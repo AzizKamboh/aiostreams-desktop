@@ -6661,3 +6661,23 @@ msgstr ""
 #: src/components/shell/embedded-aiometadata.tsx
 msgid "Without a key, AIOMetadata works for catalogs and metadata but its dashboard stays closed. Set one later in Settings → Local server → AIOMetadata."
 msgstr ""
+
+#: src/components/shell/embedded-nav.tsx
+msgid "AIOStreams Configuration"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Watch progress"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Sync watch progress with trackers"
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "Sends what you watch to addons that track it, such as AIOMetadata with Simkl, MDBList, AniList or MyAnimeList connected, so other devices using the same tracker see it. What you watched elsewhere appears in Continue watching either way. Changing this restarts the local server."
+msgstr ""
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon, then turn this on."
+msgstr ""

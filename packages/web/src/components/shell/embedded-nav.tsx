@@ -4,16 +4,22 @@
  * nothing outside the integrated desktop app or in remote-server mode.
  */
 import { t } from '@lingui/core/macro';
-import { LuServer } from 'react-icons/lu';
+import { LuServer, LuSlidersHorizontal } from 'react-icons/lu';
 import type { SidebarItem } from '@aiostreams/ui/shared/sidebar';
 import { ControlButton } from '@/features/player/buttons';
 import { CONFIGURE_PATH, useDesktopShell } from '@/lib/embedded-shell';
 
-/** "AIOStreams Dashboard", beside Settings in every navigation layout. */
+/** "AIOStreams Configuration" and "AIOStreams Dashboard", beside Settings in every navigation layout. */
 export function useDesktopNavItems(): SidebarItem[] {
   const shell = useDesktopShell();
   if (!shell?.local) return [];
   return [
+    {
+      id: 'aiostreams-configure',
+      name: t`AIOStreams Configuration`,
+      iconType: LuSlidersHorizontal,
+      onClick: () => shell.openServer(CONFIGURE_PATH),
+    },
     {
       id: 'aiostreams-server',
       name: t`AIOStreams Dashboard`,
@@ -28,13 +34,22 @@ export function DesktopServerButton() {
   const shell = useDesktopShell();
   if (!shell?.local) return null;
   return (
-    <ControlButton
-      name="aiostreams-server"
-      label={t`AIOStreams Dashboard`}
-      onClick={() => shell.openServer()}
-    >
-      <LuServer />
-    </ControlButton>
+    <>
+      <ControlButton
+        name="aiostreams-configure"
+        label={t`AIOStreams Configuration`}
+        onClick={() => shell.openServer(CONFIGURE_PATH)}
+      >
+        <LuSlidersHorizontal />
+      </ControlButton>
+      <ControlButton
+        name="aiostreams-server"
+        label={t`AIOStreams Dashboard`}
+        onClick={() => shell.openServer()}
+      >
+        <LuServer />
+      </ControlButton>
+    </>
   );
 }
 

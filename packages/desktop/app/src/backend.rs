@@ -29,6 +29,10 @@ const STOP_TIMEOUT: Duration = Duration::from_secs(10);
 /// automatically; one that dies sooner would only loop.
 const CRASH_RESTART_AFTER: Duration = Duration::from_secs(60);
 const STORAGE_LIMIT: usize = 4 * 1024 * 1024;
+/// Client-storage switch (Settings → Local server → Watch progress): report
+/// playback to watch_state addons such as AIOMetadata's trackers. Off unless
+/// the user turns it on; desktop-env.ts defaults the variable to false.
+const WATCH_SYNC_KEY: &str = "aiostreams-desktop-watch-sync";
 /// How long the just-created credential stays available for the copy step.
 const NEW_CREDENTIAL_TTL: Duration = Duration::from_secs(15 * 60);
 
@@ -383,6 +387,14 @@ impl Drop for Backend {
     }
 }
 
+/// Client storage keeps JSON-encoded values: `true` arrives as the string "true".
+fn watch_sync_enabled(storage: &Value) -> bool {
+    storage[WATCH_SYNC_KEY]
+        .as_str()
+        .and_then(|value| serde_json::from_str::<bool>(value).ok())
+        .unwrap_or(false)
+}
+
 fn valid_storage(value: &Value) -> bool {
     value.as_object().is_some_and(|map| {
         map.len() <= 4096 && map.iter().all(|(k, v)| k.len() <= 1024 && v.is_string())
@@ -564,7 +576,8 @@ fn launch(
             Err(error) => return RunResult::Failed(error),
         };
         let url = format!("http://127.0.0.1:{port}");
-        let mut process = match OwnedChild::start(root, port, key, token) {
+        let watch_sync = watch_sync_enabled(&state.lock().unwrap().storage);
+        let mut process = match OwnedChild::start(root, port, key, token, watch_sync) {
             Ok(p) => p,
             Err(error) => return RunResult::Failed(error),
         };
@@ -722,7 +735,13 @@ struct OwnedChild {
 }
 
 impl OwnedChild {
-    fn start(root: &Path, port: u16, key: &str, token: &str) -> Result<Self, String> {
+    fn start(
+        root: &Path,
+        port: u16,
+        key: &str,
+        token: &str,
+        watch_sync: bool,
+    ) -> Result<Self, String> {
         let exe = std::env::current_exe().map_err(|_| "Cannot find the app installation folder")?;
         let install = exe
             .parent()
@@ -787,6 +806,12 @@ impl OwnedChild {
             .env("SECRET_KEY", key)
             .env("AIOSTREAMS_DESKTOP_TOKEN", token)
             .env("AIOSTREAMS_DESKTOP_STDIN_CONTROL", "1")
+            // Upstream's WATCH_STATE_REPORT_ENABLED; an environment value locks
+            // it in the dashboard, so the app's own switch decides it.
+            .env(
+                "WATCH_STATE_REPORT_ENABLED",
+                if watch_sync { "true" } else { "false" },
+            )
             .env(
                 "AIOSTREAMS_DESKTOP_WEB_DIR",
                 std::env::var_os("AIOSTREAMS_DESKTOP_WEB_DIR")
@@ -960,6 +985,14 @@ mod tests {
         assert!(!valid_owned_origin("http://localhost:1234"));
         assert!(!valid_owned_origin("http://127.0.0.1:1234/path"));
     }
+    #[test]
+    fn watch_sync_is_off_unless_the_switch_is_on() {
+        assert!(!watch_sync_enabled(&json!({})));
+        assert!(!watch_sync_enabled(&json!({ WATCH_SYNC_KEY: "false" })));
+        assert!(!watch_sync_enabled(&json!({ WATCH_SYNC_KEY: "yes" })));
+        assert!(watch_sync_enabled(&json!({ WATCH_SYNC_KEY: "true" })));
+    }
+
     #[test]
     fn storage_accepts_only_bounded_string_map() {
         assert!(valid_storage(&json!({"jellyfin_credentials":"private"})));

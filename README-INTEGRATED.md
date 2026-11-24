@@ -5,7 +5,7 @@ from the same upstream monorepo. It keeps the Rust/WebView2 shell, mpv player,
 browsing interface, server configuration dashboard, and existing provider logic.
 The desktop owns a private Node server process; Docker is not used.
 
-**Version 0.2.2** is the current release; 0.2.1 was the first public release of this unofficial integrated
+**Version 0.4.0** is the current release; 0.2.1 was the first public release of this unofficial integrated
 variant, built from upstream `desktop-v0.24.0` (commit `76a5d6da`; desktop
 client 0.24.0, server 2.37.0). Download it from this repository's
 [Releases](https://github.com/AzizKamboh/aiostreams-desktop/releases): run
@@ -21,7 +21,7 @@ ticked to turn a tested build into a draft release (see *Making a release*).
 ## Using a Windows package
 
 After building and validating a package, run its Setup.exe as your normal Windows
-user. It installs one AIOStreams Integrated Start-menu shortcut. The portable
+user. It installs an AIOStreams shortcut on the desktop and in the Start menu. The portable
 archive is an alternative; both variants keep data in your Windows profile.
 The complete package bundles Node, mpv and ffprobe, and uses the WebView2 that
 Windows keeps up to date (Setup installs it if missing; the portable ZIP needs

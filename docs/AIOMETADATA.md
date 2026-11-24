@@ -28,7 +28,28 @@ and the status says so; update the custom addon's URL in that case.
 **Restart AIOMetadata** restarts only AIOMetadata (and its Redis); the
 AIOStreams server and playback are not affected, and the reverse is also true.
 
-## What runs
+## Continue watching across devices
+
+The app's server is private to this computer, so other devices cannot share
+its Continue watching directly. A tracker (Simkl, MDBList, AniList,
+MyAnimeList or PublicMetaDB) can be the shared place instead, through
+AIOMetadata:
+
+1. In **Configure AIOMetadata**, open **Watch tracking**. Turn on
+   **Jellyfin apps** under *You watch on*, connect a service under
+   *And it's sent to*, and save.
+2. Add AIOMetadata to your AIOStreams configuration as a **Custom** addon (see
+   above), if you have not yet.
+3. In Settings → Local server → **Watch progress**, turn on **Sync watch
+   progress with trackers**. The local server restarts.
+
+What you play here is then sent to AIOMetadata, which records it with the
+tracker. What you watched elsewhere with the same tracker (another computer,
+Stremio, phone apps) comes back into Continue watching and Next up. Reading back
+works without the switch; the switch only controls sending. It is AIOStreams'
+`WATCH_STATE_REPORT_ENABLED`, off by default in this app, and controls every
+addon that asks for playback reports, not only AIOMetadata.
+
 
 | Part | What | Where it comes from |
 | --- | --- | --- |

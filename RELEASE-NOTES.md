@@ -1,5 +1,34 @@
 # AIOStreams (integrated Windows app) release notes
 
+## 0.4.0
+
+Upgrades 0.3.0 and earlier in place; data, keys, accounts and settings are kept.
+Built from upstream `desktop-v0.28.0` (server 2.38.1, desktop client 0.28.0).
+
+- **AIOMetadata, built in.** The app now runs [AIOMetadata](https://github.com/cedya77/aiometadata)
+  4.1.0 on your computer beside the AIOStreams server, with the Redis 8 it
+  needs, private to this computer like the server. Configure it from
+  Settings → Local server → AIOMetadata (it opens in your browser), then add
+  the manifest URL it gives you to your AIOStreams configuration as a Custom
+  addon. See docs/AIOMETADATA.md.
+- **AIOMetadata admin key.** After the AIOStreams account, the first start asks
+  for AIOMetadata's admin key (its `ADMIN_KEY`, which opens its dashboard);
+  Generate makes one. It is kept protected for your Windows user. Existing
+  installs are asked once.
+- **Continue watching across devices.** Settings → Local server → Watch
+  progress → **Sync watch progress with trackers** sends what you watch to
+  tracker addons, such as AIOMetadata with Simkl connected, so your other
+  devices see it. Off by default.
+- **AIOStreams Configuration** now sits beside **AIOStreams Dashboard** in the
+  sidebar and menus and in the player controls.
+- **Desktop shortcut.** Setup now creates a desktop shortcut as well as the
+  Start-menu one.
+- **Fixed:** opening Settings showed "appBridge is not defined" since the
+  desktop-v0.27.0 update.
+- Behind the scenes: new AIOStreams and AIOMetadata releases are synced daily
+  and, once every check passes, published as Preview releases automatically,
+  then promoted to Stable after three days (docs/RELEASE-PROCESS.md).
+
 ## 0.3.0
 
 Upgrades 0.2.2 and earlier in place; data, keys, accounts and settings are kept.

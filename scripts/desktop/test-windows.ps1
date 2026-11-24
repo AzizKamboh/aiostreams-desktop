@@ -19,7 +19,7 @@ try {
       --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams' `
       --packAuthors 'AIOStreams contributors; integrated desktop contributors' `
       --icon packages/desktop/app/icons/aiostreams.ico --channel win-x64 `
-      --runtime win-x64 --shortcuts StartMenuRoot --instLocation PerUser --outputDir $Output
+      --runtime win-x64 --shortcuts Desktop,StartMenuRoot --instLocation PerUser --outputDir $Output
     if ($LASTEXITCODE -ne 0) { throw "Could not create the $Version test package." }
   }
   $upgradeDir = Join-Path $root '.embedded-build/upgrade-test'
