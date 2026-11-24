@@ -6597,3 +6597,67 @@ msgstr ""
 #: src/components/shell/embedded-aiometadata.tsx
 msgid "AIOMetadata project"
 msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Admin key"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Set, protected for your Windows user"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Not set: AIOMetadata's dashboard is closed"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Set admin key"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Use at least 12 characters."
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Use at most 256 characters."
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Use letters, digits and symbols only, without spaces."
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "The admin key was not saved."
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Change the AIOMetadata admin key"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Set up AIOMetadata"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOMetadata runs on this computer beside AIOStreams. Its admin key opens AIOMetadata's dashboard (statistics, cache and server settings). It is AIOMetadata's ADMIN_KEY setting."
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Generate"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Copy it somewhere safe: AIOMetadata's dashboard asks for it. The app keeps it protected for your Windows user and passes it to AIOMetadata at every start."
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Save and restart AIOMetadata"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Save and continue"
+msgstr ""
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Without a key, AIOMetadata works for catalogs and metadata but its dashboard stays closed. Set one later in Settings → Local server → AIOMetadata."
+msgstr ""

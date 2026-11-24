@@ -24,6 +24,7 @@ import { sendRemote } from '@/lib/remote/commands';
 import { party } from '@/lib/party/party';
 import { toast } from 'sonner';
 import { AccountReady, AccountSetup } from './embedded-accounts';
+import { AioMetadataKeySetup } from './embedded-aiometadata';
 import {
   CONFIGURE_PATH,
   DASHBOARD_PATH,
@@ -210,6 +211,8 @@ function EmbeddedContent({
     () => storage.get<boolean>(ACCOUNT_SKIP_KEY) === true
   );
   const [credentialShown, setCredentialShown] = React.useState(false);
+  /** AIOMetadata's admin key screen, opened from Settings. */
+  const [changingAioKey, setChangingAioKey] = React.useState(false);
 
   React.useEffect(() => {
     setEmbeddedOrigin(origin);
@@ -354,6 +357,7 @@ function EmbeddedContent({
       restart,
       chooseMode,
       manageAccounts: () => setManagingAccounts(true),
+      manageAioMetadataKey: () => setChangingAioKey(true),
       readDiagnostics: () => requestDiagnostics(origin),
     });
   }, [state, mode, local, origin, openServer, restart, chooseMode]);
@@ -436,6 +440,15 @@ function EmbeddedContent({
           onUseRemote={
             managingAccounts ? undefined : () => chooseMode('remote')
           }
+        />
+      ) : changingAioKey ||
+        (local &&
+          state.aiometadata?.adminKey === 'unset' &&
+          state.aiometadata.state !== 'unavailable') ? (
+        // After the AIOStreams account (or its skip), like that step.
+        <AioMetadataKeySetup
+          changing={changingAioKey}
+          onDone={() => setChangingAioKey(false)}
         />
       ) : null}
     </>

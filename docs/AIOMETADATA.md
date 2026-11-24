@@ -49,6 +49,7 @@ installed; its configuration page's libraries are already bundled into
 | AIOMetadata database, ID-mapping and artwork caches | `%LOCALAPPDATA%\AIOStreams Integrated\aiometadata\state\addon\data` |
 | Redis append-only file (sessions, Jellyfin state, cache) | `%LOCALAPPDATA%\AIOStreams Integrated\aiometadata\redis` |
 | Image-URL signing secret (DPAPI) | `...\aiometadata\signing-secret.protected` |
+| Admin key (DPAPI), if set | `...\aiometadata\admin-key.protected` |
 | Port | `...\aiometadata\port` |
 
 Both AIOMetadata and Redis listen on `127.0.0.1` only; nothing is reachable
@@ -60,9 +61,19 @@ AIOMetadata contacts the metadata services you configure (TMDB, TVDB, MAL,
 AniList, Fanart.tv, MDBList and so on) and downloads public ID-mapping datasets
 on first start, which can take a few minutes.
 
-### Environment variables (`ADMIN_KEY` and others)
+### Admin key (`ADMIN_KEY`)
 
-AIOMetadata's environment variables go in a `.env` file, the same file a
+At first start, after the AIOStreams account, the app asks for AIOMetadata's
+admin key: the key AIOMetadata's dashboard (`http://127.0.0.1:3232/dashboard`)
+asks for. **Generate** makes a strong one; copy it somewhere safe. The app keeps
+it with Windows DPAPI (`...\aiometadata\admin-key.protected`) and passes it to
+AIOMetadata as `ADMIN_KEY` at every start. **Skip for now** leaves the dashboard
+closed; catalogs and metadata work either way. Set or change it any time in
+Settings → Local server → AIOMetadata → **Admin key**.
+
+### Other environment variables
+
+AIOMetadata's other environment variables go in a `.env` file, the same file a
 Docker install uses:
 
 ```text
@@ -70,8 +81,6 @@ Docker install uses:
 ```
 
 ```ini
-# Opens AIOMetadata's admin dashboard (http://127.0.0.1:3232/dashboard)
-ADMIN_KEY=choose-a-long-random-value
 # Server-wide fallback keys, used when a configuration has none of its own
 TMDB_API_KEY=...
 ```
@@ -81,8 +90,8 @@ is AIOMetadata's [`.env.example`](https://github.com/cedya77/aiometadata/blob/de
 The app loads the file before AIOMetadata starts.
 
 Some values are always set by the app and win over the file: `PORT`,
-`HOST_NAME`, `DATABASE_URI`, `REDIS_URL`, `IMAGE_PROXY_SIGNING_SECRET` and
-`NODE_ENV`. Background cache warming, which is meant for shared servers, is off
+`HOST_NAME`, `DATABASE_URI`, `REDIS_URL`, `IMAGE_PROXY_SIGNING_SECRET`,
+`NODE_ENV`, and `ADMIN_KEY` once you have set one in the app. Background cache warming, which is meant for shared servers, is off
 by default (`ENABLE_CACHE_WARMING`, `CACHE_WARMUP_ON_STARTUP`,
 `MAL_WARMUP_ENABLED`, `TMDB_POPULAR_WARMING_ENABLED`). Setting any of those
 four in the file turns it back on.

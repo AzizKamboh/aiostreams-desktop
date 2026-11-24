@@ -23,6 +23,8 @@ export interface DesktopShell {
   restart(): void;
   chooseMode(mode: BackendMode): void;
   manageAccounts(): void;
+  /** Choose or change AIOMetadata's admin key. */
+  manageAioMetadataKey(): void;
   readDiagnostics(): Promise<string>;
   origin: string | null;
 }

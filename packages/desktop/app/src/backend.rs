@@ -157,6 +157,15 @@ impl Backend {
         self.aiometadata.restart();
     }
 
+    /// `{"key": "..."}` saves AIOMetadata's admin key; `{"skip": true}` continues without one.
+    pub fn set_aiometadata_admin_key(&self, request: &Value) -> Result<(), String> {
+        if request["skip"] == true {
+            return self.aiometadata.set_admin_key(None);
+        }
+        let key = request["key"].as_str().ok_or("Enter an admin key")?;
+        self.aiometadata.set_admin_key(Some(key))
+    }
+
     /// Save the setup screen's accounts, then restart the backend so upstream
     /// reads them from AIOSTREAMS_AUTH. Existing accounts are only replaced when
     /// the request says so explicitly, and unreadable ones never are.

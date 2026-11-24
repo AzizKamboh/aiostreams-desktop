@@ -6598,3 +6598,67 @@ msgstr "AIOMetadata runs only on this computer, separately from the AIOStreams s
 #: src/components/shell/embedded-aiometadata.tsx
 msgid "AIOMetadata project"
 msgstr "AIOMetadata project"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Admin key"
+msgstr "Admin key"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Set, protected for your Windows user"
+msgstr "Set, protected for your Windows user"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Not set: AIOMetadata's dashboard is closed"
+msgstr "Not set: AIOMetadata's dashboard is closed"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Set admin key"
+msgstr "Set admin key"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Use at least 12 characters."
+msgstr "Use at least 12 characters."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Use at most 256 characters."
+msgstr "Use at most 256 characters."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Use letters, digits and symbols only, without spaces."
+msgstr "Use letters, digits and symbols only, without spaces."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "The admin key was not saved."
+msgstr "The admin key was not saved."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Change the AIOMetadata admin key"
+msgstr "Change the AIOMetadata admin key"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Set up AIOMetadata"
+msgstr "Set up AIOMetadata"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "AIOMetadata runs on this computer beside AIOStreams. Its admin key opens AIOMetadata's dashboard (statistics, cache and server settings). It is AIOMetadata's ADMIN_KEY setting."
+msgstr "AIOMetadata runs on this computer beside AIOStreams. Its admin key opens AIOMetadata's dashboard (statistics, cache and server settings). It is AIOMetadata's ADMIN_KEY setting."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Generate"
+msgstr "Generate"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Copy it somewhere safe: AIOMetadata's dashboard asks for it. The app keeps it protected for your Windows user and passes it to AIOMetadata at every start."
+msgstr "Copy it somewhere safe: AIOMetadata's dashboard asks for it. The app keeps it protected for your Windows user and passes it to AIOMetadata at every start."
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Save and restart AIOMetadata"
+msgstr "Save and restart AIOMetadata"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Save and continue"
+msgstr "Save and continue"
+
+#: src/components/shell/embedded-aiometadata.tsx
+msgid "Without a key, AIOMetadata works for catalogs and metadata but its dashboard stays closed. Set one later in Settings → Local server → AIOMetadata."
+msgstr "Without a key, AIOMetadata works for catalogs and metadata but its dashboard stays closed. Set one later in Settings → Local server → AIOMetadata."

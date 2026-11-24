@@ -39,6 +39,11 @@ const REDIS_START_TIMEOUT: Duration = Duration::from_secs(120);
 const START_TIMEOUT: Duration = Duration::from_secs(600);
 const STOP_TIMEOUT: Duration = Duration::from_secs(15);
 const CRASH_RESTART_AFTER: Duration = Duration::from_secs(60);
+/// AIOMetadata's ADMIN_KEY (its dashboard login), chosen in the first-run
+/// setup like the AIOStreams account, kept with DPAPI.
+const ADMIN_KEY_FILE: &str = "admin-key.protected";
+/// The user chose to continue without an admin key; do not ask again.
+const ADMIN_KEY_SKIPPED: &str = "admin-key-skipped";
 
 type Changed = Arc<dyn Fn(Value) + Send + Sync>;
 
@@ -51,12 +56,15 @@ struct Status {
     phase: &'static str,
     message: String,
     url: Option<String>,
+    root: PathBuf,
 }
 
 pub struct AioMetadata {
     commands: mpsc::Sender<Control>,
     worker: Mutex<Option<JoinHandle<()>>>,
     status: Arc<Mutex<Status>>,
+    changed: Changed,
+    root: PathBuf,
 }
 
 /// Installed files, resolved once per launch.
@@ -114,13 +122,15 @@ impl AioMetadata {
             phase: "starting",
             message: "Starting AIOMetadata…".into(),
             url: None,
+            root: root.clone(),
         }));
         let (commands, received) = mpsc::channel();
         let changed: Changed = Arc::new(changed);
         let shared = status.clone();
+        let (worker_root, worker_changed) = (root.clone(), changed.clone());
         let worker = thread::Builder::new()
             .name("embedded-aiometadata".into())
-            .spawn(move || run(root, received, shared, changed))
+            .spawn(move || run(worker_root, received, shared, worker_changed))
             .ok();
         if worker.is_none() {
             let mut s = status.lock().unwrap();
@@ -131,11 +141,36 @@ impl AioMetadata {
             commands,
             worker: Mutex::new(worker),
             status,
+            changed,
+            root,
         }
     }
 
     pub fn status(&self) -> Value {
         snapshot(&self.status)
+    }
+
+    /// Save AIOMetadata's admin key and restart it with the key, or (None)
+    /// remember that the user continues without one.
+    pub fn set_admin_key(&self, key: Option<&str>) -> Result<(), String> {
+        secure::directory(&self.root)?;
+        match key {
+            Some(key) => {
+                if let Some(problem) = admin_key_problem(key) {
+                    return Err(problem.into());
+                }
+                secure::write(&self.root.join(ADMIN_KEY_FILE), key.as_bytes())?;
+                let _ = fs::remove_file(self.root.join(ADMIN_KEY_SKIPPED));
+                log::info!("embedded aiometadata: admin key saved");
+                self.restart();
+            }
+            None => {
+                fs::write(self.root.join(ADMIN_KEY_SKIPPED), b"skipped")
+                    .map_err(|_| "Could not save the choice")?;
+                (self.changed)(snapshot(&self.status));
+            }
+        }
+        Ok(())
     }
 
     pub fn restart(&self) {
@@ -165,7 +200,52 @@ fn snapshot(status: &Mutex<Status>) -> Value {
         "message": s.message,
         "url": s.url,
         "manifestHint": s.url.as_ref().map(|url| format!("{url}/stremio/<your-uuid>/manifest.json")),
+        "adminKey": admin_key_state(&s.root),
     })
+}
+
+/// "set", "skipped" or "unset" (ask in the first-run setup). Never the key.
+fn admin_key_state(root: &Path) -> &'static str {
+    if root.join(ADMIN_KEY_FILE).exists() {
+        "set"
+    } else if root.join(ADMIN_KEY_SKIPPED).exists() {
+        "skipped"
+    } else {
+        "unset"
+    }
+}
+
+/// AIOMetadata compares the key with an `X-Admin-Key` header, so it must be
+/// a header-safe value; long enough to resist guessing by local programs.
+fn admin_key_problem(key: &str) -> Option<&'static str> {
+    let length = key.chars().count();
+    if length < 12 {
+        Some("Use at least 12 characters")
+    } else if length > 256 {
+        Some("Use at most 256 characters")
+    } else if !key.chars().all(|c| c.is_ascii_graphic()) {
+        Some("Use letters, digits and symbols only, without spaces")
+    } else {
+        None
+    }
+}
+
+/// The saved admin key, if any. An unreadable one (another Windows user's
+/// data) is reported and skipped rather than stopping AIOMetadata.
+fn read_admin_key(root: &Path) -> Option<String> {
+    let file = root.join(ADMIN_KEY_FILE);
+    if !file.exists() {
+        return None;
+    }
+    match secure::read(&file).map(String::from_utf8) {
+        Ok(Ok(key)) if admin_key_problem(&key).is_none() => Some(key),
+        _ => {
+            log::warn!(
+                "embedded aiometadata: the saved admin key cannot be read; starting without it"
+            );
+            None
+        }
+    }
 }
 
 fn report(
@@ -341,7 +421,15 @@ fn launch(
             }
         };
         let url = format!("http://127.0.0.1:{port}");
-        let mut server = match start_server(install, root, port, &password, redis.port, &secret) {
+        let mut server = match start_server(
+            install,
+            root,
+            port,
+            &password,
+            redis.port,
+            &secret,
+            read_admin_key(root).as_deref(),
+        ) {
             Ok(server) => server,
             Err(error) => {
                 redis.stop(&password);
@@ -499,6 +587,7 @@ fn start_server(
     password: &str,
     redis_port: u16,
     secret: &str,
+    admin_key: Option<&str>,
 ) -> Result<Owned, String> {
     let url = format!("http://127.0.0.1:{port}");
     let mut cmd = Command::new(&install.node);
@@ -521,6 +610,10 @@ fn start_server(
         .env("IMAGE_PROXY_SIGNING_SECRET", secret)
         .env("AIOMETADATA_DESKTOP_APP_ROOT", &install.app)
         .env("AIOMETADATA_DESKTOP_STDIN_CONTROL", "1");
+    // The key from the setup screen; without one, a .env ADMIN_KEY still applies.
+    if let Some(key) = admin_key {
+        cmd.env("ADMIN_KEY", key);
+    }
     // Background warming suits a shared server, not a personal desktop. These
     // are defaults only: a `.env` in the state folder cannot override variables
     // set here, so they are skipped when the user's own environment sets them.
@@ -746,6 +839,49 @@ mod tests {
     }
 
     #[test]
+    fn admin_key_rules() {
+        assert!(admin_key_problem("short").is_some());
+        assert!(admin_key_problem("has a space in it").is_some());
+        assert!(admin_key_problem("ünicode-letters-x").is_some());
+        assert!(admin_key_problem(&"x".repeat(257)).is_some());
+        assert!(admin_key_problem("Correct-Horse_Battery#9").is_none());
+    }
+
+    #[test]
+    fn admin_key_is_saved_skipped_and_reported_never_shown() {
+        let data = std::env::temp_dir().join(format!(
+            "aiometadata-admin-{}",
+            secure::random_hex().unwrap()
+        ));
+        let seen = Arc::new(Mutex::new(Vec::<Value>::new()));
+        let service = AioMetadata::start(&data, {
+            let seen = seen.clone();
+            move |status| seen.lock().unwrap().push(status)
+        });
+        assert_eq!(service.status()["adminKey"], "unset");
+        assert!(service.set_admin_key(Some("short")).is_err());
+        service.set_admin_key(None).unwrap();
+        assert_eq!(service.status()["adminKey"], "skipped");
+        assert_eq!(
+            seen.lock().unwrap().last().unwrap()["adminKey"],
+            "skipped",
+            "skipping is announced"
+        );
+        service
+            .set_admin_key(Some("Correct-Horse_Battery#9"))
+            .unwrap();
+        assert_eq!(service.status()["adminKey"], "set");
+        let root = data.join("aiometadata");
+        assert_eq!(
+            read_admin_key(&root).as_deref(),
+            Some("Correct-Horse_Battery#9")
+        );
+        assert!(!service.status().to_string().contains("Correct-Horse"));
+        service.stop();
+        let _ = fs::remove_dir_all(data);
+    }
+
+    #[test]
     fn dotenv_detection() {
         let root = std::env::temp_dir().join(format!(
             "aiometadata-dotenv-{}",
@@ -811,13 +947,31 @@ mod tests {
             "the Redis password must not stay on disk"
         );
         assert!(data.join("aiometadata/state/addon/data/db.sqlite").exists());
-        service.restart();
+        // Without an admin key, AIOMetadata's admin API is closed.
+        let admin = |key: &str| {
+            let mut stream = TcpStream::connect(("127.0.0.1", port)).unwrap();
+            write!(
+                stream,
+                "GET /api/config/stats HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nX-Admin-Key: {key}\r\nConnection: close\r\n\r\n"
+            )
+            .unwrap();
+            let mut reply = String::new();
+            let _ = stream.read_to_string(&mut reply);
+            reply.split(' ').nth(1).unwrap_or("").to_string()
+        };
+        assert_eq!(admin("anything-at-all"), "401");
+        // The key from the setup screen restarts AIOMetadata with ADMIN_KEY.
+        service
+            .set_admin_key(Some("Lifecycle-Admin_Key#1"))
+            .unwrap();
         let deadline = Instant::now() + Duration::from_secs(300);
         thread::sleep(Duration::from_millis(500));
         while service.status()["state"] != "ready" {
             assert!(Instant::now() < deadline, "not ready after restart");
             thread::sleep(Duration::from_millis(200));
         }
+        assert_eq!(admin("Lifecycle-Admin_Key#1"), "200");
+        assert_eq!(admin("a-wrong-admin-key"), "401");
         service.stop();
         assert!(!ready(port), "AIOMetadata still answering after stop");
         assert_eq!(service.status()["state"], "stopped");

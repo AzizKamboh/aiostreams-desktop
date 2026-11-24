@@ -38,7 +38,7 @@ upstream interfaces, with native entries added where they belong:
 | Sign-in screens | **Create or edit a configuration**, **AIOStreams Dashboard** |
 | Player controls (hide with the controls) | **AIOStreams Dashboard** button |
 | Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, source download, local/remote switch |
-| Settings → Local server → **AIOMetadata** | the bundled AIOMetadata: status, address, **Configure AIOMetadata**, restart |
+| Settings → Local server → **AIOMetadata** | the bundled AIOMetadata: status, address, admin key, **Configure AIOMetadata**, restart |
 | Dashboard and configuration sidebars | **Home** returns to the app |
 
 The dashboard opens over the library, so a playing title keeps its player:
@@ -54,7 +54,9 @@ The app also runs [AIOMetadata](https://github.com/cedya77/aiometadata) on your
 computer at `http://127.0.0.1:3232`, with the Redis 8 it needs. Configure it from
 **Settings → Local server → AIOMetadata** (it opens in your browser), then add
 the manifest URL it gives you to your AIOStreams configuration as a **Custom**
-addon. See [docs/AIOMETADATA.md](docs/AIOMETADATA.md).
+addon. At first start the app also asks for AIOMetadata's admin key (its
+`ADMIN_KEY`, which opens AIOMetadata's dashboard), right after the AIOStreams
+account, and keeps it with DPAPI. See [docs/AIOMETADATA.md](docs/AIOMETADATA.md).
 
 ### AIOStreams account and built-in Usenet
 

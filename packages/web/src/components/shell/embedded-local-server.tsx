@@ -150,6 +150,7 @@ export function LocalServerSection() {
         status={state.aiometadata}
         local={local}
         openServer={shell.openServer}
+        manageKey={shell.manageAioMetadataKey}
       />
 
       {local && (

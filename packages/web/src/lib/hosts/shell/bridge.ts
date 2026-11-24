@@ -46,9 +46,12 @@ export type ShellMessage =
         message?: string;
         url?: string | null;
         manifestHint?: string | null;
+        /** Whether its ADMIN_KEY was chosen in setup; never the key itself. */
+        adminKey?: 'set' | 'unset' | 'skipped';
       };
     }
   | { type: 'backend-accounts-result'; ok: boolean; message?: string | null }
+  | { type: 'backend-aiometadata-result'; ok: boolean; message?: string | null }
   | {
       type: 'youtube-resolved';
       request: string;
