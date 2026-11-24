@@ -130,6 +130,8 @@ try {
 
   // AIOMetadata.
   const port = await freePort();
+  // A user's .env (ADMIN_KEY, API keys…) is loaded, but never overrides the app's own settings.
+  fs.writeFileSync(path.join(state, '.env'), 'ADMIN_KEY=smoke-admin-key\nPORT=1\nREDIS_URL=redis://127.0.0.1:1\n');
   const env = {
     ...process.env,
     NODE_ENV: 'production',

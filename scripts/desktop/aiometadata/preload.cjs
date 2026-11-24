@@ -42,6 +42,17 @@ seeded.exports = {
 require.cache[runtimePaths] = seeded;
 fs.mkdirSync(path.join(process.cwd(), 'addon', 'data'), { recursive: true });
 
+// The user's optional settings: <data>\aiometadata\state\.env, the same file a
+// Docker install uses (ADMIN_KEY, API keys, proxies, …). AIOMetadata loads it
+// lazily from a few modules, after modules that already read the environment,
+// so load it here first, with AIOMetadata's own dotenv. Like dotenv's default,
+// it never overrides a variable that is already set: the app's own address,
+// database, Redis and signing secret always win.
+const envFile = path.join(process.cwd(), '.env');
+if (fs.existsSync(envFile)) {
+  Module.createRequire(path.join(appRoot, 'package.json'))('dotenv').config({ path: envFile, quiet: true });
+}
+
 // 2. Loopback only.
 const LOOPBACK = '127.0.0.1';
 const listen = net.Server.prototype.listen;

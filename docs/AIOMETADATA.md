@@ -60,13 +60,35 @@ AIOMetadata contacts the metadata services you configure (TMDB, TVDB, MAL,
 AniList, Fanart.tv, MDBList and so on) and downloads public ID-mapping datasets
 on first start, which can take a few minutes.
 
-Background cache warming, meant for shared servers, is off. To change that or
-set any other AIOMetadata environment variable (for example server-wide API
-keys or `ADMIN_KEY` for its dashboard), create
-`%LOCALAPPDATA%\AIOStreams Integrated\aiometadata\state\.env`
-([reference](https://github.com/cedya77/aiometadata/blob/dev/.env.example)) and
-restart AIOMetadata. The address, database and Redis settings are always the
-app's own.
+### Environment variables (`ADMIN_KEY` and others)
+
+AIOMetadata's environment variables go in a `.env` file, the same file a
+Docker install uses:
+
+```text
+%LOCALAPPDATA%\AIOStreams Integrated\aiometadata\state\.env
+```
+
+```ini
+# Opens AIOMetadata's admin dashboard (http://127.0.0.1:3232/dashboard)
+ADMIN_KEY=choose-a-long-random-value
+# Server-wide fallback keys, used when a configuration has none of its own
+TMDB_API_KEY=...
+```
+
+Save it, then **Restart AIOMetadata** in Settings → Local server. The full list
+is AIOMetadata's [`.env.example`](https://github.com/cedya77/aiometadata/blob/dev/.env.example).
+The app loads the file before AIOMetadata starts.
+
+Some values are always set by the app and win over the file: `PORT`,
+`HOST_NAME`, `DATABASE_URI`, `REDIS_URL`, `IMAGE_PROXY_SIGNING_SECRET` and
+`NODE_ENV`. Background cache warming, which is meant for shared servers, is off
+by default (`ENABLE_CACHE_WARMING`, `CACHE_WARMUP_ON_STARTUP`,
+`MAL_WARMUP_ENABLED`, `TMDB_POPULAR_WARMING_ENABLED`). Setting any of those
+four in the file turns it back on.
+
+The file is plain text in your user folder, readable by programs running as
+you. Treat it like the keys it holds.
 
 ## Building
 
