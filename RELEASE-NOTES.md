@@ -20,7 +20,9 @@ Built from upstream `desktop-v0.28.0` (server 2.38.1, desktop client 0.28.0).
   tracker addons, such as AIOMetadata with Simkl connected, so your other
   devices see it. Off by default.
 - **AIOStreams Configuration** now sits beside **AIOStreams Dashboard** in the
-  sidebar and menus and in the player controls.
+  sidebar and menus. Both buttons left the player controls.
+- **Home** in the configuration page's sidebar (new layout too) and the
+  dashboard's now returns to the library's home page.
 - **Desktop shortcut.** Setup now creates a desktop shortcut as well as the
   Start-menu one.
 - **Fixed:** opening Settings showed "appBridge is not defined" since the

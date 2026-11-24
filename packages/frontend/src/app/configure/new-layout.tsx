@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
+import { desktopFooterItems } from '@/lib/desktop-embed';
 import type { IconType } from 'react-icons';
 import {
   LuBlocks,
@@ -209,6 +210,13 @@ function Footer({
   const version = status?.channel === 'nightly' ? 'nightly' : status?.tag;
   return (
     <div className="space-y-0.5">
+      {/* AIOStreams Integrated: "Home" back to the desktop app; nothing outside it. */}
+      {desktopFooterItems().map((entry) => (
+        <button key={entry.name} type="button" className={item} onClick={() => entry.onClick()}>
+          <entry.iconType className="h-4 w-4 text-[--muted]" />
+          {entry.name}
+        </button>
+      ))}
       <button
         type="button"
         className={item}

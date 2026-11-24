@@ -277,7 +277,8 @@ function EmbeddedContent({
     [openServer]
   );
 
-  // "Home" in the dashboard and configuration sidebars closes the panel.
+  // "Home" in the dashboard and configuration sidebars closes the panel and,
+  // unless something is playing, goes to the library's home page.
   React.useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       // Only the local dashboard frame, never another site or frame origin.
@@ -287,8 +288,11 @@ function EmbeddedContent({
         data &&
         typeof data === 'object' &&
         (data as { type?: unknown }).type === CLOSE_PANEL_EVENT
-      )
+      ) {
+        const home = (data as { home?: unknown }).home === true;
         closePanel();
+        if (home && !playbackNow()) navigate(to.home);
+      }
     };
     window.addEventListener(CLOSE_PANEL_EVENT, closePanel);
     window.addEventListener('message', onMessage);

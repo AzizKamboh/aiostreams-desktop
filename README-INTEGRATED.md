@@ -34,12 +34,11 @@ upstream interfaces, with native entries added where they belong:
 
 | Where | Entry |
 | --- | --- |
-| Library sidebar / menu (next to Settings) | **AIOStreams Dashboard** |
+| Library sidebar / menu (next to Settings) | **AIOStreams Configuration**, **AIOStreams Dashboard** |
 | Sign-in screens | **Create or edit a configuration**, **AIOStreams Dashboard** |
-| Player controls (hide with the controls) | **AIOStreams Dashboard** button |
 | Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, source download, local/remote switch |
 | Settings → Local server → **AIOMetadata** | the bundled AIOMetadata: status, address, admin key, **Configure AIOMetadata**, restart |
-| Dashboard and configuration sidebars | **Home** returns to the app |
+| Dashboard and configuration sidebars (both layouts) | **Home** returns to the library home page |
 
 The dashboard opens over the library, so a playing title keeps its player:
 playback pauses, and closing the dashboard offers **Resume**. Keyboard:

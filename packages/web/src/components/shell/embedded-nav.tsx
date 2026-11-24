@@ -1,12 +1,11 @@
 /**
  * AIOStreams Integrated: native entries for the local server, placed by small
- * hooks in upstream's sidebar/menus, Settings and player controls. Each renders
+ * hooks in upstream's sidebar/menus and Settings. Each renders
  * nothing outside the integrated desktop app or in remote-server mode.
  */
 import { t } from '@lingui/core/macro';
 import { LuServer, LuSlidersHorizontal } from 'react-icons/lu';
 import type { SidebarItem } from '@aiostreams/ui/shared/sidebar';
-import { ControlButton } from '@/features/player/buttons';
 import { CONFIGURE_PATH, useDesktopShell } from '@/lib/embedded-shell';
 
 /** "AIOStreams Configuration" and "AIOStreams Dashboard", beside Settings in every navigation layout. */
@@ -27,30 +26,6 @@ export function useDesktopNavItems(): SidebarItem[] {
       onClick: () => shell.openServer(),
     },
   ];
-}
-
-/** In the player's own controls, so it shows and hides with them. */
-export function DesktopServerButton() {
-  const shell = useDesktopShell();
-  if (!shell?.local) return null;
-  return (
-    <>
-      <ControlButton
-        name="aiostreams-configure"
-        label={t`AIOStreams Configuration`}
-        onClick={() => shell.openServer(CONFIGURE_PATH)}
-      >
-        <LuSlidersHorizontal />
-      </ControlButton>
-      <ControlButton
-        name="aiostreams-server"
-        label={t`AIOStreams Dashboard`}
-        onClick={() => shell.openServer()}
-      >
-        <LuServer />
-      </ControlButton>
-    </>
-  );
 }
 
 /** Beside "Change server" on every sign-in screen, before any configuration exists. */
