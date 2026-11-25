@@ -44,7 +44,7 @@ test('only labelled same-repository branches outside drafts qualify', () => {
 });
 
 test('only app changes need a release', () => {
-  for (const f of ['README.md', 'docs/X.md', '.github/workflows/a.yml', 'integrated-version.json', 'SOURCE-MANIFEST.json']) {
+  for (const f of ['README.md', 'docs/X.md', '.github/workflows/a.yml', 'integrated-version.json', 'SOURCE-MANIFEST.json', '.gitignore']) {
     assert.equal(releaseRelevant(f), false, f);
   }
   for (const f of ['packages/web/src/app.tsx', 'scripts/desktop/runtime-pins.json', 'pnpm-lock.yaml', 'packages/desktop/app/src/main.rs']) {
@@ -71,6 +71,7 @@ test('no preview without changes, during a build, or before the bump', () => {
   assert.equal(previewDecision({ ...base, changedSinceRelease: [] }).action, 'none');
   assert.equal(previewDecision({ ...base, buildRunning: true }).action, 'none');
   assert.equal(previewDecision({ ...base, publishedTags: ['v0.3.0'] }).action, 'none');
+  assert.equal(previewDecision({ ...base, failedForHead: true }).action, 'none');
 });
 
 const day = 86400000;
