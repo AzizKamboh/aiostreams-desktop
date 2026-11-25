@@ -194,7 +194,7 @@ Rust, .NET 9 (for Velopack's `vpk`), git and MSYS2 (for ffprobe and Redis):
 ```powershell
 bash scripts/desktop/build-ffprobe.sh                 # in MSYS2 MINGW64
 MSYSTEM=MSYS bash scripts/desktop/build-redis.sh      # in MSYS2 (MSYS environment)
-./scripts/desktop/package-windows.ps1 -Version 0.4.1-dev.1
+./scripts/desktop/package-windows.ps1 -Version 0.5.0-dev.1
 ./scripts/desktop/test-windows.ps1                    # installer, playback, upgrade and update tests
 ```
 
