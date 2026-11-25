@@ -5,9 +5,10 @@ from the same upstream monorepo. It keeps the Rust/WebView2 shell, mpv player,
 browsing interface, server configuration dashboard, and existing provider logic.
 The desktop owns a private Node server process; Docker is not used.
 
-**Version 0.4.0** is the current release; 0.2.1 was the first public release of this unofficial integrated
-variant, built from upstream `desktop-v0.24.0` (commit `76a5d6da`; desktop
-client 0.24.0, server 2.37.0). Download it from this repository's
+It also runs [AIOMetadata](docs/AIOMETADATA.md) beside the server. 0.2.1 was
+the first public release of this unofficial integrated variant; each
+version's [release notes](RELEASE-NOTES.md) say which upstream releases it was
+built from. Download the latest from this repository's
 [Releases](https://github.com/AzizKamboh/aiostreams-desktop/releases): run
 `aiostreams-integrated-win-x64-Setup.exe`, or extract the portable ZIP. Packages
 are unsigned, so Windows SmartScreen may warn on first run. Read
@@ -15,8 +16,8 @@ are unsigned, so Windows SmartScreen may warn on first run. Read
 [the validation report](docs/embedded-desktop/VALIDATION.md) for what was tested.
 
 The [Integrated Windows desktop workflow](https://github.com/AzizKamboh/aiostreams-desktop/actions/workflows/embedded-desktop.yml)
-builds and tests every push to `main`. Run it manually with **draft_release**
-ticked to turn a tested build into a draft release (see *Making a release*).
+builds and tests every push to `main`. Releases are made automatically from
+upstream syncs (see *Making a release*).
 
 ## Using a Windows package
 
