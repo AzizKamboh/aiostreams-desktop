@@ -11,7 +11,7 @@
     "packages/server/src/routes/stremio/configure.ts": "dotfiles: 'allow' for install paths",
     "packages/web/src/app.tsx": "mounts the embedded shell",
     "packages/web/src/lib/hosts/shell/bridge.ts": "backend-state and account message types",
-    "packages/web/src/components/shell/layout.tsx": "AIOStreams Dashboard navigation entry",
+    "packages/web/src/components/shell/layout.tsx": "AIOStreams Configuration/Dashboard navigation entries; AIOMetadata in the desktop sidebar",
     "packages/web/src/components/shell/update-prompt.tsx": "defers the update prompt during playback in the integrated app",
     "packages/web/src/app/settings/page.tsx": "Settings -> Local server section",
     "packages/web/src/app/settings/apps.tsx": "update channel labels (Preview instead of Nightly) in the integrated app",

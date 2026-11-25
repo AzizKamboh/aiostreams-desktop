@@ -9,6 +9,9 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
   share the name "AIOStreams" with upstream's own desktop app; installing or
   removing one leaves the other's shortcuts alone. The two apps already kept
   separate data, settings and updates.
+- **AIOMetadata in the sidebar.** A new **AIOMetadata** button in the left
+  sidebar opens AIOMetadata's configuration page in your browser (once
+  AIOMetadata is ready).
 - **Fixed:** the startup screen could receive no status text (found by the new
   type check).
 

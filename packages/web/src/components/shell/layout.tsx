@@ -77,7 +77,7 @@ import { HistoryButtons } from './history-buttons';
 import { ConnectionNote } from './unreachable';
 import { Logo, onBar } from './nav/common';
 import { SidebarAccount } from './nav/account';
-import { useDesktopNavItems } from './embedded-nav';
+import { useDesktopNavItems, useDesktopSidebarItems } from './embedded-nav';
 import { MobileNav } from './nav/mobile-nav';
 import { TouchRail } from './nav/touch-rail';
 import { TvRail } from './nav/tv-rail';
@@ -258,6 +258,8 @@ export function WebLayout() {
 
   // AIOStreams Integrated: "AIOStreams Dashboard"; empty outside the desktop app.
   const serverItems = useDesktopNavItems();
+  // AIOStreams Integrated: "AIOMetadata", in the sidebar below only.
+  const sidebarOnlyItems = useDesktopSidebarItems();
   const settingsItem: SidebarItem = {
     id: 'settings',
     name: t`Settings`,
@@ -330,7 +332,7 @@ export function WebLayout() {
                     header={<Logo />}
                     items={items}
                     belowItems={<HistoryButtons />}
-                    footerItems={[...serverItems, settingsItem]}
+                    footerItems={[...serverItems, ...sidebarOnlyItems, settingsItem]}
                     footer={<SidebarAccount you={you} />}
                   />
                 )}
