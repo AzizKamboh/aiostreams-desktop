@@ -62,6 +62,7 @@ exists. Process: [UPSTREAM-SYNC.md](../UPSTREAM-SYNC.md).
 | `web/src/app/settings/page.tsx` | 1 section entry | Settings → Local server |
 | `web/src/app/sign-in/page.tsx` | 1 hook in `LinkRow` | Configuration/dashboard links (or "use this computer's server") on sign-in screens |
 | `web/src/features/remote/remote-target.tsx` | 1 hook | Registers the active player so the panel can pause and resume it |
+| `web/src/features/player/mini-player.tsx` | 2 lines | The dashboard panel (`data-keeps-mini-player`) does not count as covering the mini player, which plays on through a hole in it |
 | `frontend/src/routes/dashboard-layout.tsx`, `frontend/src/app/configure/main-sidebar.tsx`, `frontend/src/app/configure/new-layout.tsx` | 1 import and 1 spread or 1 map each | "Home" footer entry inside the desktop app (back to the library home page) |
 | `web/src/lib/jellyfin/session.tsx`, `settings/index.ts`, `storage.ts`, `app/settings/account.tsx`, `components/media/no-catalogs.tsx` | 1–9 lines each | Local sign-in, Discord presence default off, storage change event, open configuration in-app |
 | `web/rsbuild.config.ts`, `web/src/env.d.ts` | 1 constant | Server version shown in Diagnostics |

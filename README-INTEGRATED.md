@@ -42,7 +42,8 @@ upstream interfaces, with native entries added where they belong:
 | Dashboard and configuration sidebars (both layouts) | **Home** returns to the library home page |
 
 The dashboard opens over the library, so a playing title keeps its player:
-playback pauses, and closing the dashboard offers **Resume**. Keyboard:
+it moves to the mini player, which stays visible and usable over the
+dashboard, and keeps playing. Keyboard:
 **Ctrl+,** opens the AIOStreams Dashboard, **Ctrl+Shift+,** the configuration, and
 **Escape** returns to the library. Shortcuts never fire while you type in a
 field. Restarting the backend or switching servers asks first while something

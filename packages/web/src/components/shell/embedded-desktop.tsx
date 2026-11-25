@@ -8,7 +8,12 @@ import { openLogs, requestDiagnostics, useShellLinks } from '@/lib/hosts/shell';
 import { storage } from '@/lib/storage';
 import { SplashEnd } from '@/lib/splash';
 import { navigate, to } from '@/lib/paths';
-import { playbackNow } from '@/lib/playback/session';
+import {
+  canMinimise,
+  minimisePlayback,
+  playbackNow,
+  usePlayback,
+} from '@/lib/playback/session';
 import {
   embeddedOrigin,
   onOpenConfiguration,
@@ -165,6 +170,34 @@ export function EmbeddedDesktop({
   return <EmbeddedContent state={state} browse={browse} remote={remote} />;
 }
 
+const onPlayerPage = () => /^#\/play\/(?!trailer\/)/.test(window.location.hash);
+
+/**
+ * The mini player's box, which the panel leaves uncovered (an even-odd hole
+ * in its clip path) so the title playing in it stays visible and usable.
+ */
+function useMiniPlayerHole(): string | undefined {
+  const [hole, setHole] = React.useState<string>();
+  React.useEffect(() => {
+    let frame = 0;
+    let last: string | undefined;
+    const track = () => {
+      const el = document.querySelector<HTMLElement>('[data-ui="mini-player"]');
+      const box = el?.getBoundingClientRect();
+      const next =
+        box && box.width > 0 && box.height > 0
+          ? // eslint-disable-next-line lingui/no-unlocalized-strings -- a CSS value
+            `path(evenodd, "M0 0H${innerWidth}V${innerHeight}H0Z M${box.left} ${box.top}h${box.width}v${box.height}h${-box.width}Z")`
+          : undefined;
+      if (next !== last) setHole((last = next));
+      frame = requestAnimationFrame(track);
+    };
+    track();
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return hole;
+}
+
 /** Only paths of the local server's own dashboard and configuration open in the panel. */
 function panelPath(path: string): string {
   return path.startsWith('/dashboard') || path.startsWith('/stremio/')
@@ -227,9 +260,14 @@ function EmbeddedContent({
           document.activeElement instanceof HTMLElement
             ? document.activeElement
             : null;
-        // Pause through the player's own controller; the player stays mounted.
+        // A title plays on in the mini player, which the panel leaves
+        // uncovered, so a quick tweak does not stop it. Where there is no
+        // mini player, pause through the player's own controller.
+        const playback = playbackNow();
         const player = activeDesktopPlayer();
-        if (player && !player.state.paused) {
+        if (playback && !playback.mini && onPlayerPage() && canMinimise()) {
+          minimisePlayback(to.item(playback.itemId));
+        } else if (player && !player.state.paused && !playback?.mini) {
           player.setPaused(true);
           pausedForPanel.current = true;
         }
@@ -263,6 +301,17 @@ function EmbeddedContent({
     });
   }, [queryClient]);
 
+  // Expanding the mini player over the panel brings the player back: close
+  // the panel, which would otherwise hide it.
+  const playing = usePlayback();
+  const wasMini = React.useRef(false);
+  React.useEffect(() => {
+    const mini = !!playing?.mini;
+    if (wasMini.current && !mini && playing && panelRef.current !== null)
+      closePanel();
+    wasMini.current = mini;
+  }, [playing, closePanel]);
+
   // The local server went away (restart, failure, remote mode): no panel.
   React.useEffect(() => {
     if (!local && panelRef.current !== null) closePanel();
@@ -291,7 +340,9 @@ function EmbeddedContent({
       ) {
         const home = (data as { home?: unknown }).home === true;
         closePanel();
-        if (home && !playbackNow()) navigate(to.home);
+        const playback = playbackNow();
+        // A title in the mini player plays on over the home page.
+        if (home && (!playback || playback.mini)) navigate(to.home);
       }
     };
     window.addEventListener(CLOSE_PANEL_EVENT, closePanel);
@@ -475,6 +526,7 @@ function ServerPanel({
   const latestKey = React.useRef(onKey);
   latestKey.current = onKey;
   React.useEffect(() => frame.current?.focus(), []);
+  const hole = useMiniPlayerHole();
   const loaded = () => {
     const win = frame.current?.contentWindow;
     try {
@@ -491,7 +543,10 @@ function ServerPanel({
       role="dialog"
       aria-modal="true"
       aria-label={t`AIOStreams Dashboard`}
+      // The mini player looks through it: see useCovered in mini-player.tsx.
+      data-keeps-mini-player=""
       className="fixed inset-0 z-[70] flex flex-col bg-[#101014] pt-10"
+      style={hole ? { clipPath: hole } : undefined}
     >
       {failed && (
         <div

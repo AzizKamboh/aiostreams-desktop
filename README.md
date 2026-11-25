@@ -67,7 +67,7 @@ run ("More info" → "Run anyway"). Each file has a
   it needs. Configure it in your browser, add it to AIOStreams as a custom
   addon ([guide](docs/AIOMETADATA.md)).
 - **Continue watching across devices** through a tracker such as Simkl,
-  via AIOMetadata (off by default; [how](docs/AIOMETADATA.md#continue-watching-across-devices)).
+  via AIOMetadata (on by default, like upstream; [how](docs/AIOMETADATA.md#continue-watching-across-devices)).
 - **First-run setup** for the AIOStreams account (upstream's
   `AIOSTREAMS_AUTH`, needed for built-in Usenet) and AIOMetadata's admin key,
   both kept encrypted for your Windows user.
@@ -159,8 +159,9 @@ Windows 10 and 11, x64. Other platforms are not built by this project; use
 
 ## Security and privacy
 
-No telemetry is added; tracker playback reporting and Discord presence are
-off by default. Providers, addons and metadata sources receive the requests
+No telemetry is added; Discord presence is off by default. Playback is
+reported only to tracker addons you added, as in upstream (Settings → Local
+server → Watch progress turns it off). Providers, addons and metadata sources receive the requests
 their features need, as in upstream. Relayed provider content is sandboxed
 from the app, only the app's own page may use the native player bridge
 (AIOMetadata's pages open in your browser), and logs are redacted. Updates

@@ -392,7 +392,8 @@ fn watch_sync_enabled(storage: &Value) -> bool {
     storage[WATCH_SYNC_KEY]
         .as_str()
         .and_then(|value| serde_json::from_str::<bool>(value).ok())
-        .unwrap_or(false)
+        // On unless switched off, like upstream's WATCH_STATE_REPORT_ENABLED.
+        .unwrap_or(true)
 }
 
 fn valid_storage(value: &Value) -> bool {
@@ -986,11 +987,11 @@ mod tests {
         assert!(!valid_owned_origin("http://127.0.0.1:1234/path"));
     }
     #[test]
-    fn watch_sync_is_off_unless_the_switch_is_on() {
-        assert!(!watch_sync_enabled(&json!({})));
-        assert!(!watch_sync_enabled(&json!({ WATCH_SYNC_KEY: "false" })));
-        assert!(!watch_sync_enabled(&json!({ WATCH_SYNC_KEY: "yes" })));
+    fn watch_sync_is_on_unless_the_switch_is_off() {
+        assert!(watch_sync_enabled(&json!({})));
+        assert!(watch_sync_enabled(&json!({ WATCH_SYNC_KEY: "yes" })));
         assert!(watch_sync_enabled(&json!({ WATCH_SYNC_KEY: "true" })));
+        assert!(!watch_sync_enabled(&json!({ WATCH_SYNC_KEY: "false" })));
     }
 
     #[test]

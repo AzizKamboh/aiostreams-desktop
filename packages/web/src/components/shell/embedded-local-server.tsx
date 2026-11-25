@@ -39,7 +39,7 @@ export function LocalServerSection() {
   const [diagnostics, setDiagnostics] = React.useState('');
   const [reading, setReading] = React.useState(false);
   const [watchSync, setWatchSync] = React.useState(
-    () => storage.get<boolean>(WATCH_SYNC_KEY) === true
+    () => storage.get<boolean>(WATCH_SYNC_KEY) !== false
   );
   if (!shell) return null;
   const { state, mode, local, origin } = shell;
@@ -167,7 +167,7 @@ export function LocalServerSection() {
           />
           <p className="text-sm text-[--muted]">
             <Trans>
-              To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon, then turn this on.
+              To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon. This switch is on unless you turned it off.
             </Trans>
           </p>
         </SettingsCard>

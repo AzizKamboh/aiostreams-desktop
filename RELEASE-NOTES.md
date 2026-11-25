@@ -17,6 +17,13 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
   in Settings → Local server). The **Download source code** link is gone from
   Settings → Local server; every release still ships the full source.
   "AIOStreams accounts" is now **AIOStreams AUTH**.
+- **Watch progress syncs by default**, like upstream AIOStreams: what you
+  play is sent to tracker addons (such as AIOMetadata with Simkl connected)
+  unless you turn off Settings → Local server → Watch progress → **Sync
+  watch progress with trackers**. If you turned it off, it stays off.
+- **Playback keeps going while you tweak.** Opening the AIOStreams Dashboard
+  or Configuration while something plays moves it to the mini player, which
+  stays visible and usable over the dashboard, instead of pausing it.
 - Behind the scenes: the Windows update test now follows the build's channel,
   so automatic Preview builds pass it (the first one stopped there; nothing was
   published).
