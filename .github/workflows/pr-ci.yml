@@ -97,6 +97,11 @@ jobs:
       - name: Type-check the web app, dashboard and UI kit
         # --no-bail: report every package's errors, not only the first package's.
         run: pnpm --no-bail -F @aiostreams/web -F @aiostreams/frontend -F @aiostreams/ui run typecheck
+      - name: Every web app message is in the source catalog
+        # A message missing from en-GB.po shows as its hashed id in the app.
+        run: |
+          pnpm -F @aiostreams/web exec lingui extract-template
+          node scripts/desktop/check-catalog.mjs
       - name: Integration tests (private boundary, accounts, storage)
         run: pnpm exec vitest run packages/server/src/desktop.test.ts packages/web/tests/embedded-storage.test.ts packages/web/tests/embedded-accounts.test.ts packages/web/tests/embedded-updates.test.ts
       - name: Workspace tests

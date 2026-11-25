@@ -37,6 +37,9 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
   export) did nothing in the app. The file now downloads.
 - **Fixed:** the startup screen could receive no status text (found by the new
   type check).
+- **Fixed (after preview.1):** a few new texts, such as the Watch progress
+  instructions and "Starting AIOMetadata…", showed as short codes like
+  `-aXLs4`. A new check stops this from happening again.
 
 ## 0.4.0
 
