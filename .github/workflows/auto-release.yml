@@ -3,7 +3,9 @@ name: Auto release
 # Upstream sync → automatic Preview → Stable after a waiting period.
 # See docs/RELEASE-PROCESS.md, "Automatic releases".
 #
-# Every hour, and whenever a CI run finishes:
+# Every hour, whenever a CI run finishes, and after each daily Upstream Sync
+# (GitHub can delay or skip scheduled runs; the daily sync still runs, so a
+# Preview is never promoted more than about a day late):
 #  1. merges open `upstream-sync` (AIOStreams, AIOMetadata) and `release-bump`
 #     pull requests whose every check passed, the real Windows build and its
 #     installer, playback and update tests included. Drafts (upstream merges
@@ -23,7 +25,7 @@ on:
   schedule:
     - cron: '41 * * * *'
   workflow_run:
-    workflows: ['Pull Request CI', 'Integrated Windows desktop', 'Release publishing']
+    workflows: ['Pull Request CI', 'Integrated Windows desktop', 'Release publishing', 'Upstream Sync']
     types: [completed]
   workflow_dispatch:
     inputs:
