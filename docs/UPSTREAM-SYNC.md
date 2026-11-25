@@ -93,10 +93,15 @@ With the ancestry recorded, a trial merge of upstream `main` 24 commits past
    "superseded" comment; nothing is closed automatically.
 5. **Checks**: Pull Request CI and Integrated Windows desktop run on the
    branch (started with `workflow_dispatch` when GITHUB_TOKEN is used — see
-   below). Branch protection keeps the pull request unmergeable until they
-   pass and a reviewer approves.
+   below).
+6. **Merge**: *Auto release* merges the pull request once every check has
+   passed on its head, and a Preview release follows
+   ([automatic releases](RELEASE-PROCESS.md#automatic-releases)). A sync with
+   conflicts opens as a draft and waits for a person; so does any failure. If
+   branch protection requires an approval, the pull request also waits for it.
 
-Nothing is ever merged into `main` automatically.
+`AUTO_RELEASE=off` (a repository variable) turns automatic merging off;
+everything then waits for you as before.
 
 ### The report
 

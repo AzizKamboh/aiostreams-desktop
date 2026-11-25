@@ -6,8 +6,8 @@ Integration logic lives in files upstream does not have; upstream files get
 small, commented hooks that call into them.
 
 Baseline: the upstream release recorded in
-[`.github/upstream-sync.json`](../../.github/upstream-sync.json) (now
-`desktop-v0.24.0`, commit `76a5d6da`). Upstream is an ancestor in Git
+[`.github/upstream-sync.json`](../../.github/upstream-sync.json)
+(`baseline.ref` and `baseline.commit`). Upstream is an ancestor in Git
 history, so the integrated-versus-upstream diff is:
 
 ```sh
@@ -123,8 +123,8 @@ Check these when merging a new upstream release:
 
 | | |
 | --- | --- |
-| Current upstream baseline | `desktop-v0.24.0` / server `v2.37.0`, commit `76a5d6da` (`.github/upstream-sync.json`) |
-| Pending upstream changes | Open pull requests labelled `upstream-sync`; upstream `main` was 24 commits ahead with no newer stable release when this was written |
+| Current upstream baseline | `baseline` in `.github/upstream-sync.json` (updated by every sync) |
+| Pending upstream changes | Open pull requests labelled `upstream-sync` |
 | Blocked upstream releases | none (`blocked` in `.github/upstream-sync.json`) |
 | Compatibility patches | `core/src/remuxdb/adapter.test.ts`: stale expectation (see below) |
 
