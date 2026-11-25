@@ -77,6 +77,7 @@ if (mode === 'prepare') {
     }
   }
   materialize(runtime);
+  prune(runtime, packages);
   const notices = path.join(stage, 'licenses/npm');
   fs.mkdirSync(notices, { recursive: true });
   const seen = new Set();
@@ -105,4 +106,90 @@ if (mode === 'prepare') {
   collect(path.join(runtime, 'node_modules'));
   fs.writeFileSync(path.join(stage, 'third-party-node-packages.json'), JSON.stringify(manifest.sort((a, b) => a.name.localeCompare(b.name)), null, 2) + '\n');
   console.log(`Staged portable runtime with ${manifest.length} dependency notice entries.`);
+}
+
+/**
+ * Keep only what the server can load. pnpm's hoisted install of the workspace
+ * lockfile also places packages no shipped package depends on (the docs site's
+ * Next.js and Fumadocs, build tools such as Vite and esbuild, icon sets), about
+ * half of the payload. Walk the dependencies Node would resolve from the
+ * server, core and crypto packages, delete every package outside that set, and
+ * drop files nothing loads at run time: source maps, type declarations and
+ * native build leftovers. Licence and notice files always stay.
+ */
+function prune(runtime, roots) {
+  const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+  const keep = new Set();
+  /** Node's lookup: `name` in node_modules of `from` or any parent, up to the runtime root. */
+  const resolve = (from, name) => {
+    for (let dir = from; dir.startsWith(runtime); dir = path.dirname(dir)) {
+      const candidate = path.join(dir, 'node_modules', ...name.split('/'));
+      if (fs.existsSync(path.join(candidate, 'package.json'))) return candidate;
+      if (dir === runtime) break;
+    }
+    return null;
+  };
+  const visit = (dir, manifestDir = dir) => {
+    const json = readJson(path.join(manifestDir, 'package.json'));
+    const wanted = { ...json.dependencies, ...json.optionalDependencies };
+    // Peers are provided by the dependant; keep any that are installed.
+    for (const name of Object.keys(json.peerDependencies ?? {})) wanted[name] ??= '*';
+    for (const name of Object.keys(wanted)) {
+      const found = resolve(manifestDir, name);
+      if (!found || keep.has(found)) continue;
+      keep.add(found);
+      visit(found);
+    }
+  };
+  for (const pkg of roots) visit(path.join(runtime, 'packages', pkg));
+
+  let packagesRemoved = 0;
+  let bytesRemoved = 0;
+  const size = (target) => {
+    const stat = fs.lstatSync(target);
+    if (!stat.isDirectory()) return stat.size;
+    return fs.readdirSync(target).reduce((sum, name) => sum + size(path.join(target, name)), 0);
+  };
+  const remove = (target) => {
+    bytesRemoved += size(target);
+    fs.rmSync(target, { recursive: true, force: true });
+  };
+  const sweepModules = (modules) => {
+    if (!fs.existsSync(modules)) return;
+    for (const entry of fs.readdirSync(modules, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+      const dirs = entry.name.startsWith('@')
+        ? fs.readdirSync(path.join(modules, entry.name)).map((name) => path.join(modules, entry.name, name))
+        : [path.join(modules, entry.name)];
+      for (const dir of dirs) {
+        if (!keep.has(dir)) {
+          remove(dir);
+          packagesRemoved++;
+        } else sweepModules(path.join(dir, 'node_modules'));
+      }
+      if (entry.name.startsWith('@') && fs.readdirSync(path.join(modules, entry.name)).length === 0) {
+        fs.rmdirSync(path.join(modules, entry.name));
+      }
+    }
+  };
+  sweepModules(path.join(runtime, 'node_modules'));
+
+  const notice = /^(licen[sc]e|copying|notice|copyright|authors|patents)([.\-_]|$)/i;
+  const unused = /(\.map|\.d\.[cm]?ts|\.tsbuildinfo|\.(c|cc|cpp|cxx|h|hh|hpp|obj|o|pdb|ilk|iobj|ipdb|tlog|lastbuildstate|exp|lib|gyp|gypi)|\.md|\.markdown)$/i;
+  let filesRemoved = 0;
+  const sweepFiles = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) sweepFiles(file);
+      else if (unused.test(entry.name) && !notice.test(entry.name)) {
+        remove(file);
+        filesRemoved++;
+      }
+    }
+  };
+  sweepFiles(path.join(runtime, 'node_modules'));
+  console.log(
+    `Pruned ${packagesRemoved} unused packages and ${filesRemoved} unused files ` +
+      `(${Math.round(bytesRemoved / 1048576)} MB); ${keep.size} packages kept.`
+  );
 }
