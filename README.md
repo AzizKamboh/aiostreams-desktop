@@ -217,8 +217,8 @@ AIOStreams is © Viren070 and the AIOStreams contributors, licensed
 the same license. AIOMetadata is © cedya77 and the AIOMetadata contributors
 (AGPL-3.0-or-later core, FSL-1.1-ALv2 feature modules); "AIOMetadata" is
 cedya77's trademark. Redis 8 is used under AGPLv3. Each release ships its
-complete corresponding source, including AIOMetadata's and Redis's, and the app
-can download its own source from Settings → Local server. Bundled third-party
+complete corresponding source (`aiostreams-integrated-source.tar.gz`,
+including AIOMetadata's and Redis's) beside the installer. Bundled third-party
 components and their notices: [docs/embedded-third-party.md](docs/embedded-third-party.md).
 
 Upstream: [github.com/Viren070/AIOStreams](https://github.com/Viren070/AIOStreams) ·

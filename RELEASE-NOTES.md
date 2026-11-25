@@ -12,6 +12,11 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
 - **AIOMetadata in the sidebar.** A new **AIOMetadata** button in the left
   sidebar opens AIOMetadata's configuration page in your browser (once
   AIOMetadata is ready).
+- **Tidier Settings.** Settings → Updates shows only the channel and the
+  status, like upstream's own app (errors appear in the status; versions are
+  in Settings → Local server). The **Download source code** link is gone from
+  Settings → Local server; every release still ships the full source.
+  "AIOStreams accounts" is now **Accounts**.
 - **Fixed:** the startup screen could receive no status text (found by the new
   type check).
 

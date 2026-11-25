@@ -120,15 +120,6 @@ export function LocalServerSection() {
               <Button size="sm" intent="gray-outline" loading={reading} onClick={() => void read()}>
                 <Trans>Read diagnostics</Trans>
               </Button>
-              {local && origin && (
-                <a
-                  href={`${origin}/__desktop/source`}
-                  download
-                  className="self-center text-sm underline underline-offset-4"
-                >
-                  <Trans>Download source code</Trans>
-                </a>
-              )}
             </span>
           </SettingsRow>
         )}
