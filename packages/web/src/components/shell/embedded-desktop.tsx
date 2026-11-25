@@ -537,7 +537,7 @@ function StartupScreen({
   onUseRemote?(): void;
 }) {
   if (state.state === 'starting')
-    return <StartupCaption message={state.message} />;
+    return <StartupCaption message={state.message ?? ''} />;
   return (
     <main className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-black p-8 text-center text-white">
       <img src="./logo.png" alt="AIOStreams" className="h-24 w-24 object-contain" />

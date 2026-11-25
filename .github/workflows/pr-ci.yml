@@ -95,7 +95,8 @@ jobs:
       # type checking (core and server are compiled by tsc). A merge that drops
       # an import or changes a type they use only shows up here.
       - name: Type-check the web app, dashboard and UI kit
-        run: pnpm -F @aiostreams/web -F @aiostreams/frontend -F @aiostreams/ui run typecheck
+        # --no-bail: report every package's errors, not only the first package's.
+        run: pnpm --no-bail -F @aiostreams/web -F @aiostreams/frontend -F @aiostreams/ui run typecheck
       - name: Integration tests (private boundary, accounts, storage)
         run: pnpm exec vitest run packages/server/src/desktop.test.ts packages/web/tests/embedded-storage.test.ts packages/web/tests/embedded-accounts.test.ts packages/web/tests/embedded-updates.test.ts
       - name: Workspace tests
