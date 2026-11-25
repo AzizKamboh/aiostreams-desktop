@@ -312,6 +312,21 @@ function EmbeddedContent({
     wasMini.current = mini;
   }, [playing, closePanel]);
 
+  // AIOMetadata often finishes starting after the library has loaded. Until
+  // then AIOStreams cannot read its manifest, so its catalogs are missing
+  // ("No catalogs yet"). Reload the library's data once it is ready, and again
+  // after AIOStreams' manifest failure cache (60 s by default) has expired.
+  const aioMetadataReady = local && state.aiometadata?.state === 'ready';
+  const wasAioMetadataReady = React.useRef(aioMetadataReady);
+  React.useEffect(() => {
+    const became = aioMetadataReady && !wasAioMetadataReady.current;
+    wasAioMetadataReady.current = aioMetadataReady;
+    if (!became) return;
+    void queryClient.invalidateQueries();
+    const later = setTimeout(() => void queryClient.invalidateQueries(), 65_000);
+    return () => clearTimeout(later);
+  }, [aioMetadataReady, queryClient]);
+
   // The local server went away (restart, failure, remote mode): no panel.
   React.useEffect(() => {
     if (!local && panelRef.current !== null) closePanel();
