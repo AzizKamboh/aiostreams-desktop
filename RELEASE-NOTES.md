@@ -4,6 +4,14 @@
 
 Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and fixes. The release page lists the upstream changes.
 
+- **Installs beside upstream's desktop client.** Shortcuts and the Apps &
+  Features entry are now named **AIOStreams Integrated**, so they no longer
+  share the name "AIOStreams" with upstream's own desktop app; installing or
+  removing one leaves the other's shortcuts alone. The two apps already kept
+  separate data, settings and updates.
+- **Fixed:** the startup screen could receive no status text (found by the new
+  type check).
+
 ## 0.4.0
 
 Upgrades 0.3.0 and earlier in place; data, keys, accounts and settings are kept.

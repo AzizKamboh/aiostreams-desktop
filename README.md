@@ -44,7 +44,7 @@ From the [latest release](https://github.com/AzizKamboh/aiostreams-desktop/relea
 
 | File | Use |
 | --- | --- |
-| `aiostreams-integrated-win-x64-Setup.exe` | Installer (recommended). Per-user, no administrator rights, installs WebView2 if missing, adds desktop and Start-menu shortcuts. |
+| `aiostreams-integrated-win-x64-Setup.exe` | Installer (recommended). Per-user, no administrator rights, installs WebView2 if missing, adds **AIOStreams Integrated** shortcuts to the desktop and Start menu, named apart from upstream's own desktop client so both can be installed. |
 | `aiostreams-integrated-win-x64-Portable.zip` | Portable copy. Needs the WebView2 runtime (present on Windows 11 and updated Windows 10). |
 | `aiostreams-integrated-source.tar.gz` | Complete corresponding source (AGPL-3.0). |
 | `SHA256SUMS.txt` | Checksums of every file. |
@@ -96,7 +96,7 @@ admin key are encrypted with Windows DPAPI. Details:
 ## Install and first run
 
 1. Run `aiostreams-integrated-win-x64-Setup.exe`. It installs for your Windows
-   user and adds **AIOStreams** shortcuts on the desktop and in the Start menu.
+   user and adds **AIOStreams Integrated** shortcuts on the desktop and in the Start menu.
 2. The app starts its local servers (the first start can take a few minutes
    while upstream data downloads) and asks you to create an **AIOStreams
    account**, the equivalent of `AIOSTREAMS_AUTH`. Skip it if you do not use

@@ -175,7 +175,7 @@ try {
   }
   Checked {
     & "$tools/vpk/vpk.exe" pack --packId aiostreams-integrated --packVersion $Version `
-      --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams' `
+      --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams Integrated' `
       --packAuthors 'AIOStreams contributors; integrated desktop contributors' `
       --icon packages/desktop/app/icons/aiostreams.ico --channel $velopackChannel `
       --runtime win-x64 --shortcuts Desktop,StartMenuRoot --instLocation PerUser --outputDir $releases `

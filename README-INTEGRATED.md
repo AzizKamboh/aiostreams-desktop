@@ -22,7 +22,7 @@ upstream syncs (see *Making a release*).
 ## Using a Windows package
 
 After building and validating a package, run its Setup.exe as your normal Windows
-user. It installs an AIOStreams shortcut on the desktop and in the Start menu. The portable
+user. It installs an **AIOStreams Integrated** shortcut on the desktop and in the Start menu. The portable
 archive is an alternative; both variants keep data in your Windows profile.
 The complete package bundles Node, mpv and ffprobe, and uses the WebView2 that
 Windows keeps up to date (Setup installs it if missing; the portable ZIP needs

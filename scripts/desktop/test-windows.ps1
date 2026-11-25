@@ -16,7 +16,7 @@ try {
   # They contain the same app; only their version differs.
   function Pack-Test([string]$Version, [string]$Output) {
     & $vpk pack --packId aiostreams-integrated --packVersion $Version `
-      --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams' `
+      --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams Integrated' `
       --packAuthors 'AIOStreams contributors; integrated desktop contributors' `
       --icon packages/desktop/app/icons/aiostreams.ico --channel win-x64 `
       --runtime win-x64 --shortcuts Desktop,StartMenuRoot --instLocation PerUser --outputDir $Output
