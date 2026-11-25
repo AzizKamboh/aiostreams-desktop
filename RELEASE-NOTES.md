@@ -1,5 +1,9 @@
 # AIOStreams (integrated Windows app) release notes
 
+## 0.5.1
+
+Automatic release after 0.5.0: upstream AIOStreams and AIOMetadata updates and fixes. The release page lists the upstream changes.
+
 ## 0.5.0
 
 Upgrades 0.4.0 and earlier in place; data, keys, accounts and settings are
