@@ -8,7 +8,12 @@ import { openLogs, requestDiagnostics, useShellLinks } from '@/lib/hosts/shell';
 import { storage } from '@/lib/storage';
 import { SplashEnd } from '@/lib/splash';
 import { navigate, to } from '@/lib/paths';
-import { playbackNow } from '@/lib/playback/session';
+import {
+  canMinimise,
+  minimisePlayback,
+  playbackNow,
+  usePlayback,
+} from '@/lib/playback/session';
 import {
   embeddedOrigin,
   onOpenConfiguration,
@@ -165,6 +170,80 @@ export function EmbeddedDesktop({
   return <EmbeddedContent state={state} browse={browse} remote={remote} />;
 }
 
+const onPlayerPage = () => /^#\/play\/(?!trailer\/)/.test(window.location.hash);
+
+/**
+ * The mini player's box, which the panel leaves uncovered (an even-odd hole
+ * in its clip path) so the title playing in it stays visible and usable.
+ */
+function useMiniPlayerHole(): string | undefined {
+  const [hole, setHole] = React.useState<string>();
+  React.useEffect(() => {
+    let frame = 0;
+    let last: string | undefined;
+    const track = () => {
+      const el = document.querySelector<HTMLElement>('[data-ui="mini-player"]');
+      const box = el?.getBoundingClientRect();
+      const next =
+        box && box.width > 0 && box.height > 0
+          ? // eslint-disable-next-line lingui/no-unlocalized-strings -- a CSS value
+            `path(evenodd, "M0 0H${innerWidth}V${innerHeight}H0Z M${box.left} ${box.top}h${box.width}v${box.height}h${-box.width}Z")`
+          : undefined;
+      if (next !== last) setHole((last = next));
+      frame = requestAnimationFrame(track);
+    };
+    track();
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return hole;
+}
+
+/**
+ * The dashboard downloads files (logs, exports) by opening their URL in a new
+ * window, which the app refuses for its own server. Fetch such a file in the
+ * panel instead and save it to the Downloads folder; any other new window
+ * keeps the usual handling.
+ */
+function saveDownloadsFrom(win: Window): void {
+  const open = win.open.bind(win);
+  win.open = (url?: string | URL, target?: string, features?: string) => {
+    let href: URL;
+    try {
+      href = new URL(String(url ?? ''), win.location.href);
+    } catch {
+      return open(url, target, features);
+    }
+    if (href.origin !== win.location.origin) return open(url, target, features);
+    void (async () => {
+      try {
+        const res = await win.fetch(href.href, { credentials: 'same-origin' });
+        const disposition = res.headers.get('content-disposition') ?? '';
+        if (!res.ok || !/attachment/i.test(disposition)) {
+          open(url, target, features);
+          return;
+        }
+        const name =
+          /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1] ??
+          /filename="?([^";]+)"?/i.exec(disposition)?.[1] ??
+          href.pathname.split('/').pop() ??
+          'download';
+        const blob = URL.createObjectURL(await res.blob());
+        const link = win.document.createElement('a');
+        link.href = blob;
+        link.download = decodeURIComponent(name);
+        win.document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(blob), 60_000);
+        toast(t`Downloading ${link.download}`);
+      } catch {
+        toast.error(t`The download did not complete.`);
+      }
+    })();
+    return null;
+  };
+}
+
 /** Only paths of the local server's own dashboard and configuration open in the panel. */
 function panelPath(path: string): string {
   return path.startsWith('/dashboard') || path.startsWith('/stremio/')
@@ -197,6 +276,16 @@ function EmbeddedContent({
       : '/jellyfin';
   });
   const local = mode === 'local' && ready;
+  // At launch the splash stays up until AIOMetadata has started too, so the
+  // library opens with its catalogs. Only once: a later AIOMetadata restart
+  // never brings the splash back, and a slow first start can be skipped.
+  const [aioMetadataWaitOver, setAioMetadataWaitOver] = React.useState(false);
+  const aioMetadataStarting =
+    local && state.aiometadata?.state === 'starting';
+  const holdForAioMetadata = aioMetadataStarting && !aioMetadataWaitOver;
+  React.useEffect(() => {
+    if (ready && !aioMetadataStarting) setAioMetadataWaitOver(true);
+  }, [ready, aioMetadataStarting]);
   /** The dashboard or configuration path open over the client, if any. */
   const [panel, setPanel] = React.useState<string | null>(null);
   const panelRef = React.useRef<string | null>(null);
@@ -227,9 +316,14 @@ function EmbeddedContent({
           document.activeElement instanceof HTMLElement
             ? document.activeElement
             : null;
-        // Pause through the player's own controller; the player stays mounted.
+        // A title plays on in the mini player, which the panel leaves
+        // uncovered, so a quick tweak does not stop it. Where there is no
+        // mini player, pause through the player's own controller.
+        const playback = playbackNow();
         const player = activeDesktopPlayer();
-        if (player && !player.state.paused) {
+        if (playback && !playback.mini && onPlayerPage() && canMinimise()) {
+          minimisePlayback(to.item(playback.itemId));
+        } else if (player && !player.state.paused && !playback?.mini) {
           player.setPaused(true);
           pausedForPanel.current = true;
         }
@@ -263,6 +357,32 @@ function EmbeddedContent({
     });
   }, [queryClient]);
 
+  // Expanding the mini player over the panel brings the player back: close
+  // the panel, which would otherwise hide it.
+  const playing = usePlayback();
+  const wasMini = React.useRef(false);
+  React.useEffect(() => {
+    const mini = !!playing?.mini;
+    if (wasMini.current && !mini && playing && panelRef.current !== null)
+      closePanel();
+    wasMini.current = mini;
+  }, [playing, closePanel]);
+
+  // AIOMetadata often finishes starting after the library has loaded. Until
+  // then AIOStreams cannot read its manifest, so its catalogs are missing
+  // ("No catalogs yet"). Reload the library's data once it is ready, and again
+  // after AIOStreams' manifest failure cache (60 s by default) has expired.
+  const aioMetadataReady = local && state.aiometadata?.state === 'ready';
+  const wasAioMetadataReady = React.useRef(aioMetadataReady);
+  React.useEffect(() => {
+    const became = aioMetadataReady && !wasAioMetadataReady.current;
+    wasAioMetadataReady.current = aioMetadataReady;
+    if (!became) return;
+    void queryClient.invalidateQueries();
+    const later = setTimeout(() => void queryClient.invalidateQueries(), 65_000);
+    return () => clearTimeout(later);
+  }, [aioMetadataReady, queryClient]);
+
   // The local server went away (restart, failure, remote mode): no panel.
   React.useEffect(() => {
     if (!local && panelRef.current !== null) closePanel();
@@ -291,7 +411,9 @@ function EmbeddedContent({
       ) {
         const home = (data as { home?: unknown }).home === true;
         closePanel();
-        if (home && !playbackNow()) navigate(to.home);
+        const playback = playbackNow();
+        // A title in the mini player plays on over the home page.
+        if (home && (!playback || playback.mini)) navigate(to.home);
       }
     };
     window.addEventListener(CLOSE_PANEL_EVENT, closePanel);
@@ -376,9 +498,8 @@ function EmbeddedContent({
   return (
     <>
       {/* The launch splash stays up while the local server starts. */}
-      {(mode === 'remote' || ready || state.state !== 'starting') && (
-        <SplashEnd />
-      )}
+      {(mode === 'remote' ||
+        (state.state !== 'starting' && !holdForAioMetadata)) && <SplashEnd />}
       {local && (
         <LocalLinks
           base={base}
@@ -394,6 +515,11 @@ function EmbeddedContent({
       )}
       {mode === 'remote' ? (
         remote
+      ) : holdForAioMetadata ? (
+        <StartupCaption
+          message={state.aiometadata?.message || t`Starting AIOMetadata…`}
+          onSkip={() => setAioMetadataWaitOver(true)}
+        />
       ) : ready ? (
         <React.Fragment key={sessionKey}>
           {browse(base, () => chooseMode('remote'))}
@@ -475,11 +601,13 @@ function ServerPanel({
   const latestKey = React.useRef(onKey);
   latestKey.current = onKey;
   React.useEffect(() => frame.current?.focus(), []);
+  const hole = useMiniPlayerHole();
   const loaded = () => {
     const win = frame.current?.contentWindow;
     try {
       // Same origin: Escape and the shortcuts work while the panel has focus.
       win?.addEventListener('keydown', (event) => latestKey.current(event), true);
+      if (win) saveDownloadsFrom(win);
       // An error answer (JSON, plain text) is not the dashboard page.
       setFailed(win?.document.contentType !== 'text/html');
     } catch {
@@ -487,11 +615,13 @@ function ServerPanel({
     }
   };
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    // A region, not a dialog: upstream's mini player hides under any dialog
+    // (useCovered in mini-player.tsx), and this panel leaves it uncovered.
+    <section
+      data-ui="server-panel"
       aria-label={t`AIOStreams Dashboard`}
       className="fixed inset-0 z-[70] flex flex-col bg-[#101014] pt-10"
+      style={hole ? { clipPath: hole } : undefined}
     >
       {failed && (
         <div
@@ -521,7 +651,7 @@ function ServerPanel({
         className="min-h-0 w-full flex-1 border-0 bg-[#101014]"
         referrerPolicy="no-referrer"
       />
-    </div>
+    </section>
   );
 }
 
@@ -584,7 +714,14 @@ const SLOW_START_MS = 45_000;
  * A quiet line under the launch splash's breathing logo: the stage the shell
  * reports, never an invented percentage or a clock.
  */
-function StartupCaption({ message }: { message: string }) {
+function StartupCaption({
+  message,
+  onSkip,
+}: {
+  message: string;
+  /** Offered once the start is slow: open the app without waiting. */
+  onSkip?(): void;
+}) {
   const [slow, setSlow] = React.useState(false);
   React.useEffect(() => {
     const timer = setTimeout(() => setSlow(true), SLOW_START_MS);
@@ -617,6 +754,14 @@ function StartupCaption({ message }: { message: string }) {
           <button type="button" onClick={openLogs} className="underline underline-offset-2 hover:text-gray-300">
             <Trans>Open logs</Trans>
           </button>
+          {onSkip && (
+            <>
+              {' · '}
+              <button type="button" onClick={onSkip} className="underline underline-offset-2 hover:text-gray-300">
+                <Trans>Continue without waiting for AIOMetadata</Trans>
+              </button>
+            </>
+          )}
         </p>
       )}
     </div>

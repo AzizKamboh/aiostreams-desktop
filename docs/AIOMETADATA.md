@@ -40,14 +40,14 @@ AIOMetadata:
    *And it's sent to*, and save.
 2. Add AIOMetadata to your AIOStreams configuration as a **Custom** addon (see
    above), if you have not yet.
-3. In Settings → Local server → **Watch progress**, turn on **Sync watch
-   progress with trackers**. The local server restarts.
+3. In Settings → Local server → **Watch progress**, check that **Sync watch
+   progress with trackers** is on (it is by default).
 
 What you play here is then sent to AIOMetadata, which records it with the
 tracker. What you watched elsewhere with the same tracker (another computer,
 Stremio, phone apps) comes back into Continue watching and Next up. Reading back
 works without the switch; the switch only controls sending. It is AIOStreams'
-`WATCH_STATE_REPORT_ENABLED`, off by default in this app, and controls every
+`WATCH_STATE_REPORT_ENABLED`, on by default as in upstream, and controls every
 addon that asks for playback reports, not only AIOMetadata.
 
 

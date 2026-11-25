@@ -44,7 +44,7 @@ From the [latest release](https://github.com/AzizKamboh/aiostreams-desktop/relea
 
 | File | Use |
 | --- | --- |
-| `aiostreams-integrated-win-x64-Setup.exe` | Installer (recommended). Per-user, no administrator rights, installs WebView2 if missing, adds desktop and Start-menu shortcuts. |
+| `aiostreams-integrated-win-x64-Setup.exe` | Installer (recommended). Per-user, no administrator rights, installs WebView2 if missing, adds **AIOStreams Integrated** shortcuts to the desktop and Start menu, named apart from upstream's own desktop client so both can be installed. |
 | `aiostreams-integrated-win-x64-Portable.zip` | Portable copy. Needs the WebView2 runtime (present on Windows 11 and updated Windows 10). |
 | `aiostreams-integrated-source.tar.gz` | Complete corresponding source (AGPL-3.0). |
 | `SHA256SUMS.txt` | Checksums of every file. |
@@ -67,7 +67,7 @@ run ("More info" → "Run anyway"). Each file has a
   it needs. Configure it in your browser, add it to AIOStreams as a custom
   addon ([guide](docs/AIOMETADATA.md)).
 - **Continue watching across devices** through a tracker such as Simkl,
-  via AIOMetadata (off by default; [how](docs/AIOMETADATA.md#continue-watching-across-devices)).
+  via AIOMetadata (on by default, like upstream; [how](docs/AIOMETADATA.md#continue-watching-across-devices)).
 - **First-run setup** for the AIOStreams account (upstream's
   `AIOSTREAMS_AUTH`, needed for built-in Usenet) and AIOMetadata's admin key,
   both kept encrypted for your Windows user.
@@ -96,9 +96,10 @@ admin key are encrypted with Windows DPAPI. Details:
 ## Install and first run
 
 1. Run `aiostreams-integrated-win-x64-Setup.exe`. It installs for your Windows
-   user and adds **AIOStreams** shortcuts on the desktop and in the Start menu.
-2. The app starts its local servers (the first start can take a few minutes
-   while upstream data downloads) and asks you to create an **AIOStreams
+   user and adds **AIOStreams Integrated** shortcuts on the desktop and in the Start menu.
+2. The app starts its local servers, AIOStreams and AIOMetadata, and opens
+   once both are up (the first start can take a few minutes while upstream
+   data downloads). It then asks you to create an **AIOStreams
    account**, the equivalent of `AIOSTREAMS_AUTH`. Skip it if you do not use
    built-in Usenet.
 3. It then asks for **AIOMetadata's admin key** (Generate makes one). It opens
@@ -159,8 +160,9 @@ Windows 10 and 11, x64. Other platforms are not built by this project; use
 
 ## Security and privacy
 
-No telemetry is added; tracker playback reporting and Discord presence are
-off by default. Providers, addons and metadata sources receive the requests
+No telemetry is added; Discord presence is off by default. Playback is
+reported only to tracker addons you added, as in upstream (Settings → Local
+server → Watch progress turns it off). Providers, addons and metadata sources receive the requests
 their features need, as in upstream. Relayed provider content is sandboxed
 from the app, only the app's own page may use the native player bridge
 (AIOMetadata's pages open in your browser), and logs are redacted. Updates
@@ -217,8 +219,8 @@ AIOStreams is © Viren070 and the AIOStreams contributors, licensed
 the same license. AIOMetadata is © cedya77 and the AIOMetadata contributors
 (AGPL-3.0-or-later core, FSL-1.1-ALv2 feature modules); "AIOMetadata" is
 cedya77's trademark. Redis 8 is used under AGPLv3. Each release ships its
-complete corresponding source, including AIOMetadata's and Redis's, and the app
-can download its own source from Settings → Local server. Bundled third-party
+complete corresponding source (`aiostreams-integrated-source.tar.gz`,
+including AIOMetadata's and Redis's) beside the installer. Bundled third-party
 components and their notices: [docs/embedded-third-party.md](docs/embedded-third-party.md).
 
 Upstream: [github.com/Viren070/AIOStreams](https://github.com/Viren070/AIOStreams) ·

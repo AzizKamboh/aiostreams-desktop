@@ -42,6 +42,7 @@ export function releaseRelevant(file) {
     file.endsWith('.md') ||
     file.startsWith('docs/') ||
     file.startsWith('.github/') ||
+    file === '.gitignore' ||
     file === 'integrated-version.json' ||
     file === 'SOURCE-MANIFEST.json'
   );
@@ -90,11 +91,14 @@ export function bumpDecision({ committed, publishedTags }) {
  * The Preview to build now, if any.
  * `existingTags`: every release tag including drafts. `changedSinceRelease`:
  * release-relevant files changed since the newest published release (null if
- * there has never been one).
+ * there has never been one). `failedForHead`: the newest release build of
+ * main's current commit failed.
  */
-export function previewDecision({ committed, existingTags, publishedTags, changedSinceRelease, buildRunning }) {
+export function previewDecision({ committed, existingTags, publishedTags, changedSinceRelease, buildRunning, failedForHead = false }) {
   if (publishedTags.includes(`v${committed}`)) return { action: 'none', reason: `${committed} is already stable; waiting for the version bump` };
   if (buildRunning) return { action: 'none', reason: 'a release build is already running' };
+  // Retrying the same commit would fail the same way, every time a run finishes.
+  if (failedForHead) return { action: 'none', reason: 'the last release build of this commit failed; a new commit on main, or a manual run, tries again' };
   if (changedSinceRelease !== null && changedSinceRelease.length === 0) return { action: 'none', reason: 'nothing to release since the last release' };
   const numbers = existingTags
     .map((tag) => tag.replace(/^v/, ''))
@@ -166,6 +170,15 @@ function buildRunning() {
   const runs = JSON.parse(gh('run', 'list', '--workflow', 'embedded-desktop.yml', '--branch', 'main', '--event', 'workflow_dispatch',
     '--limit', '20', '--json', 'status'));
   return runs.some((run) => run.status !== 'completed');
+}
+
+/** Whether the newest release build dispatched for main's current commit failed. */
+function failedForHead() {
+  const head = git('rev-parse', 'HEAD');
+  const runs = JSON.parse(gh('run', 'list', '--workflow', 'embedded-desktop.yml', '--branch', 'main', '--event', 'workflow_dispatch',
+    '--limit', '20', '--json', 'headSha,status,conclusion,createdAt'));
+  const newest = runs.filter((run) => run.headSha === head).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  return !!newest && newest.status === 'completed' && newest.conclusion !== 'success';
 }
 
 function dispatchRelease(version, channel) {
@@ -248,6 +261,7 @@ function preview() {
     publishedTags: facts.publishedTags,
     changedSinceRelease: newest ? changedSince(newest) : null,
     buildRunning: buildRunning(),
+    failedForHead: failedForHead(),
   });
   summary(`Preview: ${decision.action === 'release' ? `building v${decision.version}` : 'nothing to do'}, ${decision.reason}.`);
   if (decision.action === 'release') dispatchRelease(decision.version, 'preview');

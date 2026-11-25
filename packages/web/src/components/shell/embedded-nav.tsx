@@ -4,7 +4,7 @@
  * nothing outside the integrated desktop app or in remote-server mode.
  */
 import { t } from '@lingui/core/macro';
-import { LuServer, LuSlidersHorizontal } from 'react-icons/lu';
+import { LuLibrary, LuServer, LuSlidersHorizontal } from 'react-icons/lu';
 import type { SidebarItem } from '@aiostreams/ui/shared/sidebar';
 import { CONFIGURE_PATH, useDesktopShell } from '@/lib/embedded-shell';
 
@@ -24,6 +24,26 @@ export function useDesktopNavItems(): SidebarItem[] {
       name: t`AIOStreams Dashboard`,
       iconType: LuServer,
       onClick: () => shell.openServer(),
+    },
+  ];
+}
+
+/**
+ * "AIOMetadata", in the desktop sidebar only (not the menus, rails or tabs):
+ * opens AIOMetadata's configuration page in the system browser, where its own
+ * pages belong (they never get the app bridge). Shown once AIOMetadata is ready.
+ */
+export function useDesktopSidebarItems(): SidebarItem[] {
+  const status = useDesktopShell()?.state.aiometadata;
+  if (status?.state !== 'ready' || !status.url) return [];
+  const url = `${status.url}/configure`;
+  return [
+    {
+      id: 'aiometadata',
+      name: t`AIOMetadata`,
+      iconType: LuLibrary,
+      // A new window is handed to the system browser by the native shell.
+      onClick: () => window.open(url, '_blank', 'noopener'),
     },
   ];
 }

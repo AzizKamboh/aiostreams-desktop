@@ -9,7 +9,6 @@ import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { Button } from '@aiostreams/ui/button';
 import { Select } from '@aiostreams/ui/select';
-import { appBridge } from '@/lib/hosts/shell/bridge';
 import { settings, useSetting } from '@/lib/settings';
 import { usePlayback } from '@/lib/playback/session';
 import {
@@ -20,9 +19,6 @@ import {
   type IntegratedUpdate,
 } from '@/lib/embedded-updates';
 import { SettingsCard, SettingsRow } from '@/app/settings/_components/settings-card';
-
-const time = (seconds?: number | null) =>
-  seconds ? new Date(seconds * 1000).toLocaleString() : t`Never`;
 
 function status(update: IntegratedUpdate | null): string {
   switch (update?.state) {
@@ -69,19 +65,9 @@ export function IntegratedUpdatesCard() {
     else installIntegratedUpdate(false);
   };
   return (
-    <SettingsCard name="updates" title={t`Updates`} description={t`Updates come only from this app's own releases, never from upstream's separate desktop app.`}>
-      <SettingsRow label={t`AIOStreams (this app)`}>
-        <span className="text-sm text-[--muted]">
-          {update?.installedVersion ?? appBridge()?.integratedVersion ?? '?'}
-          {update?.portable ? ` · ${t`portable`}` : ''}
-        </span>
-      </SettingsRow>
-      <SettingsRow label={t`Upstream server`}>
-        <span className="text-sm text-[--muted]">{__SERVER_VERSION__}</span>
-      </SettingsRow>
-      <SettingsRow label={t`Upstream desktop client`}>
-        <span className="text-sm text-[--muted]">{appBridge()?.version ?? '?'}</span>
-      </SettingsRow>
+    // Upstream's layout: Channel and Status. Versions are in Settings → Local
+    // server; errors are in the status line.
+    <SettingsCard name="updates" title={t`Updates`}>
       <Select
         label={t`Channel`}
         help={t`Preview builds pass the same tests but arrive earlier and are more likely to have problems. Switching back to Stable waits for the next stable version; it never installs an older one.`}
@@ -139,24 +125,6 @@ export function IntegratedUpdatesCard() {
             <Trans>Later</Trans>
           </Button>
         </div>
-      )}
-      {!off && (
-        <>
-          <SettingsRow label={t`Latest available`}>
-            <span className="text-sm text-[--muted]">{update?.latestVersion ?? t`Unknown`}</span>
-          </SettingsRow>
-          <SettingsRow label={t`Last checked`}>
-            <span className="text-sm text-[--muted]">{time(update?.lastCheck)}</span>
-          </SettingsRow>
-          <SettingsRow label={t`Last successful check`}>
-            <span className="text-sm text-[--muted]">{time(update?.lastSuccess)}</span>
-          </SettingsRow>
-          {update?.lastError && (
-            <SettingsRow label={t`Last error`}>
-              <span role="status" className="text-sm text-[--muted] [overflow-wrap:anywhere]">{update.lastError}</span>
-            </SettingsRow>
-          )}
-        </>
       )}
     </SettingsCard>
   );

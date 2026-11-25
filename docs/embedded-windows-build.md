@@ -52,8 +52,9 @@ timestamps, and MSYS2 build packages receive updates.
 Outputs are in `.embedded-releases/`: a per-user Setup.exe, a portable zip,
 Velopack update packages (full, and delta when `-FeedUrl` is given) with the
 channel's `releases.<channel>.json` feed, the corresponding modified
-application source, `BUILD-INFO.json` and SHA-256 checksums. One
-Start-menu shortcut is installed. Builds are unsigned unless the maintainer
+application source, `BUILD-INFO.json` and SHA-256 checksums. Desktop and
+Start-menu shortcuts named **AIOStreams Integrated** (`--packTitle`) are
+installed, apart from upstream's "AIOStreams". Builds are unsigned unless the maintainer
 adds code signing. Installer identity is `aiostreams-integrated`, separate
 from upstream's desktop client. Upgrades must keep this identity and use an
 increasing version. Stable packages use Velopack channel `win-x64`, preview

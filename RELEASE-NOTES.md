@@ -4,6 +4,40 @@
 
 Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and fixes. The release page lists the upstream changes.
 
+- **Installs beside upstream's desktop client.** Shortcuts and the Apps &
+  Features entry are now named **AIOStreams Integrated**, so they no longer
+  share the name "AIOStreams" with upstream's own desktop app; installing or
+  removing one leaves the other's shortcuts alone. The two apps already kept
+  separate data, settings and updates.
+- **AIOMetadata in the sidebar.** A new **AIOMetadata** button in the left
+  sidebar opens AIOMetadata's configuration page in your browser (once
+  AIOMetadata is ready).
+- **Tidier Settings.** Settings → Updates shows only the channel and the
+  status, like upstream's own app (errors appear in the status; versions are
+  in Settings → Local server). The **Download source code** link is gone from
+  Settings → Local server; every release still ships the full source.
+  "AIOStreams accounts" is now **AIOStreams AUTH**.
+- **Watch progress syncs by default**, like upstream AIOStreams: what you
+  play is sent to tracker addons (such as AIOMetadata with Simkl connected)
+  unless you turn off Settings → Local server → Watch progress → **Sync
+  watch progress with trackers**. If you turned it off, it stays off.
+- **Playback keeps going while you tweak.** Opening the AIOStreams Dashboard
+  or Configuration while something plays moves it to the mini player, which
+  stays visible and usable over the dashboard, instead of pausing it.
+- Behind the scenes: the Windows update test now follows the build's channel,
+  so automatic Preview builds pass it (the first one stopped there; nothing was
+  published).
+- **The app opens once both servers have started.** The launch screen now
+  waits for AIOMetadata as well as AIOStreams, so the library opens with
+  AIOMetadata's catalogs instead of "No catalogs yet". If AIOMetadata's
+  first start is slow, **Continue without waiting for AIOMetadata** appears
+  under the logo; the library then reloads by itself once AIOMetadata is
+  ready.
+- **Fixed:** download buttons in the AIOStreams Dashboard (logs, settings
+  export) did nothing in the app. The file now downloads.
+- **Fixed:** the startup screen could receive no status text (found by the new
+  type check).
+
 ## 0.4.0
 
 Upgrades 0.3.0 and earlier in place; data, keys, accounts and settings are kept.

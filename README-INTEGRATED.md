@@ -22,7 +22,7 @@ upstream syncs (see *Making a release*).
 ## Using a Windows package
 
 After building and validating a package, run its Setup.exe as your normal Windows
-user. It installs an AIOStreams shortcut on the desktop and in the Start menu. The portable
+user. It installs an **AIOStreams Integrated** shortcut on the desktop and in the Start menu. The portable
 archive is an alternative; both variants keep data in your Windows profile.
 The complete package bundles Node, mpv and ffprobe, and uses the WebView2 that
 Windows keeps up to date (Setup installs it if missing; the portable ZIP needs
@@ -37,12 +37,13 @@ upstream interfaces, with native entries added where they belong:
 | --- | --- |
 | Library sidebar / menu (next to Settings) | **AIOStreams Configuration**, **AIOStreams Dashboard** |
 | Sign-in screens | **Create or edit a configuration**, **AIOStreams Dashboard** |
-| Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, source download, local/remote switch |
+| Settings → **Local server** | status, versions, accounts, restart, logs, diagnostics, local/remote switch |
 | Settings → Local server → **AIOMetadata** | the bundled AIOMetadata: status, address, admin key, **Configure AIOMetadata**, restart |
 | Dashboard and configuration sidebars (both layouts) | **Home** returns to the library home page |
 
 The dashboard opens over the library, so a playing title keeps its player:
-playback pauses, and closing the dashboard offers **Resume**. Keyboard:
+it moves to the mini player, which stays visible and usable over the
+dashboard, and keeps playing. Keyboard:
 **Ctrl+,** opens the AIOStreams Dashboard, **Ctrl+Shift+,** the configuration, and
 **Escape** returns to the library. Shortcuts never fire while you type in a
 field. Restarting the backend or switching servers asks first while something
@@ -77,7 +78,7 @@ To stream from your Usenet providers:
 
 The AIOStreams account is not your Usenet provider login, and it is separate
 from a configuration's password. Change accounts later in **Settings → Local
-server → AIOStreams accounts**. Changing a password or removing an account stops
+server → AIOStreams AUTH**. Changing a password or removing an account stops
 configurations that use the old `username:password` until you paste the new
 one; unchanged accounts keep working. You can skip the setup; Debrid and
 WebDAV-based services do not need it, and remote-server users are never asked.

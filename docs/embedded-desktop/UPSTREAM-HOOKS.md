@@ -31,7 +31,7 @@ exists. Process: [UPSTREAM-SYNC.md](../UPSTREAM-SYNC.md).
 | `packages/server/src/desktop-routes.ts` | `/__desktop/*` routes: session bootstrap, client files, source download, account list and Usenet account check |
 | `packages/web/src/components/shell/embedded-desktop.tsx` | Embedded shell UI: status, Server settings, Diagnostics, local/remote switch |
 | `packages/web/src/components/shell/embedded-accounts.tsx` | Account setup, "account ready" step, account management |
-| `packages/web/src/components/shell/embedded-nav.tsx` | "AIOStreams Configuration" and "AIOStreams Dashboard" sidebar/menu items, sign-in links |
+| `packages/web/src/components/shell/embedded-nav.tsx` | "AIOStreams Configuration" and "AIOStreams Dashboard" sidebar/menu items, "AIOMetadata" (desktop sidebar only), sign-in links |
 | `packages/web/src/components/shell/embedded-local-server.tsx` | Settings → Local server |
 | `packages/web/src/lib/embedded-shell.ts` | Shell state shared with those hooks; active player registry; shortcuts |
 | `packages/frontend/src/lib/desktop-embed.ts` | "Home" entry in the dashboard/configuration sidebars, only inside the app |
@@ -58,7 +58,7 @@ exists. Process: [UPSTREAM-SYNC.md](../UPSTREAM-SYNC.md).
 | `server/src/routes/stremio/configure.ts` | 1 option | `dotfiles: 'allow'` for install paths |
 | `web/src/app.tsx` | ~15 lines | Mount the embedded shell in the desktop build |
 | `web/src/lib/hosts/shell/bridge.ts` | types only | Backend-state (including AIOMetadata status) and account messages |
-| `web/src/components/shell/layout.tsx` | 1 hook, footer lists | "AIOStreams Dashboard" next to Settings in every navigation layout |
+| `web/src/components/shell/layout.tsx` | 2 hooks, footer lists | "AIOStreams Configuration" and "AIOStreams Dashboard" next to Settings in every navigation layout; "AIOMetadata" in the desktop sidebar only |
 | `web/src/app/settings/page.tsx` | 1 section entry | Settings → Local server |
 | `web/src/app/sign-in/page.tsx` | 1 hook in `LinkRow` | Configuration/dashboard links (or "use this computer's server") on sign-in screens |
 | `web/src/features/remote/remote-target.tsx` | 1 hook | Registers the active player so the panel can pause and resume it |
