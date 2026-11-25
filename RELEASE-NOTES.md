@@ -1,8 +1,10 @@
 # AIOStreams (integrated Windows app) release notes
 
-## 0.4.1
+## 0.5.0
 
-Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and fixes. The release page lists the upstream changes.
+Upgrades 0.4.0 and earlier in place; data, keys, accounts and settings are
+kept. The release page lists the upstream AIOStreams and AIOMetadata versions
+it was built from.
 
 - **Installs beside upstream's desktop client.** Shortcuts and the Apps &
   Features entry are now named **AIOStreams Integrated**, so they no longer
@@ -24,9 +26,6 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
 - **Playback keeps going while you tweak.** Opening the AIOStreams Dashboard
   or Configuration while something plays moves it to the mini player, which
   stays visible and usable over the dashboard, instead of pausing it.
-- Behind the scenes: the Windows update test now follows the build's channel,
-  so automatic Preview builds pass it (the first one stopped there; nothing was
-  published).
 - **The app opens once both servers have started.** The launch screen now
   waits for AIOMetadata as well as AIOStreams, so the library opens with
   AIOMetadata's catalogs instead of "No catalogs yet". If AIOMetadata's
@@ -37,6 +36,11 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
   export) did nothing in the app. The file now downloads.
 - **Fixed:** the startup screen could receive no status text (found by the new
   type check).
+- Behind the scenes: automatic Preview builds pass the Windows update test
+  (it now follows the build's channel), a failed Preview is no longer rebuilt
+  over and over, and a new check makes sure every text in the app is in its
+  catalog (0.5.0-preview.1's predecessor, 0.4.1-preview.1, showed a few as
+  short codes like `-aXLs4`).
 
 ## 0.4.0
 

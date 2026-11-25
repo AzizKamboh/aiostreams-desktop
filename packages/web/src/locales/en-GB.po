@@ -6679,10 +6679,27 @@ msgstr "Sync watch progress with trackers"
 msgid "Sends what you watch to addons that track it, such as AIOMetadata with Simkl, MDBList, AniList or MyAnimeList connected, so other devices using the same tracker see it. What you watched elsewhere appears in Continue watching either way. Changing this restarts the local server."
 msgstr "Sends what you watch to addons that track it, such as AIOMetadata with Simkl, MDBList, AniList or MyAnimeList connected, so other devices using the same tracker see it. What you watched elsewhere appears in Continue watching either way. Changing this restarts the local server."
 
-#: src/components/shell/embedded-local-server.tsx
-msgid "To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon, then turn this on."
-msgstr "To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon, then turn this on."
-
 #: src/components/shell/embedded-accounts.tsx
 msgid "AIOStreams AUTH"
 msgstr "AIOStreams AUTH"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Continue without waiting for AIOMetadata"
+msgstr "Continue without waiting for AIOMetadata"
+
+#. placeholder {0}: link.download
+#: src/components/shell/embedded-desktop.tsx
+msgid "Downloading {0}"
+msgstr "Downloading {0}"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "Starting AIOMetadata…"
+msgstr "Starting AIOMetadata…"
+
+#: src/components/shell/embedded-desktop.tsx
+msgid "The download did not complete."
+msgstr "The download did not complete."
+
+#: src/components/shell/embedded-local-server.tsx
+msgid "To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon. This switch is on unless you turned it off."
+msgstr "To set it up: in Configure AIOMetadata, open Watch tracking, turn on Jellyfin apps under You watch on, connect a service under And it's sent to, and save. Add AIOMetadata to your AIOStreams configuration as a Custom addon. This switch is on unless you turned it off."
