@@ -331,7 +331,8 @@ try {
   await until(() => installedVersion(installRoot) === next.version, `update ${next.version} installed`, 180000);
   const restarted = await until(() => { const ids = processesUnder(installRoot); return ids.length ? ids : null; }, 'Velopack restarts the updated app', 120000);
   pass(`Install and restart closes the app, installs ${next.version} and starts it again`);
-  for (const id of restarted) execFileSync('taskkill', ['/PID', String(id), '/T', '/F'], { stdio: 'ignore' });
+  // Killing one tree can already end another listed process: an exited one is fine.
+  for (const id of restarted) { try { execFileSync('taskkill', ['/PID', String(id), '/T', '/F'], { stdio: 'ignore' }); } catch { /* gone */ } }
   await delay(3000);
 
   if (portableZip) {
