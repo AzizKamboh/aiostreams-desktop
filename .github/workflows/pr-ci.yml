@@ -40,7 +40,7 @@ jobs:
           fi
           files=$(git diff --name-only "$(git merge-base "$BASE" HEAD)" HEAD)
           printf '%s\n' "$files"
-          grep -qE '^(packages/(core|server|web|frontend|ui|crypto)/|pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|patches/|tsconfig)' <<< "$files" \
+          grep -qE '^(packages/(core|server|web|frontend|ui|crypto)/|pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|patches/|tsconfig|\.github/workflows/pr-ci\.yml)' <<< "$files" \
             && echo "typescript=true" >> "$GITHUB_OUTPUT" || echo "typescript=false" >> "$GITHUB_OUTPUT"
           grep -qE '^packages/desktop/' <<< "$files" \
             && echo "rust=true" >> "$GITHUB_OUTPUT" || echo "rust=false" >> "$GITHUB_OUTPUT"
@@ -91,6 +91,12 @@ jobs:
           node scripts/desktop/generate-metadata.mjs
           pnpm run build
           AIOSTREAMS_DESKTOP_BUILD=1 pnpm -F @aiostreams/web build:standalone
+      # The build bundles the web app, the dashboard and the UI kit without
+      # type checking (core and server are compiled by tsc). A merge that drops
+      # an import or changes a type they use only shows up here.
+      - name: Type-check the web app, dashboard and UI kit
+        # --no-bail: report every package's errors, not only the first package's.
+        run: pnpm --no-bail -F @aiostreams/web -F @aiostreams/frontend -F @aiostreams/ui run typecheck
       - name: Integration tests (private boundary, accounts, storage)
         run: pnpm exec vitest run packages/server/src/desktop.test.ts packages/web/tests/embedded-storage.test.ts packages/web/tests/embedded-accounts.test.ts packages/web/tests/embedded-updates.test.ts
       - name: Workspace tests
