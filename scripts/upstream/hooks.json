@@ -19,7 +19,6 @@
     "packages/web/src/features/remote/remote-target.tsx": "registers the active player",
     "packages/web/src/lib/jellyfin/session.tsx": "local sign-in",
     "packages/web/src/lib/settings/index.ts": "Discord presence default off",
-    "packages/web/src/features/player/mini-player.tsx": "the server panel does not hide the mini player",
     "packages/web/src/lib/storage.ts": "storage change event",
     "packages/web/src/app/settings/account.tsx": "open configuration in-app",
     "packages/web/src/components/media/no-catalogs.tsx": "open configuration in-app",

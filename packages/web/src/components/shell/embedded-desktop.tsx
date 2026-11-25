@@ -539,12 +539,10 @@ function ServerPanel({
     }
   };
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    // A region, not a dialog: upstream's mini player hides under any dialog
+    // (useCovered in mini-player.tsx), and this panel leaves it uncovered.
+    <section
       aria-label={t`AIOStreams Dashboard`}
-      // The mini player looks through it: see useCovered in mini-player.tsx.
-      data-keeps-mini-player=""
       className="fixed inset-0 z-[70] flex flex-col bg-[#101014] pt-10"
       style={hole ? { clipPath: hole } : undefined}
     >
@@ -576,7 +574,7 @@ function ServerPanel({
         className="min-h-0 w-full flex-1 border-0 bg-[#101014]"
         referrerPolicy="no-referrer"
       />
-    </div>
+    </section>
   );
 }
 

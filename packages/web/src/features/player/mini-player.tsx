@@ -203,10 +203,8 @@ function useCovered(box: Box): boolean {
   const check = React.useCallback(() => {
     const over = [...document.querySelectorAll(OVER)].some(
       (el) =>
-        // AIOStreams Integrated: the server panel leaves the mini player uncovered.
-        !el.hasAttribute('data-keeps-mini-player') &&
-        ((el.matches(MODAL) && !el.closest(POPPER)) ||
-        overlaps(box, el.getBoundingClientRect()))
+        (el.matches(MODAL) && !el.closest(POPPER)) ||
+        overlaps(box, el.getBoundingClientRect())
     );
     setCovered(over);
   }, [box]);
