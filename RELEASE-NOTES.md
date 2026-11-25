@@ -1,5 +1,16 @@
 # AIOStreams (integrated Windows app) release notes
 
+## 0.5.1
+
+Upgrades 0.5.0 and earlier in place; data, keys, accounts and settings are
+kept.
+
+- **Smaller, faster updates.** The app no longer ships packages its server
+  never loads (the documentation site's and build tools' dependencies, source
+  maps, type declarations). They were about 600 MB and 30,000 files of the
+  installed app, so downloading and installing an update now takes much less
+  time. Nothing changes in how the app works.
+
 ## 0.5.0
 
 Upgrades 0.4.0 and earlier in place; data, keys, accounts and settings are
