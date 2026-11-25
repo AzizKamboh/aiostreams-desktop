@@ -198,6 +198,52 @@ function useMiniPlayerHole(): string | undefined {
   return hole;
 }
 
+/**
+ * The dashboard downloads files (logs, exports) by opening their URL in a new
+ * window, which the app refuses for its own server. Fetch such a file in the
+ * panel instead and save it to the Downloads folder; any other new window
+ * keeps the usual handling.
+ */
+function saveDownloadsFrom(win: Window): void {
+  const open = win.open.bind(win);
+  win.open = (url?: string | URL, target?: string, features?: string) => {
+    let href: URL;
+    try {
+      href = new URL(String(url ?? ''), win.location.href);
+    } catch {
+      return open(url, target, features);
+    }
+    if (href.origin !== win.location.origin) return open(url, target, features);
+    void (async () => {
+      try {
+        const res = await win.fetch(href.href, { credentials: 'same-origin' });
+        const disposition = res.headers.get('content-disposition') ?? '';
+        if (!res.ok || !/attachment/i.test(disposition)) {
+          open(url, target, features);
+          return;
+        }
+        const name =
+          /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1] ??
+          /filename="?([^";]+)"?/i.exec(disposition)?.[1] ??
+          href.pathname.split('/').pop() ??
+          'download';
+        const blob = URL.createObjectURL(await res.blob());
+        const link = win.document.createElement('a');
+        link.href = blob;
+        link.download = decodeURIComponent(name);
+        win.document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(blob), 60_000);
+        toast(t`Downloading ${link.download}`);
+      } catch {
+        toast.error(t`The download did not complete.`);
+      }
+    })();
+    return null;
+  };
+}
+
 /** Only paths of the local server's own dashboard and configuration open in the panel. */
 function panelPath(path: string): string {
   return path.startsWith('/dashboard') || path.startsWith('/stremio/')
@@ -561,6 +607,7 @@ function ServerPanel({
     try {
       // Same origin: Escape and the shortcuts work while the panel has focus.
       win?.addEventListener('keydown', (event) => latestKey.current(event), true);
+      if (win) saveDownloadsFrom(win);
       // An error answer (JSON, plain text) is not the dashboard page.
       setFailed(win?.document.contentType !== 'text/html');
     } catch {

@@ -33,6 +33,8 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
   first start is slow, **Continue without waiting for AIOMetadata** appears
   under the logo; the library then reloads by itself once AIOMetadata is
   ready.
+- **Fixed:** download buttons in the AIOStreams Dashboard (logs, settings
+  export) did nothing in the app. The file now downloads.
 - **Fixed:** the startup screen could receive no status text (found by the new
   type check).
 
