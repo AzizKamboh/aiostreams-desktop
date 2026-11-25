@@ -251,25 +251,25 @@ try {
   pass('account saved with DPAPI, applied as AIOSTREAMS_AUTH after restart and accepted by the Usenet service check');
   // "Open Usenet providers" opens upstream's dashboard over the library.
   await until(() => connection.evaluate('(() => { const b = [...document.querySelectorAll("button")].find(b => b.innerText.includes("Open Usenet providers")); b?.click(); return !!b; })()'), '"Open Usenet providers" on the account-ready screen');
-  const browseEntry = 'document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelector("[data-vertical-menu-item-button=Home]")';
+  const browseEntry = 'document.querySelector("[data-ui=server-panel] iframe")?.contentDocument?.querySelector("[data-vertical-menu-item-button=Home]")';
   await until(() => connection.evaluate(`!!${browseEntry}`), 'dashboard panel with Home entry', 60000);
   pass('real dashboard opens in the panel with its Home sidebar entry');
   await connection.evaluate("window.__panelMessages=[]; window.addEventListener('message', e => window.__panelMessages.push({ origin: e.origin, data: e.data })); true");
   await connection.evaluate(`${browseEntry}.click(), true`);
   try {
-    await until(() => connection.evaluate('!document.querySelector("[role=dialog] iframe")'), 'Home closes the panel', 15000);
+    await until(() => connection.evaluate('!document.querySelector("[data-ui=server-panel] iframe")'), 'Home closes the panel', 15000);
   } catch (error) {
-    const detail = await connection.evaluate(`JSON.stringify({ messages: window.__panelMessages, entries: document.querySelector("[role=dialog] iframe")?.contentDocument?.querySelectorAll("[data-vertical-menu-item-button=Home]").length, path: document.querySelector("[role=dialog] iframe")?.contentWindow?.location.pathname, inPanel: document.querySelector("[role=dialog] iframe")?.contentWindow?.parent === window })`).catch(() => 'unavailable');
+    const detail = await connection.evaluate(`JSON.stringify({ messages: window.__panelMessages, entries: document.querySelector("[data-ui=server-panel] iframe")?.contentDocument?.querySelectorAll("[data-vertical-menu-item-button=Home]").length, path: document.querySelector("[data-ui=server-panel] iframe")?.contentWindow?.location.pathname, inPanel: document.querySelector("[data-ui=server-panel] iframe")?.contentWindow?.parent === window })`).catch(() => 'unavailable');
     throw new Error(`${error.message}; panel state ${detail}`);
   }
   // Ctrl+, opens it; typing in a field never does; Escape closes it.
   await connection.evaluate("(() => { const input = document.createElement('input'); document.body.append(input); input.focus(); input.dispatchEvent(new KeyboardEvent('keydown', { key: ',', code: 'Comma', ctrlKey: true, bubbles: true })); input.remove(); return true; })()");
   await delay(500);
-  assert.equal(await connection.evaluate('!!document.querySelector("[role=dialog] iframe")'), false, 'Shortcut fired while typing');
+  assert.equal(await connection.evaluate('!!document.querySelector("[data-ui=server-panel] iframe")'), false, 'Shortcut fired while typing');
   await connection.evaluate("window.dispatchEvent(new KeyboardEvent('keydown', { key: ',', code: 'Comma', ctrlKey: true, bubbles: true })), true");
-  await until(() => connection.evaluate('!!document.querySelector("[role=dialog] iframe")'), 'Ctrl+, opens the dashboard');
+  await until(() => connection.evaluate('!!document.querySelector("[data-ui=server-panel] iframe")'), 'Ctrl+, opens the dashboard');
   await connection.evaluate("window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })), true");
-  await until(() => connection.evaluate('!document.querySelector("[role=dialog] iframe")'), 'Escape returns to the library');
+  await until(() => connection.evaluate('!document.querySelector("[data-ui=server-panel] iframe")'), 'Escape returns to the library');
   assert.equal(await connection.evaluate('!!document.querySelector("nav[aria-label=\\"Desktop navigation\\"]")'), false, 'Old floating navigation is still present');
   pass('Home, Ctrl+, and Escape navigation; no shortcut while typing; no floating navigation bar');
   await connection.evaluate('[...document.querySelectorAll("button")].find(b => b.innerText.includes("Ready to browse"))?.click(), true');

@@ -542,6 +542,7 @@ function ServerPanel({
     // A region, not a dialog: upstream's mini player hides under any dialog
     // (useCovered in mini-player.tsx), and this panel leaves it uncovered.
     <section
+      data-ui="server-panel"
       aria-label={t`AIOStreams Dashboard`}
       className="fixed inset-0 z-[70] flex flex-col bg-[#101014] pt-10"
       style={hole ? { clipPath: hole } : undefined}
