@@ -37,8 +37,10 @@ never left behind a newer stable version. See [AUTO-UPDATE.md](AUTO-UPDATE.md).
 
 ## Automatic releases
 
-[`auto-release.yml`](../.github/workflows/auto-release.yml) runs every hour and
-whenever a CI run finishes. Its decisions are pure functions in
+[`auto-release.yml`](../.github/workflows/auto-release.yml) runs every hour,
+whenever a CI run finishes, and after each daily *Upstream Sync*. GitHub can
+delay or skip scheduled runs, so the daily sync is the backstop: a Preview is
+promoted at most about a day after its waiting time ends. Its decisions are pure functions in
 [`scripts/release/auto.mjs`](../scripts/release/auto.mjs), tested in
 `auto.test.mjs`.
 
