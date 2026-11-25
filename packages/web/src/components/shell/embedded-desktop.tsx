@@ -230,6 +230,16 @@ function EmbeddedContent({
       : '/jellyfin';
   });
   const local = mode === 'local' && ready;
+  // At launch the splash stays up until AIOMetadata has started too, so the
+  // library opens with its catalogs. Only once: a later AIOMetadata restart
+  // never brings the splash back, and a slow first start can be skipped.
+  const [aioMetadataWaitOver, setAioMetadataWaitOver] = React.useState(false);
+  const aioMetadataStarting =
+    local && state.aiometadata?.state === 'starting';
+  const holdForAioMetadata = aioMetadataStarting && !aioMetadataWaitOver;
+  React.useEffect(() => {
+    if (ready && !aioMetadataStarting) setAioMetadataWaitOver(true);
+  }, [ready, aioMetadataStarting]);
   /** The dashboard or configuration path open over the client, if any. */
   const [panel, setPanel] = React.useState<string | null>(null);
   const panelRef = React.useRef<string | null>(null);
@@ -442,9 +452,8 @@ function EmbeddedContent({
   return (
     <>
       {/* The launch splash stays up while the local server starts. */}
-      {(mode === 'remote' || ready || state.state !== 'starting') && (
-        <SplashEnd />
-      )}
+      {(mode === 'remote' ||
+        (state.state !== 'starting' && !holdForAioMetadata)) && <SplashEnd />}
       {local && (
         <LocalLinks
           base={base}
@@ -460,6 +469,11 @@ function EmbeddedContent({
       )}
       {mode === 'remote' ? (
         remote
+      ) : holdForAioMetadata ? (
+        <StartupCaption
+          message={state.aiometadata?.message || t`Starting AIOMetadata…`}
+          onSkip={() => setAioMetadataWaitOver(true)}
+        />
       ) : ready ? (
         <React.Fragment key={sessionKey}>
           {browse(base, () => chooseMode('remote'))}
@@ -653,7 +667,14 @@ const SLOW_START_MS = 45_000;
  * A quiet line under the launch splash's breathing logo: the stage the shell
  * reports, never an invented percentage or a clock.
  */
-function StartupCaption({ message }: { message: string }) {
+function StartupCaption({
+  message,
+  onSkip,
+}: {
+  message: string;
+  /** Offered once the start is slow: open the app without waiting. */
+  onSkip?(): void;
+}) {
   const [slow, setSlow] = React.useState(false);
   React.useEffect(() => {
     const timer = setTimeout(() => setSlow(true), SLOW_START_MS);
@@ -686,6 +707,14 @@ function StartupCaption({ message }: { message: string }) {
           <button type="button" onClick={openLogs} className="underline underline-offset-2 hover:text-gray-300">
             <Trans>Open logs</Trans>
           </button>
+          {onSkip && (
+            <>
+              {' · '}
+              <button type="button" onClick={onSkip} className="underline underline-offset-2 hover:text-gray-300">
+                <Trans>Continue without waiting for AIOMetadata</Trans>
+              </button>
+            </>
+          )}
         </p>
       )}
     </div>

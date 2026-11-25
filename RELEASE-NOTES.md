@@ -27,9 +27,12 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
 - Behind the scenes: the Windows update test now follows the build's channel,
   so automatic Preview builds pass it (the first one stopped there; nothing was
   published).
-- **Fixed:** AIOMetadata's catalogs were missing ("No catalogs yet") when
-  the app opened before AIOMetadata had finished starting. The library now
-  reloads by itself once AIOMetadata is ready.
+- **The app opens once both servers have started.** The launch screen now
+  waits for AIOMetadata as well as AIOStreams, so the library opens with
+  AIOMetadata's catalogs instead of "No catalogs yet". If AIOMetadata's
+  first start is slow, **Continue without waiting for AIOMetadata** appears
+  under the logo; the library then reloads by itself once AIOMetadata is
+  ready.
 - **Fixed:** the startup screen could receive no status text (found by the new
   type check).
 

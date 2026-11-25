@@ -97,8 +97,9 @@ admin key are encrypted with Windows DPAPI. Details:
 
 1. Run `aiostreams-integrated-win-x64-Setup.exe`. It installs for your Windows
    user and adds **AIOStreams Integrated** shortcuts on the desktop and in the Start menu.
-2. The app starts its local servers (the first start can take a few minutes
-   while upstream data downloads) and asks you to create an **AIOStreams
+2. The app starts its local servers, AIOStreams and AIOMetadata, and opens
+   once both are up (the first start can take a few minutes while upstream
+   data downloads). It then asks you to create an **AIOStreams
    account**, the equivalent of `AIOSTREAMS_AUTH`. Skip it if you do not use
    built-in Usenet.
 3. It then asks for **AIOMetadata's admin key** (Generate makes one). It opens
