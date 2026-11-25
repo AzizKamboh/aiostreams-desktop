@@ -104,6 +104,12 @@ The production dependency stage uses pnpm's hoisted linker and replaces
 workspace junctions with package entry points targeting the retained
 monorepo paths. It therefore survives zip extraction and does not depend on
 the build machine, administrator privileges, or Windows Developer Mode.
+Finalize then keeps only the packages Node can reach from the server, core
+and crypto packages (pnpm's hoisted install of the workspace lockfile also
+places the docs site's and build tools' packages, about half the payload) and
+removes files nothing loads at run time: source maps, type declarations,
+Markdown other than licences, and native build leftovers. Licence and notice
+files stay, and `third-party-node-packages.json` lists the shipped packages.
 The optional crypto acceleration addon retains upstream's Node crypto
 fallback. Native SQLite, bcrypt, and yencode must load under bundled Node;
 the smoke test fails packaging if the server cannot start.
