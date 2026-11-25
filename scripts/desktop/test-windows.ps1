@@ -12,13 +12,18 @@ try {
   $stage = Join-Path $root '.embedded-build/stage'
   $node = Join-Path $stage 'backend/node.exe'
   $vpk = Join-Path $root '.embedded-build/tools/vpk/vpk.exe'
+  # The channel of the build under test (win-x64 or win-x64-preview): its test
+  # updates must be on the same Velopack channel, or the installed app would
+  # look for a different feed.
+  $channel = (Get-Content '.embedded-releases/BUILD-INFO.json' -Raw | ConvertFrom-Json).velopackChannel
+  if ($channel -notin @('win-x64', 'win-x64-preview')) { throw "Unexpected Velopack channel '$channel' in BUILD-INFO.json." }
   # Test-only newer packages, never published or included in release artifacts.
   # They contain the same app; only their version differs.
   function Pack-Test([string]$Version, [string]$Output) {
     & $vpk pack --packId aiostreams-integrated --packVersion $Version `
       --packDir $stage --mainExe aiostreams-desktop.exe --packTitle 'AIOStreams Integrated' `
       --packAuthors 'AIOStreams contributors; integrated desktop contributors' `
-      --icon packages/desktop/app/icons/aiostreams.ico --channel win-x64 `
+      --icon packages/desktop/app/icons/aiostreams.ico --channel $channel `
       --runtime win-x64 --shortcuts Desktop,StartMenuRoot --instLocation PerUser --outputDir $Output
     if ($LASTEXITCODE -ne 0) { throw "Could not create the $Version test package." }
   }
@@ -31,7 +36,7 @@ try {
   & $node scripts/desktop/native-smoke.mjs $stage .embedded-build/native-evidence `
     --installer $setup.FullName --upgrade $upgrade.FullName
   if ($LASTEXITCODE -ne 0) { throw 'Native installer/playback/upgrade validation failed.' }
-  $updateArgs = @('--installer', $setup.FullName, '--feed', $upgradeDir, '--next-feed', $nextDir, '--evidence', '.embedded-build/native-evidence')
+  $updateArgs = @('--installer', $setup.FullName, '--feed', $upgradeDir, '--next-feed', $nextDir, '--evidence', '.embedded-build/native-evidence', '--channel', $channel)
   if ($portable) { $updateArgs += @('--portable', $portable.FullName) }
   & $node scripts/desktop/native-update.mjs @updateArgs
   if ($LASTEXITCODE -ne 0) { throw 'Native update validation failed.' }

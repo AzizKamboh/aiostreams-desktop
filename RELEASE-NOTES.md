@@ -17,6 +17,9 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
   in Settings → Local server). The **Download source code** link is gone from
   Settings → Local server; every release still ships the full source.
   "AIOStreams accounts" is now **AIOStreams AUTH**.
+- Behind the scenes: the Windows update test now follows the build's channel,
+  so automatic Preview builds pass it (the first one stopped there; nothing was
+  published).
 - **Fixed:** the startup screen could receive no status text (found by the new
   type check).
 

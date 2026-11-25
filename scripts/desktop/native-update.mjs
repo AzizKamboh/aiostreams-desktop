@@ -28,7 +28,10 @@ const feedDir = path.resolve(option('--feed') ?? assert.fail('--feed is required
 const nextFeedDir = path.resolve(option('--next-feed') ?? assert.fail('--next-feed is required'));
 const portableZip = option('--portable') && path.resolve(option('--portable'));
 const evidence = path.resolve(option('--evidence') ?? '.embedded-build/native-evidence');
-const CHANNEL = 'win-x64';
+// The Velopack channel of the build under test; its updater reports the app channel.
+const CHANNEL = option('--channel') ?? 'win-x64';
+assert.ok(['win-x64', 'win-x64-preview'].includes(CHANNEL), `Unknown channel ${CHANNEL}`);
+const APP_CHANNEL = CHANNEL === 'win-x64-preview' ? 'preview' : 'stable';
 await mkdir(evidence, { recursive: true });
 
 // --- Fixture feed: one server, switchable between healthy and broken feeds.
@@ -254,8 +257,8 @@ try {
   const first = await updateState('integrated-update-status', (s) => s.state !== 'off', 'updater running');
   assert.equal(first.installedVersion, original);
   assert.equal(first.feed, feedUrl);
-  assert.equal(first.channel, 'stable');
-  pass('the installed app runs its updater on the stable channel and the configured feed');
+  assert.equal(first.channel, APP_CHANNEL);
+  pass(`the installed app runs its updater on the ${APP_CHANNEL} channel and the configured feed`);
 
   for (const [m, pattern, label] of [
     ['missing', /404/, 'missing update feed'],
