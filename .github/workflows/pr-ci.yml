@@ -40,7 +40,7 @@ jobs:
           fi
           files=$(git diff --name-only "$(git merge-base "$BASE" HEAD)" HEAD)
           printf '%s\n' "$files"
-          grep -qE '^(packages/(core|server|web|frontend|ui|crypto)/|pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|patches/|tsconfig)' <<< "$files" \
+          grep -qE '^(packages/(core|server|web|frontend|ui|crypto)/|pnpm-lock\.yaml|package\.json|pnpm-workspace\.yaml|patches/|tsconfig|\.github/workflows/pr-ci\.yml)' <<< "$files" \
             && echo "typescript=true" >> "$GITHUB_OUTPUT" || echo "typescript=false" >> "$GITHUB_OUTPUT"
           grep -qE '^packages/desktop/' <<< "$files" \
             && echo "rust=true" >> "$GITHUB_OUTPUT" || echo "rust=false" >> "$GITHUB_OUTPUT"
