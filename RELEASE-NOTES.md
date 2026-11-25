@@ -16,7 +16,7 @@ Automatic release after 0.4.0: upstream AIOStreams and AIOMetadata updates and f
   status, like upstream's own app (errors appear in the status; versions are
   in Settings → Local server). The **Download source code** link is gone from
   Settings → Local server; every release still ships the full source.
-  "AIOStreams accounts" is now **Accounts**.
+  "AIOStreams accounts" is now **AIOStreams AUTH**.
 - **Fixed:** the startup screen could receive no status text (found by the new
   type check).
 

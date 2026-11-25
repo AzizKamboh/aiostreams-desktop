@@ -77,7 +77,7 @@ To stream from your Usenet providers:
 
 The AIOStreams account is not your Usenet provider login, and it is separate
 from a configuration's password. Change accounts later in **Settings → Local
-server → Accounts**. Changing a password or removing an account stops
+server → AIOStreams AUTH**. Changing a password or removing an account stops
 configurations that use the old `username:password` until you paste the new
 one; unchanged accounts keep working. You can skip the setup; Debrid and
 WebDAV-based services do not need it, and remote-server users are never asked.

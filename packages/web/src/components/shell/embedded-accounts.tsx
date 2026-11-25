@@ -253,7 +253,7 @@ export function AccountSetup({
         <div className="flex flex-col gap-3">
           <img src="./logo.png" alt="AIOStreams" className="h-14 w-14 object-contain" />
           <h1 id="account-setup-title" className="text-3xl font-semibold">
-            {managing ? t`Accounts` : t`Create your AIOStreams account`}
+            {managing ? t`AIOStreams AUTH` : t`Create your AIOStreams account`}
           </h1>
           {!managing && (
             <p className="text-gray-300">
@@ -593,7 +593,7 @@ export function AccountsSummary({
   return (
     <section className="flex flex-col gap-3 rounded-xl border border-white/10 p-4">
       <h2 className="text-lg font-semibold">
-        <Trans>Accounts</Trans>
+        <Trans>AIOStreams AUTH</Trans>
       </h2>
       {accountsError ? (
         <p role="alert" className="text-sm text-red-300">
