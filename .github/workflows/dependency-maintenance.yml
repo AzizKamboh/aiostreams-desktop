@@ -75,8 +75,13 @@ jobs:
           git config user.email 'aiostreams-integrated-maintenance@users.noreply.github.com'
           git switch -C "$BRANCH"
           git commit -qam 'chore(deps): update integration-owned runtime and action pins'
-          # This bot-owned branch only ever holds the latest proposal.
-          git push --force-with-lease origin "HEAD:refs/heads/$BRANCH"
+          # This bot-owned branch only ever holds the latest proposal. The
+          # checkout tracks main only, so a bare --force-with-lease finds no
+          # tracking ref for the branch an earlier proposal left and refuses
+          # the push as "stale info". Lease on its current tip instead (empty:
+          # it must not exist yet).
+          expected=$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)
+          git push --force-with-lease="refs/heads/$BRANCH:$expected" origin "HEAD:refs/heads/$BRANCH"
           if [ -z "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')" ]; then
             gh pr create --base main --head "$BRANCH" --title 'chore(deps): update integration-owned runtime and action pins' --body-file "$body"
           else
