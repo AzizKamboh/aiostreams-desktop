@@ -37,8 +37,8 @@ never left behind a newer stable version. See [AUTO-UPDATE.md](AUTO-UPDATE.md).
 
 ## Automatic releases
 
-[`auto-release.yml`](../.github/workflows/auto-release.yml) runs every hour,
-whenever a CI run finishes, and after each daily *Upstream Sync*. GitHub can
+[`auto-release.yml`](../.github/workflows/auto-release.yml) runs every 12 hours
+(05:41 and 17:41 UTC), whenever a CI run finishes, and after each daily *Upstream Sync*. GitHub can
 delay or skip scheduled runs, so the daily sync is the backstop: a Preview is
 promoted at most about a day after its waiting time ends. Its decisions are pure functions in
 [`scripts/release/auto.mjs`](../scripts/release/auto.mjs), tested in
@@ -59,7 +59,7 @@ Controls (Settings → Secrets and variables → Actions → **Variables**):
 - **Promote now**: Actions → *Auto release* → Run workflow with **promote**.
 - **Stop a bad release reaching Stable**: open an issue with the label
   `release-blocker`. A bad Preview is replaced by fixing `main`: the next
-  Preview follows within the hour (feeds never move backwards, so there is
+  Preview starts as soon as the fix's checks on `main` finish (feeds never move backwards, so there is
   no un-publishing; see [AUTO-UPDATE.md](AUTO-UPDATE.md#rollback-and-recovery)).
 
 Automatic merging uses the Actions token (or the sync GitHub App). If you
