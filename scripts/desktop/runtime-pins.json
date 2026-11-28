@@ -15,10 +15,10 @@
     "sha256": "edde778f6bdee7581e42fc139ca9e07e2822212092f7501f99989656e3629d02"
   },
   "aiometadata": {
-    "version": "4.1.0",
+    "version": "4.2.1",
     "repository": "https://github.com/cedya77/aiometadata.git",
-    "tag": "v4.1.0",
-    "commit": "bb8610d52ad750581c20b1caf1561a7673f04635"
+    "tag": "v4.2.1",
+    "commit": "bf7f520c6288812b27c42c47a837cb6ee1e144b3"
   },
   "webview2": {
     "version": "157.0.4341.46",
