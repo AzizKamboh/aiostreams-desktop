@@ -3,7 +3,7 @@ name: Auto release
 # Upstream sync → automatic Preview → Stable after a waiting period.
 # See docs/RELEASE-PROCESS.md, "Automatic releases".
 #
-# Every hour, whenever a CI run finishes, and after each daily Upstream Sync
+# Every 12 hours, whenever a CI run finishes, and after each daily Upstream Sync
 # (GitHub can delay or skip scheduled runs; the daily sync still runs, so a
 # Preview is never promoted more than about a day late):
 #  1. merges open `upstream-sync` (AIOStreams, AIOMetadata) and `release-bump`
@@ -23,7 +23,7 @@ name: Auto release
 # manual release process keeps working either way.
 on:
   schedule:
-    - cron: '41 * * * *'
+    - cron: '41 5,17 * * *'
   workflow_run:
     workflows: ['Pull Request CI', 'Integrated Windows desktop', 'Release publishing', 'Upstream Sync']
     types: [completed]
